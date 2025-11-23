@@ -1,15 +1,14 @@
 "use server";
 
-import { cookies } from "next/headers";
-import { Role } from "./type";
 import { jwtVerify, SignJWT } from "jose";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 export type Session = {
   user: {
     id: number;
     name: string;
-    role: Role;
+    role: "teacher" | "student";
     subdomain: string | null;
   };
   accessToken: string;
