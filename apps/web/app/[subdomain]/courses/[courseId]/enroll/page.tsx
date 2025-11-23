@@ -1,45 +1,45 @@
 "use client";
 
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { getCourse } from "@/lib/courses";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { useParams, useRouter } from "next/navigation";
+import { classValidatorResolver } from "@hookform/resolvers/class-validator";
+import { ValidateCodeDto } from "@lms-saas/shared-lib/dtos";
+import { useQuery } from "@tanstack/react-query";
 import { BookOpen, Clock, Loader, Star, Users } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useMemo } from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Card,
-  CardHeader,
   CardContent,
   CardFooter,
+  CardHeader,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import Link from "next/link";
-import { attempt, cn } from "@/lib/utils";
-import Image from "next/image";
 import {
   Dialog,
-  DialogHeader,
-  DialogTitle,
   DialogContent,
   DialogDescription,
   DialogFooter,
+  DialogHeader,
+  DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { useForm } from "react-hook-form";
-import { ValidateCodeDto } from "@lms-saas/shared-lib/dtos";
-import { useMemo } from "react";
-import { classValidatorResolver } from "@hookform/resolvers/class-validator";
 import {
   Form,
-  FormMessage,
   FormControl,
   FormField,
-  FormLabel,
   FormItem,
+  FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { validateCourseCode } from "@/lib/course-codes";
-import { useTranslations } from "next-intl";
+import { getCourse } from "@/lib/courses";
+import { attempt, cn } from "@/lib/utils";
 export default function CourseEnrollPage() {
   const params = useParams();
   const t = useTranslations();
@@ -92,7 +92,7 @@ export default function CourseEnrollPage() {
                     •{" "}
                     {course.courseSections?.reduce(
                       (acc, section) => acc + (section.lessons?.length || 0),
-                      0,
+                      0
                     )}{" "}
                     {t("courses.lessons")}
                   </p>
@@ -101,7 +101,7 @@ export default function CourseEnrollPage() {
 
               <div className="space-y-4">
                 {course.courseSections?.map((section) => (
-                  <Card key={section.id} className="overflow-hidden">
+                  <Card className="overflow-hidden" key={section.id}>
                     <CardHeader className="bg-muted/50 p-4">
                       <h3 className="font-semibold">{section.title}</h3>
                     </CardHeader>
@@ -109,8 +109,8 @@ export default function CourseEnrollPage() {
                       <div className="divide-y">
                         {section.lessons?.map((lesson) => (
                           <div
-                            key={lesson.id}
                             className="hover:bg-muted/50 flex items-center justify-between p-4 transition-colors"
+                            key={lesson.id}
                           >
                             <div className="flex items-center gap-3">
                               <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-full">
@@ -135,11 +135,11 @@ export default function CourseEnrollPage() {
               <div className="relative aspect-video">
                 {course.imageUrl ? (
                   <Image
-                    src={course.imageUrl}
                     alt={course.title}
-                    className="h-full w-full object-cover"
-                    width={600}
+                    className="h-96 w-full object-cover"
                     height={192}
+                    src={course.imageUrl}
+                    width={600}
                   />
                 ) : (
                   <div className="bg-muted flex h-full w-full items-center justify-center">
@@ -149,8 +149,8 @@ export default function CourseEnrollPage() {
               </div>
               <div className="absolute top-2 right-2">
                 <Badge
-                  variant="secondary"
                   className="border-border border backdrop-blur-sm"
+                  variant="secondary"
                 >
                   ${course.price}
                 </Badge>
@@ -205,11 +205,11 @@ export default function CourseEnrollPage() {
             <CardFooter className="bg-muted/50 border-t p-4">
               {course.enrollments?.[0] ? (
                 <Link
-                  href={`/courses/${courseId}`}
                   className={cn(
                     buttonVariants({ variant: "default" }),
-                    "w-full gap-2 text-sm transition-colors",
+                    "w-full gap-2 text-sm transition-colors"
                   )}
+                  href={`/courses/${courseId}`}
                 >
                   <BookOpen className="h-4 w-4" />
                   {t("courses.courseDetails")}
@@ -217,8 +217,8 @@ export default function CourseEnrollPage() {
               ) : (
                 <DialogTrigger asChild>
                   <Button
-                    variant="default"
                     className="w-full gap-2 text-sm transition-colors"
+                    variant="default"
                   >
                     <BookOpen className="h-4 w-4" />
                     {t("courses.enrollNow")}
@@ -247,7 +247,7 @@ const EnrollDialogContent = ({ courseId }: { courseId: number }) => {
 
   async function onSubmit(data: ValidateCodeDto) {
     const [response, error] = await attempt(
-      validateCourseCode(courseId, data.code),
+      validateCourseCode(courseId, data.code)
     );
 
     if (error) {
@@ -282,8 +282,8 @@ const EnrollDialogContent = ({ courseId }: { courseId: number }) => {
                   <FormLabel>{t("courses.courseCode")}</FormLabel>
                   <FormControl>
                     <Input
-                      type="text"
                       placeholder={t("courses.courseCodePlaceholder")}
+                      type="text"
                       {...field}
                     />
                   </FormControl>
@@ -292,8 +292,8 @@ const EnrollDialogContent = ({ courseId }: { courseId: number }) => {
               )}
             />
             <Button
-              type="submit"
               disabled={form.formState.isSubmitting || !form.formState.isValid}
+              type="submit"
             >
               {form.formState.isSubmitting
                 ? t("courses.enrolling")
