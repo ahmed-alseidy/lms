@@ -3,6 +3,8 @@ import {
   CreateQuizAnswerDto,
   CreateQuizDto,
   CreateQuizQuestionDto,
+  SaveAnswerDto,
+  StartQuizDto,
   UpdateQuizAnswerDto,
   UpdateQuizDto,
   UpdateQuizQuestionDto,
@@ -62,11 +64,43 @@ export class QuizzesController {
     return this.quizzesService.delete(quizId);
   }
 
+  @Post("/:quizId/start")
+  @Roles("student")
+  async startQuiz(
+    @Req() req: any,
+    @Param("quizId", ParseUUIDPipe) quizId: string,
+    @Body() dto: StartQuizDto
+  ) {
+    return this.quizzesService.startQuiz(quizId, req.user.id, dto);
+  }
+
+  @Post("/:quizId/save-answer")
+  @Roles("student")
+  async saveAnswer(
+    @Req() req: any,
+    @Param("quizId", ParseUUIDPipe) quizId: string,
+    @Body() dto: SaveAnswerDto
+  ) {
+    return this.quizzesService.saveAnswer(quizId, req.user.id, dto);
+  }
+
+  @Get("/:quizId/resume")
+  @Roles("student")
+  async resumeQuiz(
+    @Req() req: any,
+    @Param("quizId", ParseUUIDPipe) quizId: string,
+    @Query("enrollmentId", ParseIntPipe) enrollmentId: number
+  ) {
+    return this.quizzesService.resumeQuiz(quizId, req.user.id, {
+      enrollmentId,
+    });
+  }
+
   @Post("/:quizId/submit")
   @Roles("student")
   async completeQuiz(
     @Req() req: any,
-    @Param('quizId', ParseUUIDPipe) quizId: string,
+    @Param("quizId", ParseUUIDPipe) quizId: string,
     @Body() dto: CompleteQuizDto
   ) {
     return this.quizzesService.completeQuiz(quizId, req.user.id, dto);
@@ -145,8 +179,16 @@ export class QuizzesController {
   @Roles("student")
   async getQuizResults(
     @Req() req: any,
-    @Param('quizId', ParseUUIDPipe) quizId: string
+    @Param("quizId", ParseUUIDPipe) quizId: string
   ) {
     return this.quizzesService.getQuizResults(req.user.id, quizId);
+  }
+
+  @Get("/:quizId/analytics")
+  @Roles("teacher")
+  async getQuizAnalytics(
+    @Param("quizId", ParseUUIDPipe) quizId: string
+  ) {
+    return this.quizzesService.getQuizAnalytics(quizId);
   }
 }

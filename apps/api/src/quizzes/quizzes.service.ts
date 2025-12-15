@@ -4,11 +4,16 @@ import {
   CreateQuizDto,
   CreateQuizQuestionDto,
   db,
+  enrollments,
   lessons,
   quizAnswers,
   quizQuestions,
+  quizResponses,
   quizSubmissions,
   quizzes,
+  ResumeQuizDto,
+  SaveAnswerDto,
+  StartQuizDto,
   studentLessonCompletions,
   studentVideoCompletions,
   submittedQuestionAnswers,
@@ -17,12 +22,13 @@ import {
   UpdateQuizQuestionDto,
 } from "@lms-saas/shared-lib";
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
 } from "@nestjs/common";
-import { and, asc, count, eq, inArray } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray, max, sql } from "drizzle-orm";
 import { attempt } from "@/utils/error-handling";
 
 @Injectable()
@@ -302,6 +308,285 @@ export class QuizzesService {
     }
   }
 
+  /**
+   * Start a new quiz attempt for a student
+   * Creates a quiz submission record with started_at timestamp
+   */
+  async startQuiz(quizId: string, studentId: number, dto: StartQuizDto) {
+    const [quiz, quizError] = await attempt(
+      db.query.quizzes.findFirst({
+        where: eq(quizzes.id, quizId),
+        columns: {
+          id: true,
+          allowMultipleAttempts: true,
+          duration: true,
+        },
+      })
+    );
+
+    if (quizError) {
+      throw quizError;
+    }
+
+    if (!quiz) {
+      throw new NotFoundException("Quiz not found");
+    }
+
+    // Check if student is enrolled
+    const enrollment = await db.query.enrollments.findFirst({
+      where: eq(enrollments.id, dto.enrollmentId),
+      columns: {
+        id: true,
+        studentId: true,
+      },
+    });
+
+    if (!enrollment || enrollment.studentId !== studentId) {
+      throw new NotFoundException("Enrollment not found");
+    }
+
+    // Check for existing in-progress submission
+    const inProgressSubmission = await db.query.quizSubmissions.findFirst({
+      where: and(
+        eq(quizSubmissions.quizId, quizId),
+        eq(quizSubmissions.enrollmentId, dto.enrollmentId),
+        eq(quizSubmissions.completed, false)
+      ),
+    });
+
+    if (inProgressSubmission) {
+      // Return existing in-progress submission
+      return {
+        submissionId: inProgressSubmission.id,
+        attempt: inProgressSubmission.attempt,
+        startedAt: inProgressSubmission.startedAt,
+        timeRemaining: this.calculateTimeRemaining(
+          inProgressSubmission.startedAt,
+          quiz.duration
+        ),
+      };
+    }
+
+    // Get the next attempt number
+    const [maxAttempt] = await db
+      .select({ maxAttempt: max(quizSubmissions.attempt) })
+      .from(quizSubmissions)
+      .where(
+        and(
+          eq(quizSubmissions.quizId, quizId),
+          eq(quizSubmissions.enrollmentId, dto.enrollmentId)
+        )
+      );
+
+    const nextAttempt = (maxAttempt?.maxAttempt || 0) + 1;
+
+    // Check if multiple attempts are allowed
+    if (nextAttempt > 1 && !quiz.allowMultipleAttempts) {
+      throw new ConflictException(
+        "Multiple attempts not allowed for this quiz"
+      );
+    }
+
+    // Create new submission
+    const [submission] = await db
+      .insert(quizSubmissions)
+      .values({
+        quizId,
+        enrollmentId: dto.enrollmentId,
+        studentId,
+        attempt: nextAttempt,
+        startedAt: sql`CURRENT_TIMESTAMP`,
+        completed: false,
+      })
+      .returning({
+        id: quizSubmissions.id,
+        attempt: quizSubmissions.attempt,
+        startedAt: quizSubmissions.startedAt,
+      });
+
+    return {
+      submissionId: submission.id,
+      attempt: submission.attempt,
+      startedAt: submission.startedAt,
+      timeRemaining: quiz.duration * 60, // Convert minutes to seconds
+    };
+  }
+
+  /**
+   * Save or update an answer during quiz taking (auto-save)
+   * Stores answer in quiz_responses table (can be updated until submission)
+   */
+  async saveAnswer(quizId: string, studentId: number, dto: SaveAnswerDto) {
+    // Verify submission belongs to student and quiz
+    const submission = await db.query.quizSubmissions.findFirst({
+      where: and(
+        eq(quizSubmissions.id, dto.submissionId),
+        eq(quizSubmissions.studentId, studentId),
+        eq(quizSubmissions.quizId, quizId),
+        eq(quizSubmissions.completed, false) // Can't save answers to completed quiz
+      ),
+      columns: {
+        id: true,
+        startedAt: true,
+      },
+    });
+
+    if (!submission) {
+      throw new NotFoundException("Active quiz submission not found");
+    }
+
+    // Verify question belongs to quiz
+    const question = await db.query.quizQuestions.findFirst({
+      where: and(
+        eq(quizQuestions.id, dto.questionId),
+        eq(quizQuestions.quizId, quizId)
+      ),
+      columns: {
+        id: true,
+      },
+    });
+
+    if (!question) {
+      throw new NotFoundException("Question not found in this quiz");
+    }
+
+    // Verify answer belongs to question
+    const answer = await db.query.quizAnswers.findFirst({
+      where: and(
+        eq(quizAnswers.id, dto.answerId),
+        eq(quizAnswers.questionId, dto.questionId)
+      ),
+      columns: {
+        id: true,
+      },
+    });
+
+    if (!answer) {
+      throw new NotFoundException("Answer not found for this question");
+    }
+
+    // Check if time has expired
+    const quiz = await db.query.quizzes.findFirst({
+      where: eq(quizzes.id, quizId),
+      columns: {
+        duration: true,
+      },
+    });
+
+    if (!quiz) {
+      throw new NotFoundException("Quiz not found");
+    }
+
+    const timeRemaining = this.calculateTimeRemaining(
+      submission.startedAt,
+      quiz.duration
+    );
+
+    if (timeRemaining <= 0) {
+      throw new BadRequestException("Quiz time has expired");
+    }
+
+    // Upsert answer (insert or update)
+    await db
+      .insert(quizResponses)
+      .values({
+        submissionId: dto.submissionId,
+        questionId: dto.questionId,
+        answerId: dto.answerId,
+      })
+      .onConflictDoUpdate({
+        target: [quizResponses.submissionId, quizResponses.questionId],
+        set: {
+          answerId: dto.answerId,
+          updatedAt: sql`CURRENT_TIMESTAMP`,
+        },
+      });
+
+    return {
+      success: true,
+      timeRemaining,
+    };
+  }
+
+  /**
+   * Resume an in-progress quiz
+   * Returns submission with saved answers and time remaining
+   */
+  async resumeQuiz(quizId: string, studentId: number, dto: ResumeQuizDto) {
+    const submission = await db.query.quizSubmissions.findFirst({
+      where: and(
+        eq(quizSubmissions.quizId, quizId),
+        eq(quizSubmissions.enrollmentId, dto.enrollmentId),
+        eq(quizSubmissions.studentId, studentId),
+        eq(quizSubmissions.completed, false)
+      ),
+      columns: {
+        id: true,
+        attempt: true,
+        startedAt: true,
+      },
+      with: {
+        quizResponses: {
+          columns: {
+            questionId: true,
+            answerId: true,
+          },
+        },
+      },
+      orderBy: [desc(quizSubmissions.startedAt)],
+    });
+
+    if (!submission) {
+      throw new NotFoundException("No in-progress quiz found");
+    }
+
+    const quiz = await db.query.quizzes.findFirst({
+      where: eq(quizzes.id, quizId),
+      columns: {
+        duration: true,
+      },
+    });
+
+    if (!quiz) {
+      throw new NotFoundException("Quiz not found");
+    }
+
+    const timeRemaining = this.calculateTimeRemaining(
+      submission.startedAt,
+      quiz.duration
+    );
+
+    // Convert responses to map for easy lookup
+    const savedAnswers: Record<number, number> = {};
+    for (const response of submission.quizResponses) {
+      savedAnswers[response.questionId] = response.answerId;
+    }
+
+    return {
+      submissionId: submission.id,
+      attempt: submission.attempt,
+      startedAt: submission.startedAt,
+      timeRemaining: Math.max(0, timeRemaining),
+      savedAnswers,
+    };
+  }
+
+  /**
+   * Calculate time remaining in seconds
+   */
+  private calculateTimeRemaining(
+    startedAt: Date,
+    durationMinutes: number
+  ): number {
+    const now = new Date();
+    const started = new Date(startedAt);
+    const elapsedSeconds = Math.floor(
+      (now.getTime() - started.getTime()) / 1000
+    );
+    const totalSeconds = durationMinutes * 60;
+    return Math.max(0, totalSeconds - elapsedSeconds);
+  }
+
   async completeQuiz(quizId: string, studentId: number, dto: CompleteQuizDto) {
     // Check if quiz exists
     const [quiz, quizError] = await attempt(
@@ -310,6 +595,7 @@ export class QuizzesService {
         columns: {
           id: true,
           lessonId: true,
+          duration: true,
         },
       })
     );
@@ -324,22 +610,56 @@ export class QuizzesService {
 
     const [, error] = await attempt(
       db.transaction(async (tx) => {
-        // Check if quiz is already completed
-        const quizCompletion = await tx.query.quizSubmissions.findFirst({
+        // Find the active (in-progress) submission
+        const submission = await tx.query.quizSubmissions.findFirst({
           where: and(
             eq(quizSubmissions.enrollmentId, dto.enrollmentId),
-            eq(quizSubmissions.quizId, quizId)
+            eq(quizSubmissions.quizId, quizId),
+            eq(quizSubmissions.studentId, studentId),
+            eq(quizSubmissions.completed, false)
           ),
+          columns: {
+            id: true,
+            startedAt: true,
+            attempt: true,
+          },
+          with: {
+            quizResponses: {
+              columns: {
+                questionId: true,
+                answerId: true,
+              },
+            },
+          },
+          orderBy: [desc(quizSubmissions.startedAt)],
         });
 
-        if (quizCompletion) {
-          throw new ConflictException("Quiz already completed");
+        if (!submission) {
+          throw new NotFoundException("No active quiz submission found");
         }
 
-        // TODO: Add multiple answers logic
-        // Calculate score
-        const questionsIds = dto.answers.map((a) => a.questionId);
-        const answersIds = dto.answers.map((a) => a.answerId);
+        // Check if time has expired
+        const timeRemaining = this.calculateTimeRemaining(
+          submission.startedAt,
+          quiz.duration
+        );
+
+        if (timeRemaining <= 0) {
+          throw new BadRequestException("Quiz time has expired");
+        }
+
+        // Use saved responses from quiz_responses, or fall back to dto.answers
+        const answersToGrade =
+          submission.quizResponses.length > 0
+            ? submission.quizResponses.map((r) => ({
+                questionId: r.questionId,
+                answerId: r.answerId,
+              }))
+            : dto.answers;
+
+        // Calculate score based on correct answers
+        const questionsIds = answersToGrade.map((a) => a.questionId);
+        const answersIds = answersToGrade.map((a) => a.answerId);
 
         const submittedAnswers = await tx.query.quizAnswers.findMany({
           where: and(
@@ -347,13 +667,22 @@ export class QuizzesService {
             inArray(quizAnswers.id, answersIds)
           ),
           columns: {
+            questionId: true,
             isCorrect: true,
           },
         });
 
-        let score = 0;
+        // Count correct answers per question
+        const correctAnswersByQuestion = new Map<number, boolean>();
         for (const answer of submittedAnswers) {
-          score += answer.isCorrect ? 1 : 0;
+          const existing = correctAnswersByQuestion.get(answer.questionId);
+          // For MCQ/TrueFalse, only one answer per question, so this is correct
+          correctAnswersByQuestion.set(answer.questionId, answer.isCorrect);
+        }
+
+        let correctCount = 0;
+        for (const [questionId, isCorrect] of correctAnswersByQuestion) {
+          if (isCorrect) correctCount++;
         }
 
         const [totalQuestionsCount] = await tx
@@ -363,42 +692,28 @@ export class QuizzesService {
           .from(quizQuestions)
           .where(eq(quizQuestions.quizId, quizId));
 
-        score /= totalQuestionsCount.count;
+        const score =
+          totalQuestionsCount.count > 0
+            ? correctCount / totalQuestionsCount.count
+            : 0;
 
-        // Create quiz completion
-        const [quizCompletionInsertionResult] = await tx
-          .insert(quizSubmissions)
-          .values({
-            enrollmentId: dto.enrollmentId,
-            quizId,
-            studentId,
+        // Update submission to mark as completed
+        await tx
+          .update(quizSubmissions)
+          .set({
+            completed: true,
             score: score.toString(),
+            completedAt: sql`CURRENT_TIMESTAMP`,
           })
-          .returning({
-            id: quizSubmissions.id,
-          });
+          .where(eq(quizSubmissions.id, submission.id));
 
-        // Insert submitted questions
-        const correctAnswers = await tx.query.quizAnswers.findMany({
-          where: and(
-            inArray(quizAnswers.questionId, questionsIds),
-            eq(quizAnswers.isCorrect, true)
-          ),
-          columns: {
-            id: true,
-            questionId: true,
-          },
-        });
-
-        if (correctAnswers.length > 0) {
+        // Copy responses from quiz_responses to submitted_question_answers (final locked answers)
+        if (answersToGrade.length > 0) {
           await tx.insert(submittedQuestionAnswers).values(
-            dto.answers.map((a) => ({
-              submissionId: quizCompletionInsertionResult.id,
-              answerId: a.answerId,
+            answersToGrade.map((a) => ({
+              submissionId: submission.id,
               questionId: a.questionId,
-              correctAnswerId: correctAnswers.find(
-                (c) => c.questionId === a.questionId
-              )?.id!,
+              answerId: a.answerId,
             }))
           );
         }
@@ -567,6 +882,182 @@ export class QuizzesService {
         title: response?.quiz.title,
       },
       questions: questionsResult,
+    };
+  }
+
+  /**
+   * Get analytics for a quiz (teacher only)
+   * Returns average score, attempts per student, question difficulty, completion rate, time spent
+   */
+  async getQuizAnalytics(quizId: string) {
+    const quiz = await db.query.quizzes.findFirst({
+      where: eq(quizzes.id, quizId),
+      columns: {
+        id: true,
+        title: true,
+        duration: true,
+      },
+      with: {
+        questions: {
+          columns: {
+            id: true,
+            questionText: true,
+            orderIndex: true,
+          },
+        },
+        quizSubmissions: {
+          where: eq(quizSubmissions.completed, true),
+          columns: {
+            id: true,
+            score: true,
+            attempt: true,
+            startedAt: true,
+            completedAt: true,
+            studentId: true,
+          },
+        },
+      },
+    });
+
+    if (!quiz) {
+      throw new NotFoundException("Quiz not found");
+    }
+
+    const submissions = quiz.quizSubmissions;
+    const totalSubmissions = submissions.length;
+
+    if (totalSubmissions === 0) {
+      return {
+        quiz: {
+          id: quiz.id,
+          title: quiz.title,
+        },
+        totalSubmissions: 0,
+        averageScore: 0,
+        completionRate: 0,
+        attemptsPerStudent: [],
+        questionDifficulty: [],
+        averageTimeSpent: 0,
+      };
+    }
+
+    // Calculate average score
+    const totalScore = submissions.reduce((sum, sub) => {
+      return sum + Number(sub.score || 0);
+    }, 0);
+    const averageScore = totalScore / totalSubmissions;
+
+    // Calculate attempts per student
+    const attemptsByStudent = new Map<number, number>();
+    for (const submission of submissions) {
+      const current = attemptsByStudent.get(submission.studentId) || 0;
+      attemptsByStudent.set(submission.studentId, current + 1);
+    }
+
+    const attemptsPerStudent = Array.from(attemptsByStudent.entries()).map(
+      ([studentId, attempts]) => ({
+        studentId,
+        attempts,
+      })
+    );
+
+    // Calculate question difficulty (percentage of correct answers per question)
+    const questionDifficulty = await Promise.all(
+      quiz.questions.map(async (question) => {
+        const [correctSubmissions] = await db
+          .select({ count: count(submittedQuestionAnswers.id) })
+          .from(submittedQuestionAnswers)
+          .innerJoin(
+            quizSubmissions,
+            eq(submittedQuestionAnswers.submissionId, quizSubmissions.id)
+          )
+          .innerJoin(
+            quizAnswers,
+            eq(submittedQuestionAnswers.answerId, quizAnswers.id)
+          )
+          .where(
+            and(
+              eq(submittedQuestionAnswers.questionId, question.id),
+              eq(quizSubmissions.quizId, quizId),
+              eq(quizSubmissions.completed, true),
+              eq(quizAnswers.isCorrect, true)
+            )
+          );
+
+        const [totalAnswers] = await db
+          .select({ count: count(submittedQuestionAnswers.id) })
+          .from(submittedQuestionAnswers)
+          .innerJoin(
+            quizSubmissions,
+            eq(submittedQuestionAnswers.submissionId, quizSubmissions.id)
+          )
+          .where(
+            and(
+              eq(submittedQuestionAnswers.questionId, question.id),
+              eq(quizSubmissions.quizId, quizId),
+              eq(quizSubmissions.completed, true)
+            )
+          );
+
+        const correctCount = correctSubmissions[0]?.count || 0;
+        const totalCount = totalAnswers[0]?.count || 0;
+        const difficulty =
+          totalCount > 0 ? (correctCount / totalCount) * 100 : 0;
+
+        return {
+          questionId: question.id,
+          questionText: question.questionText,
+          orderIndex: question.orderIndex,
+          correctPercentage: Math.round(difficulty * 100) / 100,
+          totalAnswers: totalCount,
+          correctAnswers: correctCount,
+        };
+      })
+    );
+
+    // Calculate average time spent (in seconds)
+    const timeSpentArray = submissions
+      .filter((sub) => sub.startedAt && sub.completedAt)
+      .map((sub) => {
+        const started = new Date(sub.startedAt);
+        const completed = new Date(sub.completedAt!);
+        return Math.floor((completed.getTime() - started.getTime()) / 1000);
+      });
+
+    const averageTimeSpent =
+      timeSpentArray.length > 0
+        ? timeSpentArray.reduce((sum, time) => sum + time, 0) /
+          timeSpentArray.length
+        : 0;
+
+    // Get unique students who completed
+    const uniqueStudents = new Set(submissions.map((sub) => sub.studentId));
+    const completionRate = (uniqueStudents.size / totalSubmissions) * 100;
+
+    return {
+      quiz: {
+        id: quiz.id,
+        title: quiz.title,
+        duration: quiz.duration,
+      },
+      totalSubmissions,
+      averageScore: Math.round(averageScore * 100) / 100,
+      completionRate: Math.round(completionRate * 100) / 100,
+      attemptsPerStudent,
+      questionDifficulty: questionDifficulty.sort(
+        (a, b) => a.orderIndex - b.orderIndex
+      ),
+      averageTimeSpent: Math.round(averageTimeSpent),
+      timeSpentDistribution: {
+        min: timeSpentArray.length > 0 ? Math.min(...timeSpentArray) : 0,
+        max: timeSpentArray.length > 0 ? Math.max(...timeSpentArray) : 0,
+        median:
+          timeSpentArray.length > 0
+            ? timeSpentArray.sort((a, b) => a - b)[
+                Math.floor(timeSpentArray.length / 2)
+              ]
+            : 0,
+      },
     };
   }
 }
