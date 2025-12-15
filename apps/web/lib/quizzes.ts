@@ -4,6 +4,9 @@ import {
   CreateQuizAnswerDto,
   CreateQuizDto,
   CreateQuizQuestionDto,
+  ResumeQuizDto,
+  SaveAnswerDto,
+  StartQuizDto,
   SubmittedAnswer,
   UpdateQuizAnswerDto,
   UpdateQuizDto,
@@ -19,7 +22,28 @@ export interface Quiz {
   id: string;
   title: string;
   duration: number;
+  allowMultipleAttempts?: boolean;
   questions: Array<QuizQuestion>;
+}
+
+export interface StartQuizResponse {
+  submissionId: number;
+  attempt: number;
+  startedAt: string;
+  timeRemaining: number;
+}
+
+export interface SaveAnswerResponse {
+  success: boolean;
+  timeRemaining: number;
+}
+
+export interface ResumeQuizResponse {
+  submissionId: number;
+  attempt: number;
+  startedAt: string;
+  timeRemaining: number;
+  savedAnswers: Record<number, number>;
 }
 
 export interface QuizQuestion {
@@ -59,6 +83,7 @@ export interface QuizResults {
 export const createQuizSchema = z.object({
   title: z.string().min(3).max(255),
   duration: z.coerce.number().min(1),
+  allowMultipleAttempts: z.boolean().default(false),
 });
 
 export const createQuiz = (lessonId: number, input: CreateQuizDto) => {
@@ -170,6 +195,57 @@ export const deleteAnswer = async (answerId: number) => {
   );
 };
 
+/**
+ * Start a new quiz attempt
+ * Creates a quiz submission with server-side timer
+ */
+export const startQuiz = async (quizId: string, enrollmentId: number) => {
+  return authFetch<StartQuizResponse>(`${baseUrl}/1/quizzes/${quizId}/start`, {
+    method: "POST",
+    data: { enrollmentId } as StartQuizDto,
+  });
+};
+
+/**
+ * Save an answer during quiz taking (auto-save)
+ * Updates quiz_responses table
+ */
+export const saveAnswer = async (
+  quizId: string,
+  submissionId: number,
+  questionId: number,
+  answerId: number
+) => {
+  return authFetch<SaveAnswerResponse>(
+    `${baseUrl}/1/quizzes/${quizId}/save-answer`,
+    {
+      method: "POST",
+      data: {
+        submissionId,
+        questionId,
+        answerId,
+      } as SaveAnswerDto,
+    }
+  );
+};
+
+/**
+ * Resume an in-progress quiz
+ * Returns submission with saved answers and time remaining
+ */
+export const resumeQuiz = async (quizId: string, enrollmentId: number) => {
+  return authFetch<ResumeQuizResponse>(
+    `${baseUrl}/1/quizzes/${quizId}/resume?enrollmentId=${enrollmentId}`,
+    {
+      method: "GET",
+    }
+  );
+};
+
+/**
+ * Submit completed quiz
+ * Finalizes submission and calculates score
+ */
 export const submitQuiz = async (
   quizId: string,
   enrollmentId: number,
