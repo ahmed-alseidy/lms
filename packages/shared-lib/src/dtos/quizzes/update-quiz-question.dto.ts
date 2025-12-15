@@ -1,6 +1,7 @@
 import {
   IsArray,
   IsBoolean,
+  IsIn,
   IsNumber,
   IsOptional,
   IsString,
@@ -25,6 +26,14 @@ export class UpdateQuizQuestionDto {
   @IsOptional()
   @MinLength(1)
   questionText?: string;
+
+  // Allow updating question type between "mcq" and "true_false" only.
+  // We keep the same restriction as in creation and never support
+  // "short_answer" style questions in this module.
+  @IsString()
+  @IsOptional()
+  @IsIn(["mcq", "true_false"])
+  questionType?: "mcq" | "true_false";
 
   @IsNumber()
   @IsOptional()

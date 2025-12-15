@@ -1,7 +1,9 @@
+import { InferSelectModel, relations, sql } from "drizzle-orm";
 import {
   boolean,
   integer,
   numeric,
+  pgEnum,
   pgTable,
   serial,
   text,
@@ -11,8 +13,12 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 import { enrollments, lessons } from "./course";
-import { InferSelectModel, relations, sql } from "drizzle-orm";
 import { students } from "./user";
+
+// NOTE: We explicitly restrict quiz question types to multiple choice (mcq)
+// and true/false (true_false). Short answer style questions are intentionally
+// not supported in this schema to keep grading fully automatic.
+export const questionTypeEnum = pgEnum("question_type", ["mcq", "true_false"]);
 
 export const quizzes = pgTable("quizzes", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -39,6 +45,11 @@ export const quizQuestions = pgTable("quiz_questions", {
     })
     .notNull(),
   questionText: text("question_text").notNull(),
+  // Question type is stored explicitly so we can support different UI/UX
+  // behaviours and analytics per type. Only "mcq" and "true_false" are
+  // allowed. We default to "mcq" for backwards compatibility with existing
+  // data that did not distinguish types.
+  questionType: questionTypeEnum("question_type").notNull().default("mcq"),
   orderIndex: integer("order_index").notNull(),
 });
 
@@ -79,7 +90,7 @@ export const submittedQuestionAnswers = pgTable(
   },
   (t) => [
     unique("submitted_question_answer_unique").on(t.questionId, t.answerId),
-  ],
+  ]
 );
 
 export const quizSubmissions = pgTable(
@@ -110,7 +121,7 @@ export const quizSubmissions = pgTable(
     unique("quiz_submission_unique")
       .on(t.enrollmentId, t.quizId)
       .nullsNotDistinct(),
-  ],
+  ]
 );
 
 export const quizzesRelations = relations(quizzes, ({ one, many }) => ({
@@ -131,7 +142,7 @@ export const quizQuestionsRelations = relations(
     }),
     answers: many(quizAnswers),
     submittedQuestionAnswers: many(submittedQuestionAnswers),
-  }),
+  })
 );
 
 export const quizAnswersRelations = relations(quizAnswers, ({ one, many }) => ({
@@ -158,7 +169,7 @@ export const quizSubmissionsRelations = relations(
       references: [students.id],
     }),
     submittedQuestionAnswers: many(submittedQuestionAnswers),
-  }),
+  })
 );
 
 export const submittedQuestionAnswersRelations = relations(
@@ -176,7 +187,7 @@ export const submittedQuestionAnswersRelations = relations(
       fields: [submittedQuestionAnswers.submissionId],
       references: [quizSubmissions.id],
     }),
-  }),
+  })
 );
 
 export type SelectQuiz = InferSelectModel<typeof quizzes>;

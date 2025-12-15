@@ -1,17 +1,17 @@
-import { BACKEND_URL } from "./constants";
-import { authFetch } from "./auth-fetch";
+import { SelectQuizAnswer } from "@lms-saas/shared-lib";
 import {
+  CompleteQuizDto,
   CreateQuizAnswerDto,
   CreateQuizDto,
   CreateQuizQuestionDto,
+  SubmittedAnswer,
   UpdateQuizAnswerDto,
   UpdateQuizDto,
   UpdateQuizQuestionDto,
-  CompleteQuizDto,
-  SubmittedAnswer,
 } from "@lms-saas/shared-lib/dtos";
 import { z } from "zod";
-import { SelectQuizAnswer } from "@lms-saas/shared-lib";
+import { authFetch } from "./auth-fetch";
+import { BACKEND_URL } from "./constants";
 
 const baseUrl = `${BACKEND_URL}/lessons`;
 
@@ -25,6 +25,10 @@ export interface Quiz {
 export interface QuizQuestion {
   id: number;
   questionText: string;
+  // Backend now exposes an explicit question type. It is currently used
+  // only to distinguish between multiple choice and true/false questions.
+  // Short-answer questions are not modelled or supported.
+  questionType: "mcq" | "true_false";
   orderIndex: number;
   answers: QuizAnswer[];
 }
@@ -67,7 +71,7 @@ export const createQuiz = (lessonId: number, input: CreateQuizDto) => {
 export const updateQuiz = (
   lessonId: number,
   quizId: string,
-  input: UpdateQuizDto,
+  input: UpdateQuizDto
 ) => {
   return authFetch<Quiz>(`${baseUrl}/${lessonId}/quizzes/${quizId}`, {
     method: "PUT",
@@ -89,19 +93,19 @@ export const findQuiz = (quizId: string) => {
 
 export const checkIfQuizCompleted = async (
   quizId: string,
-  enrollmentId: number,
+  enrollmentId: number
 ) => {
   return authFetch<{ completed: boolean }>(
     `${baseUrl}/1/quizzes/${quizId}/completed?enrollmentId=${enrollmentId}`,
     {
       method: "GET",
-    },
+    }
   );
 };
 
 export const createQuestion = async (
   quizId: string,
-  data: CreateQuizQuestionDto,
+  data: CreateQuizQuestionDto
 ) => {
   return authFetch<QuizQuestion>(`${baseUrl}/1/quizzes/${quizId}/questions`, {
     method: "POST",
@@ -111,14 +115,14 @@ export const createQuestion = async (
 
 export const updateQuestion = async (
   questionId: number,
-  data: UpdateQuizQuestionDto,
+  data: UpdateQuizQuestionDto
 ) => {
   return authFetch<QuizQuestion>(
     `${baseUrl}/1/quizzes/${crypto.randomUUID()}/questions/${questionId}`,
     {
       method: "PUT",
       data,
-    },
+    }
   );
 };
 
@@ -127,33 +131,33 @@ export const deleteQuestion = async (questionId: number) => {
     `${baseUrl}/1/quizzes/${crypto.randomUUID()}/questions/${questionId}`,
     {
       method: "DELETE",
-    },
+    }
   );
 };
 
 export const addAnswer = async (
   questionId: number,
-  data: CreateQuizAnswerDto,
+  data: CreateQuizAnswerDto
 ) => {
   return authFetch<QuizAnswer>(
     `${baseUrl}/1/quizzes/${crypto.randomUUID()}/questions/${questionId}/answers`,
     {
       method: "POST",
       data,
-    },
+    }
   );
 };
 
 export const updateAnswer = async (
   answerId: number,
-  data: UpdateQuizAnswerDto,
+  data: UpdateQuizAnswerDto
 ) => {
   return authFetch<{ id: number }>(
     `${baseUrl}/1/quizzes/${crypto.randomUUID()}/questions/1/answers/${answerId}`,
     {
       method: "PUT",
       data,
-    },
+    }
   );
 };
 
@@ -162,14 +166,14 @@ export const deleteAnswer = async (answerId: number) => {
     `${baseUrl}/1/quizzes/${crypto.randomUUID()}/questions/1/answers/${answerId}`,
     {
       method: "DELETE",
-    },
+    }
   );
 };
 
 export const submitQuiz = async (
   quizId: string,
   enrollmentId: number,
-  answers: SubmittedAnswer[],
+  answers: SubmittedAnswer[]
 ) => {
   return authFetch<void>(`${baseUrl}/1/quizzes/${quizId}/submit`, {
     method: "POST",
@@ -182,7 +186,7 @@ export const isQuizCompleted = async (quizId: string) => {
     `${baseUrl}/1/quizzes/${quizId}/completed`,
     {
       method: "GET",
-    },
+    }
   );
 };
 

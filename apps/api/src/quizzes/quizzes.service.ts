@@ -1,10 +1,4 @@
 import {
-  ConflictException,
-  Injectable,
-  InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common';
-import {
   CompleteQuizDto,
   CreateQuizAnswerDto,
   CreateQuizDto,
@@ -21,9 +15,15 @@ import {
   UpdateQuizAnswerDto,
   UpdateQuizDto,
   UpdateQuizQuestionDto,
-} from '@lms-saas/shared-lib';
-import { and, asc, count, eq, inArray } from 'drizzle-orm';
-import { attempt } from '@/utils/error-handling';
+} from "@lms-saas/shared-lib";
+import {
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from "@nestjs/common";
+import { and, asc, count, eq, inArray } from "drizzle-orm";
+import { attempt } from "@/utils/error-handling";
 
 @Injectable()
 export class QuizzesService {
@@ -89,7 +89,7 @@ export class QuizzesService {
             quizId: id,
             questionText: question.questionText!,
             orderIndex: question.orderIndex!,
-          })),
+          }))
         );
       }
 
@@ -117,6 +117,7 @@ export class QuizzesService {
         .values({
           quizId,
           questionText: dto.questionText,
+          questionType: dto.questionType,
           orderIndex: dto.orderIndex,
         })
         .returning();
@@ -131,7 +132,7 @@ export class QuizzesService {
               questionId: newQuestion.id,
               answerText: answer.answerText,
               isCorrect: answer.isCorrect,
-            })),
+            }))
           )
           .returning({
             id: quizAnswers.id,
@@ -139,7 +140,7 @@ export class QuizzesService {
             isCorrect: quizAnswers.isCorrect,
           });
       }
-      newQuestion['answers'] = answers;
+      newQuestion["answers"] = answers;
 
       return [newQuestion];
     });
@@ -179,6 +180,7 @@ export class QuizzesService {
         .update(quizQuestions)
         .set({
           questionText: dto.questionText,
+          questionType: dto.questionType,
           orderIndex: dto.orderIndex,
         })
         .where(eq(quizQuestions.id, id))
@@ -196,7 +198,7 @@ export class QuizzesService {
               questionId: id,
               answerText: answer.answerText!,
               isCorrect: answer.isCorrect,
-            })),
+            }))
           );
         }
       }
@@ -221,6 +223,7 @@ export class QuizzesService {
       .select({
         id: quizQuestions.id,
         questionText: quizQuestions.questionText,
+        questionType: quizQuestions.questionType,
         orderIndex: quizQuestions.orderIndex,
       })
       .from(quizQuestions)
@@ -238,7 +241,7 @@ export class QuizzesService {
           .from(quizAnswers)
           .where(eq(quizAnswers.questionId, question.id));
         return { ...question, answers };
-      }),
+      })
     );
 
     return questionsWithAnswers;
@@ -254,7 +257,7 @@ export class QuizzesService {
         });
     } catch (error) {
       throw new InternalServerErrorException(
-        `Failed to delete answer. ${error}`,
+        `Failed to delete answer. ${error}`
       );
     }
   }
@@ -271,7 +274,7 @@ export class QuizzesService {
       return answer;
     } catch (error) {
       throw new InternalServerErrorException(
-        `Failed to update answer. ${error}`,
+        `Failed to update answer. ${error}`
       );
     }
   }
@@ -294,7 +297,7 @@ export class QuizzesService {
       return answer;
     } catch (error) {
       throw new InternalServerErrorException(
-        `Failed to create answer. ${error}`,
+        `Failed to create answer. ${error}`
       );
     }
   }
@@ -308,7 +311,7 @@ export class QuizzesService {
           id: true,
           lessonId: true,
         },
-      }),
+      })
     );
 
     if (quizError) {
@@ -316,7 +319,7 @@ export class QuizzesService {
     }
 
     if (!quiz) {
-      throw new NotFoundException('Quiz not found');
+      throw new NotFoundException("Quiz not found");
     }
 
     const [, error] = await attempt(
@@ -325,12 +328,12 @@ export class QuizzesService {
         const quizCompletion = await tx.query.quizSubmissions.findFirst({
           where: and(
             eq(quizSubmissions.enrollmentId, dto.enrollmentId),
-            eq(quizSubmissions.quizId, quizId),
+            eq(quizSubmissions.quizId, quizId)
           ),
         });
 
         if (quizCompletion) {
-          throw new ConflictException('Quiz already completed');
+          throw new ConflictException("Quiz already completed");
         }
 
         // TODO: Add multiple answers logic
@@ -341,7 +344,7 @@ export class QuizzesService {
         const submittedAnswers = await tx.query.quizAnswers.findMany({
           where: and(
             inArray(quizAnswers.questionId, questionsIds),
-            inArray(quizAnswers.id, answersIds),
+            inArray(quizAnswers.id, answersIds)
           ),
           columns: {
             isCorrect: true,
@@ -379,7 +382,7 @@ export class QuizzesService {
         const correctAnswers = await tx.query.quizAnswers.findMany({
           where: and(
             inArray(quizAnswers.questionId, questionsIds),
-            eq(quizAnswers.isCorrect, true),
+            eq(quizAnswers.isCorrect, true)
           ),
           columns: {
             id: true,
@@ -394,9 +397,9 @@ export class QuizzesService {
               answerId: a.answerId,
               questionId: a.questionId,
               correctAnswerId: correctAnswers.find(
-                (c) => c.questionId === a.questionId,
+                (c) => c.questionId === a.questionId
               )?.id!,
-            })),
+            }))
           );
         }
 
@@ -419,7 +422,7 @@ export class QuizzesService {
                   },
                   where: eq(
                     studentVideoCompletions.enrollmentId,
-                    dto.enrollmentId,
+                    dto.enrollmentId
                   ),
                 },
               },
@@ -427,13 +430,13 @@ export class QuizzesService {
           },
         });
 
-        if (!lesson) throw new NotFoundException('Lesson not found');
+        if (!lesson) throw new NotFoundException("Lesson not found");
 
         // Break if lesson has quizzes and student has not completed any of them
         if (
           lesson.videos.length > 0 &&
           lesson.videos.some(
-            (video) => video.studentVideoCompletions.length === 0,
+            (video) => video.studentVideoCompletions.length === 0
           )
         ) {
           return;
@@ -442,7 +445,7 @@ export class QuizzesService {
         const completion = await tx.query.studentLessonCompletions.findFirst({
           where: and(
             eq(studentLessonCompletions.enrollmentId, dto.enrollmentId),
-            eq(studentLessonCompletions.lessonId, lessonId),
+            eq(studentLessonCompletions.lessonId, lessonId)
           ),
         });
 
@@ -452,7 +455,7 @@ export class QuizzesService {
             lessonId,
           });
         }
-      }),
+      })
     );
 
     if (error) {
@@ -465,9 +468,9 @@ export class QuizzesService {
       db.query.quizSubmissions.findFirst({
         where: and(
           eq(quizSubmissions.quizId, quizId),
-          eq(quizSubmissions.studentId, studentId),
+          eq(quizSubmissions.studentId, studentId)
         ),
-      }),
+      })
     );
 
     if (error) {
@@ -484,7 +487,7 @@ export class QuizzesService {
       db.query.quizSubmissions.findFirst({
         where: and(
           eq(quizSubmissions.quizId, quizId),
-          eq(quizSubmissions.studentId, studentId),
+          eq(quizSubmissions.studentId, studentId)
         ),
         columns: {
           score: true,
@@ -533,14 +536,14 @@ export class QuizzesService {
             },
           },
         },
-      }),
+      })
     );
 
     const quizQuestions = response?.quiz.questions;
     const submittedQuestionAnswers = response?.submittedQuestionAnswers;
     const questionsResult = quizQuestions?.map((q) => {
       const submittedAnswer = submittedQuestionAnswers?.find(
-        (a) => a.question.id === q.id,
+        (a) => a.question.id === q.id
       );
 
       const { answers, ...rest } = q;
