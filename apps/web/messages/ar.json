@@ -3,6 +3,9 @@
     "platformName": "تعلم"
   },
   "common": {
+    "analytics": "تحليلات",
+    "disabled": "معطل",
+    "enabled": "مفعل",
     "loading": "جاري التحميل...",
     "error": "حدث خطأ",
     "save": "حفظ",
@@ -263,7 +266,18 @@
     "timeIsUpSubmittingQuizAutomatically": "لقد انتهت المهلة! سيتم إرسال الاختبار تلقائياً",
     "of": "من",
     "answered": "مجاوب",
-    "navigateToQuestion": "تصفية السؤال"
+    "navigateToQuestion": "تصفية السؤال",
+    "allowMultipleAttempts": "السماح بمحاولات متعددة",
+    "allowStudentsToRetakeQuiz": "السماح للطلاب بإعادة الاختبار متعدد المرات",
+    "questionType": "نوع السؤال",
+    "questionTypePlaceholder": "اختر نوع السؤال",
+    "questionTypeOptions": {
+      "mcq": "متعدد الخيارات",
+      "true_false": "صحيح / غير صحيح"
+    },
+    "quizSettings": "إعدادات الاختبار",
+    "manageQuizProperties": "إدارة خصائص الاختبار",
+    "multipleAttempts": "السماح للطلاب بإعادة الاختبار متعدد المرات"
   },
   "analytics": {
     "title": "لوحة التحليلات",

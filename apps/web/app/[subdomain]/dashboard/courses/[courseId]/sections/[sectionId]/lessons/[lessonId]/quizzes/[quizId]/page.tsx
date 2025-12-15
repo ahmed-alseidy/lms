@@ -9,6 +9,7 @@ import {
 import { UpdateQuizQuestionDto } from "@lms-saas/shared-lib/dtos";
 import {
   IconArrowLeft,
+  IconChartBar,
   IconGripVertical,
   IconLoader,
   IconPlus,
@@ -54,6 +55,7 @@ import { attempt } from "@/lib/utils";
 import { AnswerEditForm } from "./_components/answer-edit-form";
 import { QuestionDialog } from "./_components/question-dialog";
 import { QuestionTitleForm } from "./_components/question-title-form";
+import { QuizSettingsForm } from "./_components/quiz-settings-form";
 
 export default function QuizEditPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -342,12 +344,38 @@ export default function QuizEditPage() {
             </p>
           </div>
         </div>
-        <QuestionDialog
-          questionLength={quizData?.questions.length || 0}
-          quizId={params.quizId as string}
-          setQuestions={setQuestions}
-        />
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={() =>
+              router.push(
+                `/dashboard/courses/${params.courseId}/sections/${params.sectionId}/lessons/${params.lessonId}/quizzes/${params.quizId}/analytics`
+              )
+            }
+            variant="outline"
+          >
+            <IconChartBar className="mr-2 h-4 w-4" />
+            Analytics
+          </Button>
+          <QuestionDialog
+            questionLength={quizData?.questions.length || 0}
+            quizId={params.quizId as string}
+            setQuestions={setQuestions}
+          />
+        </div>
       </div>
+
+      {/* Quiz Settings Form */}
+      {quizData && (
+        <QuizSettingsForm
+          initialData={{
+            title: quizData.title,
+            duration: quizData.duration,
+            allowMultipleAttempts: quizData.allowMultipleAttempts ?? false,
+          }}
+          lessonId={Number(params.lessonId)}
+          quizId={params.quizId as string}
+        />
+      )}
 
       <div className="space-y-4">
         <DragDropContext onDragEnd={handleDragEnd}>
