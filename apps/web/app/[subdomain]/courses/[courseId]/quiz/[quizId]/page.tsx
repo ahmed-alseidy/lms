@@ -1,18 +1,24 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useLocalStorage } from "@uidotdev/usehooks";
 import { CheckCircle, Clock, Loader, Loader2 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { getCourse } from "@/lib/courses";
-import { findQuiz, isQuizCompleted, submitQuiz } from "@/lib/quizzes";
+import {
+  findQuiz,
+  isQuizCompleted,
+  resumeQuiz,
+  saveAnswer,
+  startQuiz,
+  submitQuiz,
+} from "@/lib/quizzes";
 import { attempt } from "@/lib/utils";
 
 const LoadingSpinner = () => (
@@ -144,19 +150,17 @@ export default function QuizPage() {
   const t = useTranslations();
   const courseId = Number(params.courseId);
   const quizId = params.quizId as string;
-  const [quizEndTimeDetails, setQuizEndTimeDetails] = useLocalStorage<{
-    quizId: string;
-    endTime: number;
-    localSelectedAnswers: Record<string, string>;
-  } | null>("quizEndTimeDetails", null);
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<
-    Record<string, string>
+    Record<number, number>
   >({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState<number>(0);
   const [isTimerExpired, setIsTimerExpired] = useState(false);
+  const [submissionId, setSubmissionId] = useState<number | null>(null);
+  const [isStarting, setIsStarting] = useState(true);
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { data: courseData, isLoading: isCourseLoading } = useQuery({
     queryKey: ["student-course", courseId],
@@ -169,6 +173,8 @@ export default function QuizPage() {
       return response.data;
     },
   });
+
+  const enrollmentId = courseData?.enrollments?.[0]?.id;
 
   const {
     data: quizResponse,
@@ -193,33 +199,122 @@ export default function QuizPage() {
     isLoading: isQuizCompletedLoading,
     error: completionError,
   } = useQuery({
-    queryKey: ["quiz-completed", quizId, courseId],
+    queryKey: ["quiz-completed", quizId],
     queryFn: async () => {
-      const [courseResponse, courseError] = await attempt(
-        getCourse(courseId, false, true)
-      );
-      if (courseError) {
-        throw new Error("Failed to fetch course");
-      }
-
-      const enrollmentId = courseResponse?.data?.enrollments?.[0]?.id;
-      if (!enrollmentId) {
-        throw new Error("Not enrolled in course");
-      }
-
       const [response, error] = await attempt(isQuizCompleted(quizId));
       if (error) {
         throw new Error("Failed to check quiz completion");
       }
-
-      return { completed: response.data.completed, enrollmentId };
+      return response.data;
     },
     retry: 2,
-    enabled: !!courseId && !!quizId,
+    enabled: !!quizId,
   });
 
   const quizCompleted = quizCompletedResponse?.completed || false;
-  const enrollmentId = quizCompletedResponse?.enrollmentId;
+
+  // Start or resume quiz on mount
+  useEffect(() => {
+    if (!quiz || !enrollmentId || quizCompleted || isStarting === false) return;
+
+    const initializeQuiz = async () => {
+      setIsStarting(true);
+      try {
+        // Try to resume existing quiz first
+        const [resumeResponse, resumeError] = await attempt(
+          resumeQuiz(quizId, enrollmentId)
+        );
+
+        if (!resumeError && resumeResponse?.data) {
+          // Resume existing quiz
+          const resumeData = resumeResponse.data;
+          setSubmissionId(resumeData.submissionId);
+          setTimeRemaining(resumeData.timeRemaining);
+          // Convert saved answers from Record<number, number> to Record<number, number>
+          setSelectedAnswers(resumeData.savedAnswers || {});
+          setIsStarting(false);
+          return;
+        }
+
+        // No in-progress quiz, start new one
+        const [startResponse, startError] = await attempt(
+          startQuiz(quizId, enrollmentId)
+        );
+
+        if (startError || !startResponse?.data) {
+          toast.error(t("quizzes.failedToStartQuiz"));
+          setIsStarting(false);
+          return;
+        }
+
+        const startData = startResponse.data;
+        setSubmissionId(startData.submissionId);
+        setTimeRemaining(startData.timeRemaining);
+        setIsStarting(false);
+      } catch (error) {
+        toast.error(t("common.somethingWentWrong"));
+        setIsStarting(false);
+      }
+    };
+
+    initializeQuiz();
+  }, [quiz, enrollmentId, quizId, quizCompleted]);
+
+  // Update timer from server periodically
+  useEffect(() => {
+    if (!submissionId || isTimerExpired || quizCompleted || isStarting) return;
+
+    const updateTimer = async () => {
+      try {
+        const [resumeResponse] = await attempt(
+          resumeQuiz(quizId, enrollmentId!)
+        );
+        if (resumeResponse?.data) {
+          const newTimeRemaining = resumeResponse.data.timeRemaining;
+          setTimeRemaining(newTimeRemaining);
+          if (newTimeRemaining <= 0) {
+            setIsTimerExpired(true);
+          }
+        }
+      } catch (error) {
+        // Silent fail, timer will update on next interval
+      }
+    };
+
+    // Update every 30 seconds
+    const interval = setInterval(updateTimer, 30000);
+
+    return () => clearInterval(interval);
+  }, [
+    submissionId,
+    quizId,
+    enrollmentId,
+    isTimerExpired,
+    quizCompleted,
+    isStarting,
+  ]);
+
+  // Client-side timer countdown
+  useEffect(() => {
+    if (timeRemaining <= 0 || isTimerExpired || quizCompleted || isStarting) {
+      if (timeRemaining <= 0 && !isTimerExpired) {
+        setIsTimerExpired(true);
+      }
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setTimeRemaining((prev) => {
+        if (prev <= 1) {
+          setIsTimerExpired(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [timeRemaining, isTimerExpired, quizCompleted, isStarting]);
 
   const { progress, progressText, totalQuestions, currentQuestion } =
     useMemo(() => {
@@ -248,135 +343,78 @@ export default function QuizPage() {
       };
     }, [quiz?.questions, currentQuestionIndex, selectedAnswers]);
 
-  useEffect(() => {
-    if (quiz?.duration && !quizCompleted) {
-      const duration = quiz.duration * 60;
+  // Auto-save answer with debouncing
+  const handleAnswerSelect = useCallback(
+    async (questionId: number, answerId: number) => {
+      if (!submissionId || isTimerExpired) return;
 
-      if (!quizEndTimeDetails) {
-        // First time taking any quiz
-        const now = new Date();
-        const endTime = new Date(now.getTime() + duration * 1000);
-        setQuizEndTimeDetails({
-          quizId,
-          endTime: endTime.getTime(),
-          localSelectedAnswers: {},
-        });
-        setTimeRemaining(duration);
-      } else if (quizEndTimeDetails.quizId !== quizId) {
-        // Switching to a different quiz
-        const handleQuizSwitch = async () => {
-          try {
-            // Check if the old quiz is completed
-            const [completionResponse, completionError] = await attempt(
-              isQuizCompleted(quizEndTimeDetails.quizId)
-            );
+      // Update local state immediately
+      setSelectedAnswers((prev) => ({
+        ...prev,
+        [questionId]: answerId,
+      }));
 
-            if (completionError) {
-              toast.error("Failed to check previous quiz status");
-              return;
-            }
-
-            if (!completionResponse.data.completed) {
-              // Auto-submit the old quiz if not completed
-              const [submitResponse, submitError] = await attempt(
-                submitQuiz(
-                  quizEndTimeDetails.quizId,
-                  courseData?.enrollments?.[0]?.id!,
-                  Object.entries(quizEndTimeDetails.localSelectedAnswers).map(
-                    ([key, value]) => ({
-                      questionId: Number(key),
-                      answerId: Number(value),
-                    })
-                  )
-                )
-              );
-
-              if (submitError) {
-                toast.error(t("quizzes.failedToSubmitPreviousQuiz"));
-                return;
-              }
-
-              toast.info(t("quizzes.previousQuizWasAutomaticallySubmitted"));
-            }
-
-            // Set up new quiz timer
-            const now = new Date();
-            const endTime = new Date(now.getTime() + duration * 1000);
-            setQuizEndTimeDetails({
-              quizId,
-              endTime: endTime.getTime(),
-              localSelectedAnswers: {},
-            });
-            setTimeRemaining(duration);
-
-            // Clear previous quiz answers
-            setSelectedAnswers({});
-            setCurrentQuestionIndex(0);
-          } catch (error) {
-            toast.error(t("quizzes.failedToSwitchQuizzes"));
-          }
-        };
-
-        handleQuizSwitch();
-      } else {
-        // Same quiz - resume timer
-        const now = new Date();
-        const timeRemaining = Math.max(
-          0,
-          quizEndTimeDetails.endTime - now.getTime()
-        );
-        setSelectedAnswers(quizEndTimeDetails.localSelectedAnswers || {});
-
-        if (timeRemaining <= 0) {
-          // Timer has expired, auto-submit
-          setIsTimerExpired(true);
-          setTimeRemaining(0);
-        } else {
-          setTimeRemaining(Math.round(timeRemaining / 1000));
-        }
+      // Clear existing timeout
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
       }
-    }
-  }, [quiz?.duration, quizCompleted, quizId, enrollmentId, courseData]);
 
-  useEffect(() => {
-    if (timeRemaining <= 0 || isTimerExpired || quizCompleted) return;
+      // Debounce auto-save (500ms)
+      saveTimeoutRef.current = setTimeout(async () => {
+        try {
+          const [, error] = await attempt(
+            saveAnswer(quizId, submissionId, questionId, answerId)
+          );
 
-    const timer = setInterval(() => {
-      setTimeRemaining((prev) => {
-        if (prev <= 1) {
-          setIsTimerExpired(true);
-          return 0;
+          if (error) {
+            toast.error(t("quizzes.failedToSaveAnswer"));
+          }
+        } catch (error) {
+          // Silent fail for auto-save
         }
-        return prev - 1;
-      });
-    }, 1000);
+      }, 500);
+    },
+    [submissionId, quizId, isTimerExpired, t]
+  );
 
-    return () => clearInterval(timer);
-  }, [timeRemaining, isTimerExpired, quizCompleted]);
+  const handleQuestionSelect = useCallback((index: number) => {
+    setCurrentQuestionIndex(index);
+  }, []);
+
+  const handlePrevious = useCallback(() => {
+    setCurrentQuestionIndex((prev) => Math.max(0, prev - 1));
+  }, []);
+
+  const handleNext = useCallback(() => {
+    setCurrentQuestionIndex((prev) => Math.min(totalQuestions - 1, prev + 1));
+  }, [totalQuestions]);
 
   const handleSubmit = useCallback(async () => {
-    if (isSubmitting || quizCompleted || !enrollmentId) return;
+    if (isSubmitting || quizCompleted || !enrollmentId || !submissionId) return;
     setIsSubmitting(true);
 
+    // Clear any pending auto-save
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
     try {
+      // Convert selectedAnswers to SubmittedAnswer format
+      const answers = Object.entries(selectedAnswers).map(
+        ([questionId, answerId]) => ({
+          questionId: Number(questionId),
+          answerId: Number(answerId),
+        })
+      );
+
       const [, error] = await attempt(
-        submitQuiz(
-          quizId,
-          enrollmentId,
-          Object.entries(selectedAnswers).map(([key, value]) => ({
-            questionId: Number(key),
-            answerId: Number(value),
-          }))
-        )
+        submitQuiz(quizId, enrollmentId, answers)
       );
 
       if (error) {
         toast.error(t("quizzes.failedToSubmitQuiz"));
         return;
       }
-
-      // Reset local storage timer
-      setQuizEndTimeDetails(null);
 
       toast.success(t("quizzes.quizSubmittedSuccessfully"));
 
@@ -397,49 +435,36 @@ export default function QuizPage() {
     selectedAnswers,
     isSubmitting,
     quizCompleted,
+    submissionId,
     queryClient,
     courseId,
     router,
+    t,
   ]);
 
   // Auto-submit when timer expires
   useEffect(() => {
-    if (isTimerExpired && !isSubmitting && !quizCompleted) {
+    if (isTimerExpired && !isSubmitting && !quizCompleted && submissionId) {
       toast.warning(t("quizzes.timeIsUpSubmittingQuizAutomatically"));
       handleSubmit();
     }
-  }, [isTimerExpired, isSubmitting, quizCompleted, handleSubmit]);
+  }, [
+    isTimerExpired,
+    isSubmitting,
+    quizCompleted,
+    submissionId,
+    handleSubmit,
+    t,
+  ]);
 
-  const handleAnswerSelect = useCallback(
-    (questionId: number, optionId: string) => {
-      setSelectedAnswers((prev) => {
-        const newSelectedAnswers = {
-          ...prev,
-          [questionId]: optionId,
-        };
-        setQuizEndTimeDetails((prev) => {
-          return {
-            ...prev!,
-            localSelectedAnswers: newSelectedAnswers,
-          };
-        });
-        return newSelectedAnswers;
-      });
-    },
-    [quizId]
-  );
-
-  const handleQuestionSelect = useCallback((index: number) => {
-    setCurrentQuestionIndex(index);
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
   }, []);
-
-  const handlePrevious = useCallback(() => {
-    setCurrentQuestionIndex((prev) => Math.max(0, prev - 1));
-  }, []);
-
-  const handleNext = useCallback(() => {
-    setCurrentQuestionIndex((prev) => Math.min(totalQuestions - 1, prev + 1));
-  }, [totalQuestions]);
 
   if (quizError) {
     return (
@@ -471,7 +496,13 @@ export default function QuizPage() {
     );
   }
 
-  if (isQuizLoading || isQuizCompletedLoading || isCourseLoading) {
+  if (
+    isQuizLoading ||
+    isQuizCompletedLoading ||
+    isCourseLoading ||
+    isStarting ||
+    !submissionId
+  ) {
     return <LoadingSpinner />;
   }
 
@@ -506,10 +537,6 @@ export default function QuizPage() {
   }
 
   if (quizCompleted) {
-    // If the quiz was completed and there is another quiz in progress, clear the local storage of the current quiz
-    if (quizEndTimeDetails?.quizId === quizId) {
-      setQuizEndTimeDetails(null);
-    }
     return (
       <ErrorState
         buttonText={t("quizzes.viewResults")}
@@ -553,14 +580,14 @@ export default function QuizPage() {
             className="mb-8 space-y-4"
             disabled={isTimerExpired}
             onValueChange={(value: string) =>
-              handleAnswerSelect(currentQuestion.id, value)
+              handleAnswerSelect(currentQuestion.id, Number(value))
             }
-            value={selectedAnswers[currentQuestion.id]}
+            value={selectedAnswers[currentQuestion.id]?.toString()}
           >
             {currentQuestion.answers.map((option) => (
               <label
                 className={`flex cursor-pointer items-center rounded-lg border px-4 py-3 transition-colors ${
-                  selectedAnswers[currentQuestion.id] === option.id.toString()
+                  selectedAnswers[currentQuestion.id] === option.id
                     ? "border-primary bg-muted"
                     : "border-muted-foreground/60 bg-sidebar hover:border-primary"
                 } ${isTimerExpired ? "cursor-not-allowed opacity-50" : ""}`}
@@ -584,7 +611,9 @@ export default function QuizPage() {
             isTimerExpired={isTimerExpired}
             onQuestionSelect={handleQuestionSelect}
             questions={quiz.questions}
-            selectedAnswers={selectedAnswers}
+            selectedAnswers={Object.fromEntries(
+              Object.entries(selectedAnswers).map(([k, v]) => [k, v.toString()])
+            )}
           />
 
           {/* Navigation buttons */}
