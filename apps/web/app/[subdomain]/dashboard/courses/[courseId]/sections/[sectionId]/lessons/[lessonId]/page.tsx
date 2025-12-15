@@ -1,24 +1,15 @@
 "use client";
 
-import { Button, buttonVariants } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import {
-  findCourseSection,
-  findLesson,
-  getCourse,
-  updateCourseSection,
-  updateLesson,
-} from "@/lib/courses";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  IconVideo,
-  IconTrash,
-  IconLoader,
   IconArrowLeft,
+  IconLoader,
+  IconTrash,
+  IconVideo,
 } from "@tabler/icons-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -40,11 +31,20 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { LessonTabs } from "./_components/lesson-tabs";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import {
+  findCourseSection,
+  findLesson,
+  getCourse,
+  updateCourseSection,
+  updateLesson,
+} from "@/lib/courses";
 import { attempt } from "@/lib/utils";
 import { DescriptionForm } from "./_components/description-form";
+import { LessonTabs } from "./_components/lesson-tabs";
 import { TitleForm } from "./_components/title-form";
-import { useTranslations } from "next-intl";
 
 export default function LessonPage() {
   const params = useParams();
@@ -61,7 +61,7 @@ export default function LessonPage() {
     queryKey: ["course", params.courseId],
     queryFn: async () => {
       const [response, error] = await attempt(
-        getCourse(Number(params.courseId)),
+        getCourse(Number(params.courseId))
       );
       if (error) {
         toast.error(tCommon("somethingWentWrong"));
@@ -75,7 +75,7 @@ export default function LessonPage() {
     queryKey: ["section", params.sectionId],
     queryFn: async () => {
       const [response, error] = await attempt(
-        findCourseSection(Number(params.courseId), Number(params.sectionId)),
+        findCourseSection(Number(params.courseId), Number(params.sectionId))
       );
       if (error) {
         toast.error(tCommon("somethingWentWrong"));
@@ -92,8 +92,8 @@ export default function LessonPage() {
         findLesson(
           Number(params.courseId),
           Number(params.sectionId),
-          Number(params.lessonId),
-        ),
+          Number(params.lessonId)
+        )
       );
 
       if (error) {
@@ -124,8 +124,8 @@ export default function LessonPage() {
         Number(params.courseId),
         Number(params.sectionId),
         Number(params.lessonId),
-        { title },
-      ),
+        { title }
+      )
     );
 
     if (error) {
@@ -144,7 +144,7 @@ export default function LessonPage() {
     const [, error] = await attempt(
       updateCourseSection(Number(params.courseId), Number(params.sectionId), {
         title: `${section?.data?.title} (Deleted)`,
-      }),
+      })
     );
 
     if (error) {
@@ -152,7 +152,7 @@ export default function LessonPage() {
     } else {
       toast.success(tCommon("deletedSuccessfully"));
       router.push(
-        `/dashboard/courses/${params.courseId}/sections/${params.sectionId}`,
+        `/dashboard/courses/${params.courseId}/sections/${params.sectionId}`
       );
     }
     setIsLoading(false);
@@ -212,7 +212,7 @@ export default function LessonPage() {
           <Link
             href={`/dashboard/courses/${params.courseId}/sections/${params.sectionId}`}
           >
-            <Button variant="ghost" size="icon">
+            <Button size="icon" variant="ghost">
               <IconArrowLeft className="rotate-rtl h-4 w-4" />
             </Button>
           </Link>
@@ -259,17 +259,17 @@ export default function LessonPage() {
       <div className="flex flex-col-reverse gap-6 lg:flex-row">
         <div className="w-full space-y-6 lg:w-1/2">
           <TitleForm
-            initialData={{ title: lesson.title }}
             courseId={Number(params.courseId)}
-            sectionId={Number(params.sectionId)}
+            initialData={{ title: lesson.title }}
             lessonId={Number(params.lessonId)}
+            sectionId={Number(params.sectionId)}
           />
 
           <DescriptionForm
-            initialData={JSON.parse(lesson.description)}
             courseId={Number(params.courseId)}
-            sectionId={Number(params.sectionId)}
+            initialData={JSON.parse(lesson.description)}
             lessonId={Number(params.lessonId)}
+            sectionId={Number(params.sectionId)}
           />
         </div>
 

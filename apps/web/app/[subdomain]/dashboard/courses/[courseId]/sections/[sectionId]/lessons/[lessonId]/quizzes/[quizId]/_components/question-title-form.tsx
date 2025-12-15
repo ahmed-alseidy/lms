@@ -1,13 +1,14 @@
 "use client";
 
-import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
 import { IconPencil, IconX } from "@tabler/icons-react";
-import { useState } from "react";
-import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-
+import { useTranslations } from "next-intl";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import * as z from "zod";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -16,10 +17,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { updateQuestion } from "@/lib/quizzes";
 import { attempt } from "@/lib/utils";
-import { useTranslations } from "next-intl";
 
 interface QuestionTitleFormProps {
   initialData: {
@@ -57,7 +56,7 @@ export const QuestionTitleForm = ({
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       const [, error] = await attempt(
-        updateQuestion(questionId, { questionText: values.questionText }),
+        updateQuestion(questionId, { questionText: values.questionText })
       );
       if (error) {
         toast.error(error.message);
@@ -94,8 +93,8 @@ export const QuestionTitleForm = ({
       {isEditing && (
         <Form {...form}>
           <form
-            onSubmit={form.handleSubmit(onSubmit)}
             className="mt-4 space-y-4"
+            onSubmit={form.handleSubmit(onSubmit)}
           >
             <FormField
               control={form.control}

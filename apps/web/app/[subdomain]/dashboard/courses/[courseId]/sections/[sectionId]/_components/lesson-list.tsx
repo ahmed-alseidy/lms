@@ -1,20 +1,20 @@
 "use client";
 
+import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
+import { IconGripVertical, IconPencil, IconTrash } from "@tabler/icons-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useParams, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { Dispatch, SetStateAction } from "react";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  updateCourseSection,
-  deleteLesson,
   CourseSection,
+  deleteLesson,
+  updateCourseSection,
 } from "@/lib/courses";
 import { attempt } from "@/lib/utils";
-import { Droppable, Draggable, DragDropContext } from "@hello-pangea/dnd";
-import { useQueryClient } from "@tanstack/react-query";
-import { IconGripVertical, IconPencil, IconTrash } from "@tabler/icons-react";
-import { useTranslations } from "next-intl";
-import { useParams, useRouter } from "next/navigation";
-import { Dispatch, SetStateAction } from "react";
-import { toast } from "sonner";
 
 type LessonsListProps = {
   course: any;
@@ -65,8 +65,8 @@ export const LessonsList = ({
                   title: lesson.title,
                   orderIndex: lesson.orderIndex,
                 })),
-              },
-            ),
+              }
+            )
           );
 
           if (error) {
@@ -105,8 +105,8 @@ export const LessonsList = ({
         deleteLesson(
           Number(params.courseId),
           Number(params.sectionId),
-          lessonId,
-        ),
+          lessonId
+        )
       );
 
       if (error) {
@@ -137,14 +137,14 @@ export const LessonsList = ({
         {(provided) => (
           <div
             {...provided.droppableProps}
-            ref={provided.innerRef}
             className="space-y-3"
+            ref={provided.innerRef}
           >
             {sectionData?.lessons.map((lesson, lessonIndex) => (
               <Draggable
-                key={`lesson-${lesson.id}-${lessonIndex}`}
                 draggableId={`lesson-${lesson.id}`}
                 index={lessonIndex}
+                key={`lesson-${lesson.id}-${lessonIndex}`}
               >
                 {(provided) => (
                   <div
@@ -173,22 +173,22 @@ export const LessonsList = ({
                       </div>
                       <div className="flex items-center gap-2">
                         <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => removeLesson(lessonIndex, lesson.id)}
                           className="hover:bg-destructive/10 hover:text-destructive"
+                          onClick={() => removeLesson(lessonIndex, lesson.id)}
+                          size="icon"
+                          variant="ghost"
                         >
                           <IconTrash className="h-4 w-4" />
                         </Button>
                         <Button
-                          variant="outline"
-                          size="sm"
                           className="flex-1"
                           onClick={() =>
                             router.push(
-                              `/dashboard/courses/${params.courseId}/sections/${params.sectionId}/lessons/${lesson.id}`,
+                              `/dashboard/courses/${params.courseId}/sections/${params.sectionId}/lessons/${lesson.id}`
                             )
                           }
+                          size="sm"
+                          variant="outline"
                         >
                           {tLessons("editLesson")}
                         </Button>

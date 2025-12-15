@@ -1,11 +1,11 @@
+import { courseCodes, courses, db, enrollments } from "@lms-saas/shared-lib";
 import {
+  ForbiddenException,
   Injectable,
   NotFoundException,
-  ForbiddenException,
-} from '@nestjs/common';
-import { db, courseCodes, courses, enrollments } from '@lms-saas/shared-lib';
-import { eq, and } from 'drizzle-orm';
-import { nanoid } from 'nanoid';
+} from "@nestjs/common";
+import { and, eq } from "drizzle-orm";
+import { nanoid } from "nanoid";
 
 @Injectable()
 export class CourseCodesService {
@@ -16,7 +16,7 @@ export class CourseCodesService {
     });
 
     if (!course) {
-      throw new ForbiddenException('Course not found');
+      throw new ForbiddenException("Course not found");
     }
 
     const codes = Array.from({ length: quantity }, () => ({
@@ -35,12 +35,12 @@ export class CourseCodesService {
       where: and(
         eq(courseCodes.code, code),
         eq(courseCodes.courseId, courseId),
-        eq(courseCodes.isUsed, false),
+        eq(courseCodes.isUsed, false)
       ),
     });
 
     if (!courseCode) {
-      throw new NotFoundException('Invalid or already used code');
+      throw new NotFoundException("Invalid or already used code");
     }
 
     // Mark code as used and assign to student
@@ -56,10 +56,10 @@ export class CourseCodesService {
     await db.insert(enrollments).values({
       courseId,
       studentId,
-      status: 'active',
+      status: "active",
     });
 
-    return { message: 'Successfully enrolled in the course' };
+    return { message: "Successfully enrolled in the course" };
   }
 
   async getCourseCodes(courseId: number, teacherId: number) {
@@ -69,7 +69,7 @@ export class CourseCodesService {
     });
 
     if (!course) {
-      throw new ForbiddenException('Course not found');
+      throw new ForbiddenException("Course not found");
     }
 
     return db.query.courseCodes.findMany({

@@ -1,10 +1,10 @@
 "use client";
 
+import { IconLogout } from "@tabler/icons-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { SidebarFooter } from "@/components/ui/sidebar";
 import { logout } from "@/lib/auth";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { IconLogout } from "@tabler/icons-react";
 
 export function LowerSidebar({ user }: { user: any }) {
   return (
@@ -18,7 +18,7 @@ export function LowerSidebar({ user }: { user: any }) {
           </Avatar>
           <span className="font-medium">{user.name}</span>
         </div>
-        <Button variant="ghost" size="icon" onClick={logout}>
+        <Button onClick={logout} size="icon" variant="ghost">
           <IconLogout color="red" />
         </Button>
       </div>

@@ -1,26 +1,26 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { getCourse } from "@/lib/courses";
-import { useParams } from "next/navigation";
 import {
-  BookOpen,
-  Star,
-  Users,
-  ChevronRight,
   ArrowLeft,
+  BookOpen,
+  ChevronRight,
   List,
   Loader,
+  Star,
+  Users,
 } from "lucide-react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import Link from "next/link";
-import { attempt } from "@/lib/utils";
-import { toast } from "sonner";
-import { useTranslations } from "next-intl";
 import Image from "next/image";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { getCourse } from "@/lib/courses";
+import { attempt } from "@/lib/utils";
 
 export default function CoursePage() {
   const params = useParams();
@@ -64,8 +64,8 @@ export default function CoursePage() {
   return (
     <div className="container mx-auto max-w-7xl space-y-4 px-4 py-8">
       <Link
-        href={`/courses`}
         className={buttonVariants({ variant: "outline" })}
+        href={`/courses`}
       >
         <ArrowLeft className="rotate-rtl h-4 w-4" />
         {t("courses.backToCourses")}
@@ -117,10 +117,10 @@ export default function CoursePage() {
             <div className="relative aspect-video h-48">
               {course.imageUrl ? (
                 <Image
-                  fill
-                  src={course.imageUrl}
                   alt={course.title}
                   className="h-full w-full object-cover"
+                  fill
+                  src={course.imageUrl}
                 />
               ) : (
                 <div className="bg-muted flex h-full w-full items-center justify-center">
@@ -130,8 +130,8 @@ export default function CoursePage() {
             </div>
             <div className="absolute top-2 right-2">
               <Badge
-                variant="secondary"
                 className="border-border border backdrop-blur-sm"
+                variant="secondary"
               >
                 ${course.price}
               </Badge>
@@ -157,7 +157,7 @@ export default function CoursePage() {
               {course.courseSections?.length || 0} {t("courses.chapters")} •{" "}
               {course.courseSections?.reduce(
                 (acc, section) => acc + (section.lessons?.length || 0),
-                0,
+                0
               )}{" "}
               {t("courses.lessons")}
             </p>
@@ -166,7 +166,7 @@ export default function CoursePage() {
 
         <div className="space-y-4">
           {course.courseSections?.map((section) => (
-            <Card key={section.id} className="overflow-hidden">
+            <Card className="overflow-hidden" key={section.id}>
               <CardHeader className="bg-muted/50 p-4">
                 <h3 className="font-semibold">{section.title}</h3>
               </CardHeader>
@@ -174,9 +174,9 @@ export default function CoursePage() {
                 <div className="divide-y">
                   {section.lessons?.map((lesson) => (
                     <Link
-                      key={lesson.id}
-                      href={`/courses/${courseId}/sections/${section.id}/lessons/${lesson.id}`}
                       className="hover:bg-muted/50 flex items-center justify-between p-4 transition-colors"
+                      href={`/courses/${courseId}/sections/${section.id}/lessons/${lesson.id}`}
+                      key={lesson.id}
                     >
                       <div className="flex items-center gap-3">
                         <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-full">

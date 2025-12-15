@@ -1,14 +1,14 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
+import { Loader } from "lucide-react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 import { buttonVariants } from "@/components/ui/button";
 import { getQuizResults, isQuizCompleted } from "@/lib/quizzes";
 import { attempt, cn } from "@/lib/utils";
-import { useQuery } from "@tanstack/react-query";
-import { Loader } from "lucide-react";
-import { useTranslations } from "next-intl";
-import Link from "next/link";
-import { useParams } from "next/navigation";
-import { toast } from "sonner";
 
 export default function ResultsPage() {
   const { courseId, quizId } = useParams();
@@ -32,7 +32,7 @@ export default function ResultsPage() {
       queryKey: ["quizCompletion", quizId],
       queryFn: async () => {
         const [response, error] = await attempt(
-          isQuizCompleted(quizId as string),
+          isQuizCompleted(quizId as string)
         );
 
         if (error) {
@@ -42,7 +42,7 @@ export default function ResultsPage() {
 
         return response.data;
       },
-    },
+    }
   );
 
   if (isQuizResultsLoading || isQuizCompletionLoading) {
@@ -60,11 +60,11 @@ export default function ResultsPage() {
           {t("quizzes.quizNotCompleted")}
         </h2>
         <Link
-          href={`/courses/${courseId}/quiz/${quizId}`}
           className={cn(
             buttonVariants({ variant: "default", size: "lg" }),
-            "mt-4",
+            "mt-4"
           )}
+          href={`/courses/${courseId}/quiz/${quizId}`}
         >
           {t("quizzes.startQuiz")}
         </Link>
@@ -88,7 +88,7 @@ export default function ResultsPage() {
         <div
           className={cn(
             "text-4xl font-bold",
-            percentage >= 70 ? "text-green-600" : "text-red-600",
+            percentage >= 70 ? "text-green-600" : "text-red-600"
           )}
         >
           {percentage}%
@@ -118,8 +118,8 @@ export default function ResultsPage() {
         <ul className="space-y-4">
           {results.questions.map((q, idx) => (
             <li
-              key={idx}
               className={`rounded border-2 p-4 ${q.submittedAnswer.id === q.correctAnswer.id ? "bg-accent/50 border-green-300" : "bg-accent/50 border-red-300"}`}
+              key={idx}
             >
               <div className="font-medium">
                 {t("quizzes.question")} {idx + 1}: {q.questionText}

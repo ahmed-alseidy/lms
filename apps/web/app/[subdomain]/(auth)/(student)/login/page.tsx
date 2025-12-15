@@ -1,27 +1,26 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-import React from "react";
-import { LoginForm } from "../../login-form";
 import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import Image from "next/image";
+import React from "react";
+import { LoginForm } from "../../login-form";
 
 export default function StudentLoginPage() {
   const { subdomain } = useParams();
   const t = useTranslations();
 
   return (
-    <div className="flex h-screen w-full flex-col items-center justify-center gap-4">
-      <div className="flex items-center justify-center gap-2">
+    <div className="flex h-screen w-full flex-col items-center justify-center gap-6">
+      <div className="flex justify-center">
         <Image
-          src="/logo.png"
-          className="dark:invert"
           alt="logo"
-          width={40}
-          height={40}
+          className="dark:invert"
+          height={44}
+          src="/logo-with-text.png"
+          width={130}
         />
-        <h1 className="font-bold">{t("metadata.platformName")}.</h1>
       </div>
       <div className="flex w-96 flex-col items-center justify-center rounded-lg border p-6 shadow-sm">
         <div className="w-full">
@@ -29,7 +28,7 @@ export default function StudentLoginPage() {
           <p className="text-muted-foreground mb-4 text-sm">
             {t("login.description")}
           </p>
-          <LoginForm subdomain={subdomain as string} role="student" />
+          <LoginForm role="student" subdomain={subdomain as string} />
           <div className="mt-4 flex justify-between text-sm">
             <p>{t("login.dontHaveAccount")}</p>
             <Link className="underline" href={"/signup"}>

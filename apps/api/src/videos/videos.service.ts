@@ -1,20 +1,20 @@
 import {
+  db,
+  enrollments,
+  lessons,
+  quizSubmissions,
+  studentLessonCompletions,
+  studentVideoCompletions,
+  videos,
+} from "@lms-saas/shared-lib";
+import {
   ConflictException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
-} from '@nestjs/common';
-import { and, eq } from 'drizzle-orm';
-import {
-  db,
-  enrollments,
-  lessons,
-  studentLessonCompletions,
-  quizSubmissions,
-  studentVideoCompletions,
-  videos,
-} from '@lms-saas/shared-lib';
-import { attempt } from '@/utils/error-handling';
+} from "@nestjs/common";
+import { and, eq } from "drizzle-orm";
+import { attempt } from "@/utils/error-handling";
 
 @Injectable()
 export class VideosService {
@@ -24,7 +24,7 @@ export class VideosService {
       manifestKey: string;
       segmentsKey: string;
       title: string;
-    },
+    }
   ) {
     try {
       const [video] = await db
@@ -44,7 +44,7 @@ export class VideosService {
 
       return video;
     } catch (error) {
-      throw new InternalServerErrorException('Failed to create video');
+      throw new InternalServerErrorException("Failed to create video");
     }
   }
 
@@ -68,22 +68,22 @@ export class VideosService {
     const [, error] = await attempt(
       db.transaction(async (tx) => {
         const [video] = await this.getVideo(videoId);
-        if (!video) throw new NotFoundException('Video not found');
+        if (!video) throw new NotFoundException("Video not found");
 
         const enrollment = await tx.query.enrollments.findFirst({
           where: eq(enrollments.id, enrollmentId),
         });
-        if (!enrollment) throw new NotFoundException('Enrollment not found');
+        if (!enrollment) throw new NotFoundException("Enrollment not found");
 
         const videoCompletion =
           await tx.query.studentVideoCompletions.findFirst({
             where: and(
               eq(studentVideoCompletions.enrollmentId, enrollmentId),
-              eq(studentVideoCompletions.videoId, videoId),
+              eq(studentVideoCompletions.videoId, videoId)
             ),
           });
         if (videoCompletion)
-          throw new ConflictException('Already completed this video');
+          throw new ConflictException("Already completed this video");
 
         await tx.insert(studentVideoCompletions).values({
           enrollmentId,
@@ -114,7 +114,7 @@ export class VideosService {
           },
         });
 
-        if (!lesson) throw new NotFoundException('Lesson not found');
+        if (!lesson) throw new NotFoundException("Lesson not found");
 
         // Break if lesson has quizzes and student has not completed any of them
         if (
@@ -127,7 +127,7 @@ export class VideosService {
         const completion = await tx.query.studentLessonCompletions.findFirst({
           where: and(
             eq(studentLessonCompletions.enrollmentId, enrollmentId),
-            eq(studentLessonCompletions.lessonId, lessonId),
+            eq(studentLessonCompletions.lessonId, lessonId)
           ),
         });
 
@@ -137,7 +137,7 @@ export class VideosService {
             lessonId,
           });
         }
-      }),
+      })
     );
 
     if (error) {
@@ -150,9 +150,9 @@ export class VideosService {
       db.query.studentVideoCompletions.findFirst({
         where: and(
           eq(studentVideoCompletions.videoId, videoId),
-          eq(studentVideoCompletions.enrollmentId, enrollmentId),
+          eq(studentVideoCompletions.enrollmentId, enrollmentId)
         ),
-      }),
+      })
     );
 
     if (error) {

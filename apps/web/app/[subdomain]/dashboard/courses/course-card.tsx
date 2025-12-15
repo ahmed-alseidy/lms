@@ -1,18 +1,18 @@
 "use client";
 
+import { SelectCourse } from "@lms-saas/shared-lib";
+import { IconBook, IconPencil, IconStar, IconUsers } from "@tabler/icons-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { SelectCourse } from "@lms-saas/shared-lib";
-import { IconPencil, IconUsers, IconStar, IconBook } from "@tabler/icons-react";
-import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
-import Image from "next/image";
-import { useTranslations } from "next-intl";
 
 export function CourseCard({
   course,
@@ -25,16 +25,16 @@ export function CourseCard({
     <Card className="group hover:border-primary/50 flex flex-col overflow-hidden rounded-xl border transition-all duration-300 hover:shadow-lg">
       <CardHeader className="relative p-0">
         <Image
-          width={300}
-          height={192}
-          src={course.imageUrl || "https://picsum.photos/300/192"}
           alt={course.title}
           className="h-48 w-full object-cover transition-transform duration-300 group-hover:scale-105"
+          height={192}
+          src={course.imageUrl || "https://picsum.photos/300/192"}
+          width={300}
         />
         <div className="absolute top-2 right-2">
           <Badge
-            variant="secondary"
             className="border-border border backdrop-blur-sm"
+            variant="secondary"
           >
             ${course.price}
           </Badge>
@@ -72,10 +72,10 @@ export function CourseCard({
       </CardContent>
 
       <CardFooter className="bg-accent/50 border-t p-4">
-        <Link href={`/dashboard/courses/${course.id}`} className="w-full">
+        <Link className="w-full" href={`/dashboard/courses/${course.id}`}>
           <Button
-            variant="default"
             className="w-full gap-2 text-sm transition-colors"
+            variant="default"
           >
             <IconPencil className="h-4 w-4" />
             {t("editCourse")}

@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import { getVideo } from "@/lib/videos";
-import { Lesson } from "@/lib/courses";
 import { Loader } from "lucide-react";
-import { attempt } from "@/lib/utils";
 import { toast } from "sonner";
 import { VideoJsPlayer } from "@/components/video-js-player";
+import { Lesson } from "@/lib/courses";
+import { attempt } from "@/lib/utils";
+import { getVideo } from "@/lib/videos";
 
 export const VideoPlayer = ({ lesson }: { lesson: Lesson }) => {
   const {
@@ -15,7 +15,7 @@ export const VideoPlayer = ({ lesson }: { lesson: Lesson }) => {
     queryKey: ["video", lesson.id, lesson?.videos[0]?.id],
     queryFn: async () => {
       const [response, error] = await attempt(
-        getVideo(lesson.id, lesson?.videos[0]?.id || ""),
+        getVideo(lesson.id, lesson?.videos[0]?.id || "")
       );
       if (error) {
         toast.error("Failed to fetch video URL");

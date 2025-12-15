@@ -1,12 +1,12 @@
+import { $generateHtmlFromNodes, $generateNodesFromDOM } from "@lexical/html";
 import {
   createEditor,
   LexicalNode,
   SerializedEditorState,
   SerializedLexicalNode,
 } from "lexical";
-import { nodes } from "@/components/blocks/editor-00/nodes";
 import { editorConfig } from "@/components/blocks/editor-00/editor";
-import { $generateHtmlFromNodes, $generateNodesFromDOM } from "@lexical/html";
+import { nodes } from "@/components/blocks/editor-00/nodes";
 
 /**
  * Converts Lexical JSON to HTML using Lexical's built-in utilities

@@ -1,14 +1,7 @@
 import {
-  BadRequestException,
-  ConflictException,
-  Injectable,
-  InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common';
-import {
-  courses,
-  courseSections,
   CreateLessonDto,
+  courseSections,
+  courses,
   db,
   enrollments,
   lessons,
@@ -17,9 +10,16 @@ import {
   studentVideoCompletions,
   UpdateLessonDto,
   videos,
-} from '@lms-saas/shared-lib';
-import { and, count, eq, sql } from 'drizzle-orm';
-import { attempt } from '@/utils/error-handling';
+} from "@lms-saas/shared-lib";
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from "@nestjs/common";
+import { and, count, eq, sql } from "drizzle-orm";
+import { attempt } from "@/utils/error-handling";
 
 @Injectable()
 export class LessonsService {
@@ -97,7 +97,7 @@ export class LessonsService {
       const lesson = await this.findOne(lessonId);
 
       if (!lesson) {
-        throw new NotFoundException('Lesson not found');
+        throw new NotFoundException("Lesson not found");
       }
 
       const sectionId = lesson?.sectionId;
@@ -106,7 +106,7 @@ export class LessonsService {
       });
 
       if (!section) {
-        throw new NotFoundException('Section not found');
+        throw new NotFoundException("Section not found");
       }
 
       const courseId = section?.courseId;
@@ -152,7 +152,7 @@ export class LessonsService {
             },
           },
         },
-      }),
+      })
     );
 
     if (lessonError) {
@@ -160,20 +160,20 @@ export class LessonsService {
     }
 
     if (!lesson) {
-      throw new NotFoundException('Lesson not found');
+      throw new NotFoundException("Lesson not found");
     }
 
     if (lesson.videos.length > 0) {
       const video = lesson.videos[0];
       if (video.studentVideoCompletions.length === 0) {
-        throw new BadRequestException('Video lesson not completed');
+        throw new BadRequestException("Video lesson not completed");
       }
     }
 
     if (lesson.quizzes.length < 0) {
       const quiz = lesson.quizzes[0];
       if (quiz.quizSubmissions.length === 0) {
-        throw new BadRequestException('Quiz lesson not completed');
+        throw new BadRequestException("Quiz lesson not completed");
       }
     }
 
@@ -182,7 +182,7 @@ export class LessonsService {
         const lesson = await this.findOne(lessonId);
 
         if (!lesson) {
-          throw new NotFoundException('Lesson not found');
+          throw new NotFoundException("Lesson not found");
         }
 
         const enrollment = await tx.query.enrollments.findFirst({
@@ -190,19 +190,19 @@ export class LessonsService {
         });
 
         if (!enrollment) {
-          throw new NotFoundException('Enrollment not found');
+          throw new NotFoundException("Enrollment not found");
         }
 
         const studentLessonCompletion =
           await tx.query.studentLessonCompletions.findFirst({
             where: and(
               eq(studentLessonCompletions.lessonId, lessonId),
-              eq(studentLessonCompletions.enrollmentId, enrollmentId),
+              eq(studentLessonCompletions.enrollmentId, enrollmentId)
             ),
           });
 
         if (studentLessonCompletion) {
-          throw new ConflictException('Lesson already completed');
+          throw new ConflictException("Lesson already completed");
         }
 
         await tx.insert(studentLessonCompletions).values({
@@ -218,7 +218,7 @@ export class LessonsService {
         });
 
         if (!totalLessons) {
-          throw new NotFoundException('Course not found');
+          throw new NotFoundException("Course not found");
         }
 
         const completedLessons = await tx
@@ -232,7 +232,7 @@ export class LessonsService {
         console.log(totalLessons.lessonsCount);
 
         const progress = Math.round(
-          ((completedLessons[0].count || 0) / totalLessons.lessonsCount) * 100,
+          ((completedLessons[0].count || 0) / totalLessons.lessonsCount) * 100
         );
         console.log(progress);
 
@@ -241,8 +241,8 @@ export class LessonsService {
           .set({ progress })
           .where(eq(enrollments.id, enrollmentId));
 
-        return { message: 'Lesson completed' };
-      }),
+        return { message: "Lesson completed" };
+      })
     );
 
     if (error) {
@@ -257,9 +257,9 @@ export class LessonsService {
       db.query.studentLessonCompletions.findFirst({
         where: and(
           eq(studentLessonCompletions.lessonId, lessonId),
-          eq(studentLessonCompletions.enrollmentId, enrollmentId),
+          eq(studentLessonCompletions.enrollmentId, enrollmentId)
         ),
-      }),
+      })
     );
 
     if (error) {

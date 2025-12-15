@@ -2,8 +2,8 @@ import {
   IsNumber,
   IsOptional,
   IsString,
-  MinLength,
   MaxLength,
+  MinLength,
 } from "class-validator";
 
 export class UpdateVideoDto {

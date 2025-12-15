@@ -1,1 +1,0 @@
-ALTER TABLE "courses" ADD COLUMN "lessons_count" integer DEFAULT 0 NOT NULL;

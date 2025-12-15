@@ -1,10 +1,11 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { getCoursesByTeacherId } from "@/lib/courses";
+import { IconLoader, IconPlus } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
-import { CourseCard } from "./course-card";
+import { useTranslations } from "next-intl";
+import { useState } from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -12,8 +13,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { CreateCourseForm } from "./create-course-form";
-import { useState } from "react";
 import {
   Pagination,
   PaginationContent,
@@ -23,10 +22,11 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { Separator } from "@/components/ui/separator";
+import { getCoursesByTeacherId } from "@/lib/courses";
 import { attempt } from "@/lib/utils";
-import { toast } from "sonner";
-import { useTranslations } from "next-intl";
-import { IconLoader, IconPlus } from "@tabler/icons-react";
+import { CourseCard } from "./course-card";
+import { CreateCourseForm } from "./create-course-form";
 
 export default function CoursesPage() {
   const t = useTranslations("courses");
@@ -37,7 +37,7 @@ export default function CoursesPage() {
     queryKey: ["dashboard-courses", page, published],
     queryFn: async () => {
       const [response, error] = await attempt(
-        getCoursesByTeacherId(published, page, 8, false),
+        getCoursesByTeacherId(published, page, 8, false)
       );
       if (error) {
         toast.error("Error fetching courses");
@@ -65,7 +65,7 @@ export default function CoursesPage() {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog onOpenChange={setOpen} open={open}>
       <div className="container mx-auto">
         <div className="flex w-full flex-col justify-between md:flex-row">
           <h2 className="text-3xl font-bold">{t("title")}</h2>
@@ -80,16 +80,16 @@ export default function CoursesPage() {
         <div>
           <div className="mt-4 mb-2">
             <Button
-              variant={"link"}
               className={published ? "underline" : ""}
               onClick={() => setPublished(true)}
+              variant={"link"}
             >
               {t("published")}
             </Button>
             <Button
               className={!published ? "underline" : ""}
-              variant={"link"}
               onClick={() => setPublished(false)}
+              variant={"link"}
             >
               {t("unpublished")}
             </Button>
@@ -102,7 +102,7 @@ export default function CoursesPage() {
               <div>{t("noCourses")}</div>
             ) : (
               courses.map((course) => (
-                <CourseCard key={course.id} course={course} />
+                <CourseCard course={course} key={course.id} />
               ))
             )}
           </div>
@@ -112,19 +112,19 @@ export default function CoursesPage() {
         <PaginationContent>
           <PaginationItem className={page === 1 ? "hidden" : ""}>
             <PaginationPrevious
-              size={"sm"}
-              onClick={() => handlePageChange(page - 1)}
               aria-disabled={page === 1}
+              onClick={() => handlePageChange(page - 1)}
+              size={"sm"}
             />
           </PaginationItem>
 
           {Array.from({ length: totalPages }, (_, i) => (
             <PaginationItem key={i}>
               <PaginationLink
-                size={"icon"}
                 href="#"
-                onClick={() => handlePageChange(i + 1)}
                 isActive={i + 1 === page}
+                onClick={() => handlePageChange(i + 1)}
+                size={"icon"}
               >
                 {i + 1}
               </PaginationLink>
@@ -137,9 +137,9 @@ export default function CoursesPage() {
             className={page === totalPages || totalPages === 0 ? "hidden" : ""}
           >
             <PaginationNext
-              size={"sm"}
-              onClick={() => handlePageChange(page + 1)}
               aria-disabled={page === totalPages}
+              onClick={() => handlePageChange(page + 1)}
+              size={"sm"}
             />
           </PaginationItem>
         </PaginationContent>

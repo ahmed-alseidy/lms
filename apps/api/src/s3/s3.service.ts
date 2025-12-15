@@ -1,14 +1,14 @@
-import { Inject, Injectable } from '@nestjs/common';
 import {
-  S3Client,
+  DeleteObjectsCommand,
   GetObjectCommand,
   ListObjectsV2Command,
-  DeleteObjectsCommand,
-} from '@aws-sdk/client-s3';
-import { ConfigType } from '@nestjs/config';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import s3Config from './config/s3.config';
-import { createPresignedPost } from '@aws-sdk/s3-presigned-post';
+  S3Client,
+} from "@aws-sdk/client-s3";
+import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { Inject, Injectable } from "@nestjs/common";
+import { ConfigType } from "@nestjs/config";
+import s3Config from "./config/s3.config";
 
 @Injectable()
 export class S3Service {
@@ -50,22 +50,22 @@ export class S3Service {
   async generateUploadUrl(
     key: string,
     contentType: string,
-    expiresIn: number = 60 * 60 * 1000,
+    expiresIn: number = 60 * 60 * 1000
   ) {
-    const isSegment = key.endsWith('.ts');
-    console.log('isSegment', isSegment);
-    const actualContentType = isSegment ? 'video/mp2t' : contentType;
+    const isSegment = key.endsWith(".ts");
+    console.log("isSegment", isSegment);
+    const actualContentType = isSegment ? "video/mp2t" : contentType;
 
     return createPresignedPost(this.s3Client, {
       Bucket: this._s3Config.bucket!,
       Key: key,
       Fields: {
         key,
-        'Content-Type': actualContentType,
+        "Content-Type": actualContentType,
       },
       Conditions: [
-        ['eq', '$Content-Type', actualContentType],
-        ['content-length-range', 0, 500 * 1024 * 1024], // 500MB max
+        ["eq", "$Content-Type", actualContentType],
+        ["content-length-range", 0, 500 * 1024 * 1024], // 500MB max
       ],
       Expires: expiresIn,
     });

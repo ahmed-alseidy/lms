@@ -25,19 +25,19 @@ export default function TagInputForm() {
         <label className="text-sm font-medium">Add Tags (max 8)</label>
         <div className="flex items-center mt-2 space-x-2">
           <Input
-            placeholder="Add a tag"
-            value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && addTag()}
+            placeholder="Add a tag"
+            value={inputValue}
           />
           <Button onClick={addTag}>+</Button>
         </div>
         <div className="flex flex-wrap mt-2 gap-2">
           {tags.map((tag) => (
             <div
+              className="cursor-pointer"
               key={tag}
               onClick={() => removeTag(tag)}
-              className="cursor-pointer"
             >
               {tag} <span className="ml-1 text-xs">✕</span>
             </div>
@@ -48,19 +48,19 @@ export default function TagInputForm() {
       <div className="space-y-2">
         <input id="display-on-profile" type="checkbox" />
 
-        <input type="checkbox" id="disable-commenting" />
+        <input id="disable-commenting" type="checkbox" />
       </div>
 
       <div className="space-y-2">
         <div>
           <label className="text-sm font-medium">Add to portfolio</label>
-          <Button variant="outline" className="w-full mt-1">
+          <Button className="w-full mt-1" variant="outline">
             Choose
           </Button>
         </div>
         <div>
           <label className="text-sm font-medium">Add Download File</label>
-          <Button variant="outline" className="w-full mt-1">
+          <Button className="w-full mt-1" variant="outline">
             Add
           </Button>
         </div>

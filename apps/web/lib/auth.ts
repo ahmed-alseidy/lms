@@ -46,13 +46,13 @@ export async function loginUser(input: LoginUserDto) {
 }
 
 export async function refreshToken(
-  oldRefreshToken: string,
+  oldRefreshToken: string
 ): Promise<string | null> {
   try {
     const res = await axios.post(
       "refresh-token",
       { refreshToken: oldRefreshToken },
-      { baseURL: baseUrl },
+      { baseURL: baseUrl }
     );
 
     const { accessToken, refreshToken: newRefreshToken } = res.data;
@@ -61,7 +61,7 @@ export async function refreshToken(
       updateTokens({
         accessToken,
         refreshToken: newRefreshToken,
-      }),
+      })
     );
     if (error) {
       console.error("Failed to update tokens on the server");
@@ -75,7 +75,7 @@ export async function refreshToken(
       "Error refreshing token:",
       error instanceof AxiosError
         ? error.response?.data || error.message
-        : error,
+        : error
     );
     return null;
   }

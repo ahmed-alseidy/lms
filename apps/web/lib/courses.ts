@@ -1,5 +1,3 @@
-import { BACKEND_URL } from "./constants";
-import { authFetch } from "./auth-fetch";
 import {
   SelectCourse,
   SelectCourseSection,
@@ -12,6 +10,8 @@ import {
   UpdateCourseSectionDto,
   UpdateLessonDto,
 } from "@lms-saas/shared-lib/dtos";
+import { authFetch } from "./auth-fetch";
+import { BACKEND_URL } from "./constants";
 import { Quiz } from "./quizzes";
 import { Video } from "./videos";
 
@@ -61,7 +61,7 @@ export async function getCoursesByTeacherId(
   page?: number,
   limit?: number,
   withTeacher = false,
-  withEnrollments = false,
+  withEnrollments = false
 ) {
   let url = `${baseUrl}/by-teacher-id?with-teacher=${withTeacher}&published=${published}&with-enrollments=${withEnrollments}`;
   if (page && limit) {
@@ -82,13 +82,13 @@ export async function getCourse(
   id: number,
   withSections = false,
   withEnrollments = false,
-  withCourseCodes = false,
+  withCourseCodes = false
 ) {
   return authFetch<CourseWithSectionsAndEnrollments>(
     `${baseUrl}/${id}?with-enrollments=${withEnrollments}&with-sections=${withSections}&with-course-codes=${withCourseCodes}`,
     {
       method: "GET",
-    },
+    }
   );
 }
 
@@ -110,21 +110,21 @@ export type CourseSection = {
 
 export const createCourseSection = (
   courseId: number,
-  input: CreateCourseSectionDto,
+  input: CreateCourseSectionDto
 ) => {
   return authFetch<Omit<CourseSection, "courseId">[]>(
     `${baseUrl}/${courseId}/sections`,
     {
       method: "POST",
       data: input,
-    },
+    }
   );
 };
 
 export const updateCourseSection = (
   courseId: number,
   sectionId: number,
-  input: UpdateCourseSectionDto,
+  input: UpdateCourseSectionDto
 ) => {
   return authFetch<void>(`${baseUrl}/${courseId}/sections/${sectionId}`, {
     method: "PUT",
@@ -141,7 +141,7 @@ export const getCourseSections = (courseId: number) => {
 export const findCourseSection = (courseId: number, sectionId: number) => {
   return authFetch<CourseSection>(
     `${baseUrl}/${courseId}/sections/${sectionId}`,
-    { method: "GET" },
+    { method: "GET" }
   );
 };
 
@@ -175,14 +175,14 @@ export interface Lesson {
 export const createLesson = (
   courseId: number,
   sectionId: number,
-  input: CreateLessonDto,
+  input: CreateLessonDto
 ) => {
   return authFetch<{ id: number }>(
     `${baseUrl}/${courseId}/sections/${sectionId}/lessons`,
     {
       method: "POST",
       data: input,
-    },
+    }
   );
 };
 
@@ -190,38 +190,38 @@ export const updateLesson = (
   courseId: number,
   sectionId: number,
   lessonId: number,
-  input: UpdateLessonDto,
+  input: UpdateLessonDto
 ) => {
   return authFetch<{ id: number }>(
     `${baseUrl}/${courseId}/sections/${sectionId}/lessons/${lessonId}`,
     {
       method: "PUT",
       data: input,
-    },
+    }
   );
 };
 
 export const findLesson = (
   courseId: number,
   sectionId: number,
-  lessonId: number,
+  lessonId: number
 ) => {
   return authFetch<Lesson>(
     `${baseUrl}/${courseId}/sections/${sectionId}/lessons/${lessonId}`,
-    { method: "GET" },
+    { method: "GET" }
   );
 };
 
 export const deleteLesson = (
   courseId: number,
   sectionId: number,
-  lessonId: number,
+  lessonId: number
 ) => {
   return authFetch<{ id: number }>(
     `${baseUrl}/${courseId}/sections/${sectionId}/lessons/${lessonId}`,
     {
       method: "DELETE",
-    },
+    }
   );
 };
 
@@ -235,14 +235,14 @@ export const completeLesson = async (
   courseId: number,
   sectionId: number,
   lessonId: number,
-  enrollmentId: number,
+  enrollmentId: number
 ) => {
   return authFetch<{ progress: number }>(
     `${baseUrl}/${courseId}/sections/${sectionId}/lessons/${lessonId}/complete`,
     {
       method: "POST",
       data: { enrollmentId },
-    },
+    }
   );
 };
 
@@ -250,10 +250,10 @@ export const checkIfLessonCompleted = async (
   courseId: number,
   sectionId: number,
   lessonId: number,
-  enrollmentId: number,
+  enrollmentId: number
 ) => {
   return authFetch<{ completed: boolean }>(
     `${baseUrl}/${courseId}/sections/${sectionId}/lessons/${lessonId}/completed?enrollmentId=${enrollmentId}`,
-    { method: "GET" },
+    { method: "GET" }
   );
 };

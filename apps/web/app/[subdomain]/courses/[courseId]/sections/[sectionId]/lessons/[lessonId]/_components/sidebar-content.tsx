@@ -1,37 +1,37 @@
+import { useQuery } from "@tanstack/react-query";
+import { useAtom } from "jotai";
+import {
+  BookOpen,
+  CheckCircle,
+  Circle,
+  Clock,
+  FileText,
+  Loader,
+  PlayCircle,
+  Video,
+} from "lucide-react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { localeAtom } from "@/lib/atoms";
 import {
-  checkIfLessonCompleted,
   CourseWithSectionsAndEnrollments,
+  checkIfLessonCompleted,
   Lesson,
 } from "@/lib/courses";
-import { useQuery } from "@tanstack/react-query";
-import { attempt, cn } from "@/lib/utils";
-import {
-  FileText,
-  Video,
-  PlayCircle,
-  BookOpen,
-  Circle,
-  Clock,
-  CheckCircle,
-  Loader,
-} from "lucide-react";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
-import { checkIfVideoCompleted } from "@/lib/videos";
 import { checkIfQuizCompleted } from "@/lib/quizzes";
-import { useParams } from "next/navigation";
-import { toast } from "sonner";
-import { useTranslations } from "next-intl";
-import { useAtom } from "jotai";
-import { localeAtom } from "@/lib/atoms";
+import { attempt, cn } from "@/lib/utils";
+import { checkIfVideoCompleted } from "@/lib/videos";
 
 interface SidebarContentProps {
   course: CourseWithSectionsAndEnrollments;
@@ -62,7 +62,7 @@ interface SectionAccordionProps {
 const generateLessonUrl = (
   courseId: number,
   sectionId: number,
-  lessonId: number,
+  lessonId: number
 ) => `/courses/${courseId}/sections/${sectionId}/lessons/${lessonId}`;
 
 const generateQuizUrl = (courseId: number, quizId: string) =>
@@ -103,7 +103,7 @@ function LessonResources({
       if (!videoId) return { completed: false };
 
       const [response, error] = await attempt(
-        checkIfVideoCompleted(lessonId, videoId, enrollmentId),
+        checkIfVideoCompleted(lessonId, videoId, enrollmentId)
       );
       if (error || !response) {
         throw error || new Error(t("common.somethingWentWrong"));
@@ -118,7 +118,7 @@ function LessonResources({
       if (!quizId) return { completed: false };
 
       const [response, error] = await attempt(
-        checkIfQuizCompleted(quizId, enrollmentId),
+        checkIfQuizCompleted(quizId, enrollmentId)
       );
       if (error || !response) {
         throw error || new Error(t("common.somethingWentWrong"));
@@ -142,10 +142,10 @@ function LessonResources({
             className={cn(
               !!isVideoCompleted?.completed &&
                 "border-green-600 bg-green-100 hover:bg-green-200/80",
-              "h-8 w-full justify-start gap-2 text-sm",
+              "h-8 w-full justify-start gap-2 text-sm"
             )}
-            variant="outline"
             size="sm"
+            variant="outline"
           >
             {isVideoCompleted?.completed ? (
               <CheckCircle className="h-3 w-3 text-green-600" />
@@ -153,7 +153,7 @@ function LessonResources({
               <Video className="h-3 w-3" />
             )}
             <span>{t("lessons.watchVideo")}</span>
-            <Badge variant="secondary" className="ml-auto text-xs">
+            <Badge className="ml-auto text-xs" variant="secondary">
               {lesson.videos?.length || 0}
             </Badge>
           </Button>
@@ -164,7 +164,7 @@ function LessonResources({
               buttonVariants({ variant: "outline", size: "sm" }),
               "h-8 w-full justify-start gap-2 text-sm",
               !!isQuizCompleted?.completed &&
-                "border-green-600 bg-green-100 hover:bg-green-200/80",
+                "border-green-600 bg-green-100 hover:bg-green-200/80"
             )}
             href={generateQuizUrl(courseId, quizId!)}
           >
@@ -174,7 +174,7 @@ function LessonResources({
               <FileText className="h-3 w-3" />
             )}
             <span>{t("lessons.takeQuiz")}</span>
-            <Badge variant="secondary" className="ml-auto text-xs">
+            <Badge className="ml-auto text-xs" variant="secondary">
               {lesson.quizzes?.length || 0}
             </Badge>
           </Link>
@@ -200,7 +200,7 @@ function LessonItem({
       queryKey: ["lesson-completed", lesson.id],
       queryFn: async () => {
         const [response, error] = await attempt(
-          checkIfLessonCompleted(courseId, sectionId, lesson.id, enrollmentId),
+          checkIfLessonCompleted(courseId, sectionId, lesson.id, enrollmentId)
         );
 
         if (error || !response) {
@@ -217,15 +217,15 @@ function LessonItem({
   }
 
   return (
-    <li key={lesson.id} className="relative">
+    <li className="relative" key={lesson.id}>
       <Link
-        href={lessonUrl}
         className={cn(
           "group hover:bg-accent/50 flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all duration-200",
           isActive
             ? "bg-primary/10 border-primary/20 text-primary border font-medium"
-            : "text-foreground/80 hover:text-foreground",
+            : "text-foreground/80 hover:text-foreground"
         )}
+        href={lessonUrl}
       >
         <div className="bg-muted/50 group-hover:bg-primary/10 flex h-6 w-6 items-center justify-center rounded-full transition-colors">
           {isLessonCompleted?.completed ? (
@@ -252,11 +252,11 @@ function LessonItem({
       {isActive && (
         <div className="mt-2 ml-9">
           <LessonResources
-            lesson={lesson}
             courseId={courseId}
             enrollmentId={enrollmentId}
-            sectionId={sectionId}
+            lesson={lesson}
             lessonId={Number(lessonId)}
+            sectionId={sectionId}
           />
         </div>
       )}
@@ -274,25 +274,25 @@ function SectionAccordion({
   const isCurrentSection = section.id.toString() === sectionId;
   const defaultValue = isCurrentSection ? section.id.toString() : undefined;
   const hasActiveLesson = section.lessons?.some(
-    (lesson) => lesson.id === lessonId,
+    (lesson) => lesson.id === lessonId
   );
   const [locale] = useAtom(localeAtom);
   const t = useTranslations();
 
   return (
     <Card
-      key={section.id}
       className={cn(
         "shadow-sm",
-        isCurrentSection && "ring-primary/20 bg-primary/5 border-0 ring-2",
+        isCurrentSection && "ring-primary/20 bg-primary/5 border-0 ring-2"
       )}
+      key={section.id}
     >
-      <Accordion defaultValue={defaultValue} type="single" collapsible>
-        <AccordionItem value={section.id.toString()} className="border-0">
+      <Accordion collapsible defaultValue={defaultValue} type="single">
+        <AccordionItem className="border-0" value={section.id.toString()}>
           <AccordionTrigger
             className={cn(
               "px-4 py-3 hover:no-underline [&[data-state=open]>svg]:rotate-180",
-              isCurrentSection && "text-primary font-semibold",
+              isCurrentSection && "text-primary font-semibold"
             )}
           >
             <div className="flex flex-1 items-center gap-3">
@@ -301,7 +301,7 @@ function SectionAccordion({
                   "flex h-8 w-8 items-center justify-center rounded-lg transition-colors",
                   isCurrentSection
                     ? "bg-primary/10 text-primary"
-                    : "bg-muted/50 text-muted-foreground",
+                    : "bg-muted/50 text-muted-foreground"
                 )}
               >
                 <BookOpen className="h-4 w-4" />
@@ -309,7 +309,7 @@ function SectionAccordion({
               <div
                 className={cn(
                   "flex-1 text-right",
-                  locale === "en" && "text-left",
+                  locale === "en" && "text-left"
                 )}
               >
                 <div className="font-medium">{section.title}</div>
@@ -319,11 +319,11 @@ function SectionAccordion({
               </div>
               {hasActiveLesson && (
                 <Badge
-                  variant="default"
                   className={cn(
                     locale === "ar" ? "ml-1.5" : "mr-1.5",
-                    "text-xs",
+                    "text-xs"
                   )}
+                  variant="default"
                 >
                   {t("common.current")}
                 </Badge>
@@ -334,12 +334,12 @@ function SectionAccordion({
             <div className="list-none space-y-3">
               {section.lessons?.map((lesson) => (
                 <LessonItem
+                  courseId={courseId}
+                  enrollmentId={enrollmentId}
                   key={lesson.id}
                   lesson={lesson}
-                  courseId={courseId}
-                  sectionId={section.id}
                   lessonId={lesson.id}
-                  enrollmentId={enrollmentId}
+                  sectionId={section.id}
                 />
               ))}
             </div>
@@ -363,7 +363,7 @@ export function SidebarContent({ course, lessonId }: SidebarContentProps) {
           {course.courseSections?.length || 0} {t("courses.sections")} •{" "}
           {course.courseSections?.reduce(
             (total, section) => total + (section.lessons?.length || 0),
-            0,
+            0
           ) || 0}{" "}
           {t("courses.lessons")}
         </p>
@@ -372,11 +372,11 @@ export function SidebarContent({ course, lessonId }: SidebarContentProps) {
       <div className="space-y-3">
         {course.courseSections?.map((section) => (
           <SectionAccordion
-            key={section.id}
-            enrollmentId={course.enrollments?.[0]?.id!}
-            section={{ ...section, courseId: course.id }}
             courseId={course.id}
+            enrollmentId={course.enrollments?.[0]?.id!}
+            key={section.id}
             lessonId={lessonId}
+            section={{ ...section, courseId: course.id }}
           />
         ))}
       </div>

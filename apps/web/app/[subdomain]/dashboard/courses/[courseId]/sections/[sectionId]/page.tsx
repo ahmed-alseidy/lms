@@ -1,28 +1,18 @@
 "use client";
 
-import { Button, buttonVariants } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import {
-  CourseSection,
-  createLesson,
-  findCourseSection,
-  getCourse,
-  updateCourseSection,
-} from "@/lib/courses";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  IconVideo,
-  IconTrash,
-  IconLoader2,
-  IconLoader,
-  IconPlus,
   IconArrowLeft,
+  IconLoader,
+  IconLoader2,
   IconPencil,
+  IconPlus,
+  IconTrash,
+  IconVideo,
 } from "@tabler/icons-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -44,10 +34,20 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import Link from "next/link";
-import { LessonsList } from "./_components/lesson-list";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import {
+  CourseSection,
+  createLesson,
+  findCourseSection,
+  getCourse,
+  updateCourseSection,
+} from "@/lib/courses";
 import { attempt } from "@/lib/utils";
-import { useTranslations } from "next-intl";
+import { LessonsList } from "./_components/lesson-list";
 export default function SectionPage() {
   const params = useParams();
   const router = useRouter();
@@ -75,7 +75,7 @@ export default function SectionPage() {
     queryKey: ["section", params.sectionId],
     queryFn: async () => {
       const [data, error] = await attempt(
-        findCourseSection(Number(params.courseId), Number(params.sectionId)),
+        findCourseSection(Number(params.courseId), Number(params.sectionId))
       );
       if (error) {
         toast.error(tCommon("somethingWentWrong"));
@@ -112,7 +112,7 @@ export default function SectionPage() {
     const [, error] = await attempt(
       updateCourseSection(Number(params.courseId), Number(params.sectionId), {
         title,
-      }),
+      })
     );
 
     if (error) {
@@ -131,7 +131,7 @@ export default function SectionPage() {
     const [, error] = await attempt(
       updateCourseSection(Number(params.courseId), Number(params.sectionId), {
         title: `${section?.data?.title} (Deleted)`,
-      }),
+      })
     );
 
     if (error) {
@@ -151,7 +151,7 @@ export default function SectionPage() {
       createLesson(course?.data?.id!, section?.data?.id!, {
         title: `Lesson ${lessons.length + 1}`,
         orderIndex: lessons.length,
-      }),
+      })
     );
     if (error) {
       toast.error(tCommon("somethingWentWrong"));
@@ -206,7 +206,7 @@ export default function SectionPage() {
       <div className="items-center justify-between md:flex">
         <div className="flex items-center gap-4">
           <Link href={`/dashboard/courses/${params.courseId}`}>
-            <Button variant="ghost" size="icon">
+            <Button size="icon" variant="ghost">
               <IconArrowLeft className="rotate-rtl h-4 w-4" />
             </Button>
           </Link>
@@ -271,16 +271,16 @@ export default function SectionPage() {
                 <Label htmlFor="title">{tCommon("title")}</Label>
                 <div className="flex flex-col gap-2 md:flex-row">
                   <Input
+                    className="flex-1"
                     id="title"
-                    value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder={tCommon("titlePlaceholder")}
-                    className="flex-1"
+                    value={title}
                   />
                   <Button
-                    onClick={handleUpdateTitle}
-                    disabled={isLoading}
                     className="w-full md:w-[100px]"
+                    disabled={isLoading}
+                    onClick={handleUpdateTitle}
                   >
                     {isLoading ? (
                       <IconLoader2 className="h-4 w-4 animate-spin" />
@@ -316,9 +316,9 @@ export default function SectionPage() {
               setSectionData={setSectionData}
             />
             <Button
+              className="mt-4 w-full"
               onClick={addLesson}
               variant="outline"
-              className="mt-4 w-full"
             >
               <IconPlus className="mr-2 h-4 w-4" />
               {tLessons("createLesson")}

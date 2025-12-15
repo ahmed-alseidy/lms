@@ -1,6 +1,6 @@
 import { config } from "dotenv";
-import path from "path";
 import { defineConfig } from "drizzle-kit";
+import path from "path";
 
 const envPath = path.join(__dirname.split("/").slice(0, 5).join("/"), ".env");
 config({ path: envPath });

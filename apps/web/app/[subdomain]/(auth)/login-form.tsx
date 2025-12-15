@@ -1,23 +1,23 @@
 "use client";
 
+import { classValidatorResolver } from "@hookform/resolvers/class-validator";
+import { LoginUserDto } from "@lms-saas/shared-lib/dtos";
+import { IconLoader2 } from "@tabler/icons-react";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import React, { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
-import { classValidatorResolver } from "@hookform/resolvers/class-validator";
-import { Input } from "@/components/ui/input";
-import { LoginUserDto } from "@lms-saas/shared-lib/dtos";
+import { Button } from "@/components/ui/button";
 import {
   Form,
+  FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormControl,
   FormMessage,
 } from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
+import { Input } from "@/components/ui/input";
 import { loginUser } from "@/lib/auth";
-import { IconLoader2 } from "@tabler/icons-react";
-import { useTranslations } from "next-intl";
 
 export function LoginForm({
   subdomain,
@@ -59,8 +59,8 @@ export function LoginForm({
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit(onSubmit)}
         className="mb-2 w-full space-y-4"
+        onSubmit={form.handleSubmit(onSubmit)}
       >
         <div className="text-sm text-red-500">
           {form.formState.errors.root?.message}
@@ -100,9 +100,9 @@ export function LoginForm({
           )}
         />
         <Button
-          type="submit"
           className="w-full"
           disabled={isSubmitting || !isValid}
+          type="submit"
         >
           {isSubmitting ? (
             <span className="flex items-center justify-center">

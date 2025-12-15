@@ -1,9 +1,10 @@
 "use client";
 
-import { notFound, redirect, useParams } from "next/navigation";
-import CourseEdit from "./_components/course-edit";
+import { IconLoader } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
-import { getCourse } from "@/lib/courses";
+import { notFound, redirect, useParams } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -12,10 +13,9 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { getCourse } from "@/lib/courses";
 import { attempt } from "@/lib/utils";
-import { toast } from "sonner";
-import { useTranslations } from "next-intl";
-import { IconLoader } from "@tabler/icons-react";
+import CourseEdit from "./_components/course-edit";
 
 export default function EditCoursePage({}: {}) {
   const t = useTranslations("courses");
@@ -31,7 +31,7 @@ export default function EditCoursePage({}: {}) {
     queryKey: ["dashboard-course", courseId],
     queryFn: async () => {
       const [response, error] = await attempt(
-        getCourse(courseId, true, false, true),
+        getCourse(courseId, true, false, true)
       );
       if (error) {
         toast.error("Error fetching course");

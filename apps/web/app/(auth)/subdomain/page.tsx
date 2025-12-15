@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
-import { Button } from "@/components/ui/button";
 import { Loader } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
+import { Button } from "@/components/ui/button";
 
 function SubdomainContent() {
   const searchParams = useSearchParams();
@@ -25,7 +25,7 @@ function SubdomainContent() {
       <p className="text-muted-foreground text-lg">
         {subdomain ? `${subdomain}.example.com` : "No subdomain provided"}
       </p>
-      <Button onClick={handleGo} className="mt-6" disabled={!subdomain}>
+      <Button className="mt-6" disabled={!subdomain} onClick={handleGo}>
         Go to my platform
       </Button>
     </div>

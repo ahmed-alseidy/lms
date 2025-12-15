@@ -1,16 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { createCourse } from "@/lib/courses";
 import { classValidatorResolver } from "@hookform/resolvers/class-validator";
 import { CreateCourseDto } from "@lms-saas/shared-lib/dtos";
 import { IconLoader } from "@tabler/icons-react";
@@ -18,6 +7,17 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { Dispatch, SetStateAction, useMemo } from "react";
 import { useForm } from "react-hook-form";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { createCourse } from "@/lib/courses";
 
 export function CreateCourseForm({
   setOpen,
@@ -53,8 +53,8 @@ export function CreateCourseForm({
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit(onSubmit)}
         className="mb-2 w-full space-y-4"
+        onSubmit={form.handleSubmit(onSubmit)}
       >
         <FormField
           control={form.control}
@@ -70,8 +70,8 @@ export function CreateCourseForm({
           )}
         />
         <Button
-          disabled={form.formState.isSubmitting}
           className="w-full"
+          disabled={form.formState.isSubmitting}
           type="submit"
         >
           {form.formState.isSubmitting && (

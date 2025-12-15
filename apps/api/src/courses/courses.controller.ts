@@ -1,4 +1,15 @@
 import {
+  CourseEditDto,
+  CreateCourseDto,
+  CreateCourseSectionDto,
+  db,
+  enrollments,
+  students,
+  UpdateCourseSectionDto,
+  UpdateEnrollmentProgressDto,
+} from "@lms-saas/shared-lib";
+import { File, FileInterceptor } from "@nest-lab/fastify-multer";
+import {
   Body,
   ConflictException,
   Controller,
@@ -20,58 +31,47 @@ import {
   UploadedFile,
   UseGuards,
   UseInterceptors,
-} from '@nestjs/common';
-import { CoursesService } from './courses.service';
-import {
-  CourseEditDto,
-  CreateCourseDto,
-  CreateCourseSectionDto,
-  db,
-  students,
-  UpdateCourseSectionDto,
-  enrollments,
-  UpdateEnrollmentProgressDto,
-} from '@lms-saas/shared-lib';
-import { Roles } from '@/auth/decorators/roles.decorator';
-import { ApiBearerAuth, ApiBody, ApiConsumes } from '@nestjs/swagger';
-import { RolesGuard } from '@/auth/guards/roles/roles.guard';
-import { File, FileInterceptor } from '@nest-lab/fastify-multer';
-import { CloudinaryService } from '@/cloudinary/cloudinary.service';
-import { eq } from 'drizzle-orm';
+} from "@nestjs/common";
+import { ApiBearerAuth, ApiBody, ApiConsumes } from "@nestjs/swagger";
+import { eq } from "drizzle-orm";
+import { Roles } from "@/auth/decorators/roles.decorator";
+import { RolesGuard } from "@/auth/guards/roles/roles.guard";
+import { CloudinaryService } from "@/cloudinary/cloudinary.service";
+import { CoursesService } from "./courses.service";
 
 @ApiBearerAuth()
 @UseGuards(RolesGuard)
-@Controller('courses')
+@Controller("courses")
 export class CoursesController {
   constructor(
     private readonly coursesService: CoursesService,
-    private readonly cloudinaryService: CloudinaryService,
+    private readonly cloudinaryService: CloudinaryService
   ) {}
 
-  @Roles('teacher')
+  @Roles("teacher")
   @Post()
   create(@Req() req, @Body() dto: CreateCourseDto) {
     return this.coursesService.create(dto, req.user.id);
   }
 
-  @Get('/by-teacher-id')
+  @Get("/by-teacher-id")
   async getByTeacherId(
     @Req() req,
     @Query('page', ParseIntPipe) page: number,
     @Query('limit', ParseIntPipe) limit: number,
     @Query('with-teacher', ParseBoolPipe) withTeacher: boolean,
     @Query('with-enrollments', ParseBoolPipe) withEnrollments: boolean,
-    @Query('published', ParseBoolPipe) published: boolean,
+    @Query('published', ParseBoolPipe) published: boolean
   ) {
     const offset = (page - 1) * limit;
-    if (req.user.role === 'teacher')
+    if (req.user.role === "teacher")
       return this.coursesService.getByTeacherId(
         req.user.id,
         offset,
         limit,
         withTeacher,
         published,
-        withEnrollments,
+        withEnrollments
       );
     else {
       const teacherIdRes = await db.query.students.findFirst({
@@ -81,7 +81,7 @@ export class CoursesController {
         },
       });
 
-      if (!teacherIdRes) throw new NotFoundException('Teacher not found');
+      if (!teacherIdRes) throw new NotFoundException("Teacher not found");
 
       return this.coursesService.getByTeacherId(
         teacherIdRes.teacherId,
@@ -90,18 +90,18 @@ export class CoursesController {
         withTeacher,
         published,
         withEnrollments,
-        req.user.id,
+        req.user.id
       );
     }
   }
 
-  @Get('/:courseId')
+  @Get("/:courseId")
   getOne(
     @Param('courseId', ParseIntPipe) courseId: number,
     @Query('with-enrollments', ParseBoolPipe) withEnrollments: boolean,
     @Query('with-sections', ParseBoolPipe) withSections: boolean,
     @Query('with-course-codes', ParseBoolPipe) withCourseCodes: boolean,
-    @Req() req,
+    @Req() req
   ) {
     try {
       return this.coursesService.getOne(
@@ -109,22 +109,22 @@ export class CoursesController {
         req.user.id,
         withSections,
         withEnrollments,
-        withCourseCodes,
+        withCourseCodes
       );
     } catch (error) {
-      throw new InternalServerErrorException('Cannot update course');
+      throw new InternalServerErrorException("Cannot update course");
     }
   }
 
-  @Put('/:courseId')
+  @Put("/:courseId")
   update(
     @Param('courseId', ParseIntPipe) courseId: number,
-    @Body() input: CourseEditDto,
+    @Body() input: CourseEditDto
   ) {
     try {
       this.coursesService.update(courseId, input);
     } catch (error) {
-      throw new InternalServerErrorException('Cannot update course');
+      throw new InternalServerErrorException("Cannot update course");
     }
   }
 
@@ -150,22 +150,22 @@ export class CoursesController {
     });
   }
 
-  @ApiConsumes('multipart/form-data')
+  @ApiConsumes("multipart/form-data")
   @ApiBody({
     required: true,
     schema: {
-      type: 'object',
+      type: "object",
       properties: {
         coverImage: {
-          type: 'string',
-          format: 'binary',
+          type: "string",
+          format: "binary",
         },
       },
     },
   })
-  @Put('/:courseId/upload-cover-image')
-  @Roles('teacher')
-  @UseInterceptors(FileInterceptor('coverImage'))
+  @Put("/:courseId/upload-cover-image")
+  @Roles("teacher")
+  @UseInterceptors(FileInterceptor("coverImage"))
   async uploadCoverImage(
     @Param('courseId', ParseIntPipe) courseId: number,
     @UploadedFile(
@@ -176,7 +176,7 @@ export class CoursesController {
         ],
       }),
     )
-    file: File,
+    file: File
   ) {
     const result = await this.cloudinaryService.uploadFile(file);
     return this.coursesService.update(courseId, {
@@ -184,16 +184,16 @@ export class CoursesController {
     });
   }
 
-  @Post('/:courseId/sections')
-  @Roles('teacher')
+  @Post("/:courseId/sections")
+  @Roles("teacher")
   addSection(
     @Param('courseId', ParseIntPipe) courseId: number,
-    @Body() dto: CreateCourseSectionDto,
+    @Body() dto: CreateCourseSectionDto
   ) {
     try {
       return this.coursesService.addSection(courseId, dto);
     } catch (error) {
-      throw new InternalServerErrorException('Cannot add course section');
+      throw new InternalServerErrorException("Cannot add course section");
     }
   }
 
@@ -217,16 +217,16 @@ export class CoursesController {
     }
   }
 
-  @Put('/:courseId/sections/:sectionId')
-  @Roles('teacher')
+  @Put("/:courseId/sections/:sectionId")
+  @Roles("teacher")
   updateSection(
     @Param('sectionId', ParseIntPipe) sectionId: number,
-    @Body() dto: UpdateCourseSectionDto,
+    @Body() dto: UpdateCourseSectionDto
   ) {
     try {
       return this.coursesService.updateSection(sectionId, dto);
     } catch (error) {
-      throw new InternalServerErrorException('Cannot update course section');
+      throw new InternalServerErrorException("Cannot update course section");
     }
   }
 
@@ -244,11 +244,11 @@ export class CoursesController {
     }
   }
 
-  @Post('/:courseId/enroll')
-  @Roles('student')
+  @Post("/:courseId/enroll")
+  @Roles("student")
   async enrollInCourse(
     @Param('courseId', ParseIntPipe) courseId: number,
-    @Req() req,
+    @Req() req
   ) {
     const studentId = req.user.id;
 
@@ -260,23 +260,23 @@ export class CoursesController {
           eq(enrollments.courseId, courseId),
       });
     } catch (error) {
-      throw new InternalServerErrorException('Failed to enroll in the course');
+      throw new InternalServerErrorException("Failed to enroll in the course");
     }
 
     if (existingEnrollment) {
-      throw new ConflictException('Student is already enrolled in this course');
+      throw new ConflictException("Student is already enrolled in this course");
     }
 
     try {
       await db.insert(enrollments).values({
         studentId,
         courseId,
-        status: 'active',
+        status: "active",
       });
 
-      return { message: 'Successfully enrolled in the course' };
+      return { message: "Successfully enrolled in the course" };
     } catch (error) {
-      throw new InternalServerErrorException('Failed to enroll in the course');
+      throw new InternalServerErrorException("Failed to enroll in the course");
     }
   }
 

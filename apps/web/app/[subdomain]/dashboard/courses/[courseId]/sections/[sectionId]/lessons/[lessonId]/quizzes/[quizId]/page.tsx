@@ -1,18 +1,12 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import {
-  addAnswer,
-  deleteAnswer,
-  findQuiz,
-  QuizQuestion,
-  updateAnswer,
-  updateQuiz,
-} from "@/lib/quizzes";
-import { useQuery } from "@tanstack/react-query";
+  DragDropContext,
+  Draggable,
+  Droppable,
+  DropResult,
+} from "@hello-pangea/dnd";
+import { UpdateQuizQuestionDto } from "@lms-saas/shared-lib/dtos";
 import {
   IconArrowLeft,
   IconGripVertical,
@@ -20,7 +14,17 @@ import {
   IconPlus,
   IconTrash,
 } from "@tabler/icons-react";
+import { useQuery } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useState } from "react";
+import { toast } from "sonner";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -29,31 +33,27 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { QuestionDialog } from "./_components/question-dialog";
-import { useState } from "react";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { findCourseSection, findLesson, getCourse } from "@/lib/courses";
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import {
-  DragDropContext,
-  Draggable,
-  Droppable,
-  DropResult,
-} from "@hello-pangea/dnd";
-import { toast } from "sonner";
-import { findCourseSection, findLesson } from "@/lib/courses";
-import { getCourse } from "@/lib/courses";
-import { deleteQuestion, updateQuestion } from "@/lib/quizzes";
-import { QuizAnswer } from "@/lib/quizzes";
-import { UpdateQuizQuestionDto } from "@lms-saas/shared-lib/dtos";
-import { QuestionTitleForm } from "./_components/question-title-form";
-import { AnswerEditForm } from "./_components/answer-edit-form";
+  addAnswer,
+  deleteAnswer,
+  deleteQuestion,
+  findQuiz,
+  QuizAnswer,
+  QuizQuestion,
+  updateAnswer,
+  updateQuestion,
+  updateQuiz,
+} from "@/lib/quizzes";
 import { attempt } from "@/lib/utils";
-import { useTranslations } from "next-intl";
+import { AnswerEditForm } from "./_components/answer-edit-form";
+import { QuestionDialog } from "./_components/question-dialog";
+import { QuestionTitleForm } from "./_components/question-title-form";
 
 export default function QuizEditPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -66,7 +66,7 @@ export default function QuizEditPage() {
     queryKey: ["course", params.courseId],
     queryFn: async () => {
       const [response, error] = await attempt(
-        getCourse(Number(params.courseId)),
+        getCourse(Number(params.courseId))
       );
       if (error) {
         toast.error(t("quizzes.errorFetchingCourse"));
@@ -80,7 +80,7 @@ export default function QuizEditPage() {
     queryKey: ["section", params.sectionId],
     queryFn: async () => {
       const [response, error] = await attempt(
-        findCourseSection(Number(params.courseId), Number(params.sectionId)),
+        findCourseSection(Number(params.courseId), Number(params.sectionId))
       );
       if (error) {
         toast.error(t("quizzes.errorFetchingSection"));
@@ -101,8 +101,8 @@ export default function QuizEditPage() {
         findLesson(
           Number(params.courseId),
           Number(params.sectionId),
-          Number(params.lessonId),
-        ),
+          Number(params.lessonId)
+        )
       );
       if (error) {
         toast.error(t("quizzes.errorFetchingLesson"));
@@ -120,7 +120,7 @@ export default function QuizEditPage() {
     queryKey: ["quiz", params.quizId],
     queryFn: async () => {
       const [response, error] = await attempt(
-        findQuiz(params.quizId as string),
+        findQuiz(params.quizId as string)
       );
       if (error) {
         toast.error(t("quizzes.errorFetchingQuiz"));
@@ -146,7 +146,7 @@ export default function QuizEditPage() {
 
   const handleUpdateQuestion = async (
     questionId: number,
-    data: UpdateQuizQuestionDto,
+    data: UpdateQuizQuestionDto
   ) => {
     try {
       const [response, error] = await attempt(updateQuestion(questionId, data));
@@ -155,7 +155,7 @@ export default function QuizEditPage() {
         return;
       }
       setQuestions((prev) =>
-        prev.map((q) => (q.id === questionId ? response.data! : q)),
+        prev.map((q) => (q.id === questionId ? response.data! : q))
       );
     } catch (error) {
       toast.error(t("quizzes.failedToUpdateQuestion"));
@@ -167,7 +167,7 @@ export default function QuizEditPage() {
       addAnswer(questionId, {
         answerText: t("quizzes.answerText"),
         isCorrect: false,
-      }),
+      })
     );
     if (error) {
       toast.error(t("quizzes.failedToAddAnswer"));
@@ -183,7 +183,7 @@ export default function QuizEditPage() {
           };
         }
         return q;
-      }),
+      })
     );
   };
 
@@ -203,14 +203,14 @@ export default function QuizEditPage() {
           };
         }
         return q;
-      }),
+      })
     );
   };
 
   const handleUpdateAnswer = async (
     questionId: number,
     answerId: number,
-    data: Partial<QuizAnswer>,
+    data: Partial<QuizAnswer>
   ) => {
     const [, error] = await attempt(updateAnswer(answerId, data));
     if (error) {
@@ -224,12 +224,12 @@ export default function QuizEditPage() {
           return {
             ...q,
             answers: q.answers.map((a) =>
-              a.id === answerId ? { ...a, ...data } : a,
+              a.id === answerId ? { ...a, ...data } : a
             ),
           };
         }
         return q;
-      }),
+      })
     );
   };
 
@@ -251,7 +251,7 @@ export default function QuizEditPage() {
     const [, error] = await attempt(
       updateQuiz(Number(params.lessonId), params.quizId as string, {
         questions: updatedQuestions,
-      }),
+      })
     );
     if (error) {
       toast.error(t("quizzes.failedToUpdateQuestionOrder"));
@@ -266,7 +266,7 @@ export default function QuizEditPage() {
       const [, error] = await attempt(
         updateQuestion(reorderedItem.id, {
           orderIndex: result.destination.index,
-        }),
+        })
       );
       if (error) {
         toast.error(t("quizzes.failedToUpdateQuestionOrder"));
@@ -328,10 +328,10 @@ export default function QuizEditPage() {
       <div className="mb-6 items-center justify-between md:flex">
         <div className="flex items-center gap-4">
           <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => router.back()}
             className="h-8 w-8"
+            onClick={() => router.back()}
+            size="icon"
+            variant="ghost"
           >
             <IconArrowLeft className="rotate-rtl h-4 w-4" />
           </Button>
@@ -355,15 +355,15 @@ export default function QuizEditPage() {
             {(provided) => (
               <div
                 {...provided.droppableProps}
-                ref={provided.innerRef}
                 className="space-y-4"
+                ref={provided.innerRef}
               >
                 {questions?.map((question, questionIndex) => (
                   <Draggable
-                    key={question.id}
                     draggableId={question.id.toString()}
                     index={questionIndex}
                     isDragDisabled={isLoading}
+                    key={question.id}
                   >
                     {(provided) => (
                       <div ref={provided.innerRef} {...provided.draggableProps}>
@@ -385,12 +385,12 @@ export default function QuizEditPage() {
                                 </CardTitle>
                               </div>
                               <Button
-                                variant="ghost"
-                                size="icon"
                                 className="hover:bg-destructive/10 hover:text-destructive"
                                 onClick={() =>
                                   handleDeleteQuestion(question.id)
                                 }
+                                size="icon"
+                                variant="ghost"
                               >
                                 <IconTrash className="h-4 w-4" />
                               </Button>
@@ -398,7 +398,7 @@ export default function QuizEditPage() {
                           </CardHeader>
                           <CardContent>
                             <div className="space-y-4 pt-2">
-                              <Accordion type="single" collapsible>
+                              <Accordion collapsible type="single">
                                 <AccordionItem value="title">
                                   <AccordionTrigger className="text-sm font-medium">
                                     {t("quizzes.questionDetails")}
@@ -412,9 +412,9 @@ export default function QuizEditPage() {
                                     />
                                     <Separator />
                                     <Accordion
-                                      type="single"
-                                      collapsible
                                       className="w-full"
+                                      collapsible
+                                      type="single"
                                     >
                                       <AccordionItem value="answers">
                                         <AccordionTrigger className="text-sm font-medium">
@@ -424,12 +424,12 @@ export default function QuizEditPage() {
                                           <div className="space-y-4">
                                             <div className="flex items-center justify-end">
                                               <Button
-                                                variant="outline"
-                                                size="sm"
+                                                className="gap-2"
                                                 onClick={() =>
                                                   handleAddAnswer(question.id)
                                                 }
-                                                className="gap-2"
+                                                size="sm"
+                                                variant="outline"
                                               >
                                                 <IconPlus className="h-4 w-4" />
                                                 {t("quizzes.addAnswer")}
@@ -440,25 +440,25 @@ export default function QuizEditPage() {
                                               {question.answers?.map(
                                                 (answer, answerIndex) => (
                                                   <div
-                                                    key={answer.id}
                                                     className="flex items-start justify-between gap-4 rounded-lg border p-4"
+                                                    key={answer.id}
                                                   >
                                                     <AnswerEditForm
+                                                      answerId={answer.id}
                                                       initialData={{
                                                         answerText:
                                                           answer.answerText,
                                                       }}
-                                                      answerId={answer.id}
                                                     />
                                                     <div className="flex items-center gap-2 pt-8">
                                                       <div className="flex items-center gap-2">
                                                         <Checkbox
-                                                          id={`correct-${answer.id}`}
                                                           checked={
                                                             answer.isCorrect
                                                           }
+                                                          id={`correct-${answer.id}`}
                                                           onCheckedChange={(
-                                                            checked,
+                                                            checked
                                                           ) =>
                                                             handleUpdateAnswer(
                                                               question.id,
@@ -467,7 +467,7 @@ export default function QuizEditPage() {
                                                                 isCorrect:
                                                                   checked ===
                                                                   true,
-                                                              },
+                                                              }
                                                             )
                                                           }
                                                         />
@@ -478,20 +478,20 @@ export default function QuizEditPage() {
                                                         </Label>
                                                       </div>
                                                       <Button
-                                                        variant="ghost"
-                                                        size="icon"
                                                         onClick={() =>
                                                           handleDeleteAnswer(
                                                             question.id,
-                                                            answer.id,
+                                                            answer.id
                                                           )
                                                         }
+                                                        size="icon"
+                                                        variant="ghost"
                                                       >
                                                         <IconTrash className="h-4 w-4" />
                                                       </Button>
                                                     </div>
                                                   </div>
-                                                ),
+                                                )
                                               )}
                                             </div>
                                           </div>

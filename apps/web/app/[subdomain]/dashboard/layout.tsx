@@ -1,13 +1,13 @@
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { PropsWithChildren } from "react";
 import {
   Sidebar,
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { getSession } from "@/lib/session";
-import { redirect } from "next/navigation";
-import { PropsWithChildren } from "react";
 import { LowerSidebar } from "./courses/_components/lower-sidebar";
-import { cookies } from "next/headers";
 import SidebarHeaderContent from "./sidebar-header-content";
 
 export default async function DashboardLayout({
@@ -32,7 +32,7 @@ export default async function DashboardLayout({
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full">
-        <Sidebar side={side} dir={dir} variant="floating">
+        <Sidebar dir={dir} side={side} variant="floating">
           <SidebarHeaderContent />
           <LowerSidebar user={session.user} />
         </Sidebar>

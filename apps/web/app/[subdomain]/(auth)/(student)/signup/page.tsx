@@ -1,10 +1,11 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-import React, { useTransition } from "react";
-import { SignupForm } from "./signup-form";
 import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
+import React, { useTransition } from "react";
+import { SignupForm } from "./signup-form";
 
 export default function SignupPage() {
   const { subdomain } = useParams();
@@ -18,8 +19,17 @@ export default function SignupPage() {
         <p className="text-muted w-4/5">{t("signup.description")}</p>
       </div>
       <div className="flex w-10/12 justify-center md:w-1/2">
-        <div className="w-80">
-          <h1 className="mb-4 text-center text-2xl font-bold">
+        <div className="w-80 space-y-2">
+          <div className="mb-6 flex justify-center">
+            <Image
+              alt="logo"
+              className="dark:invert"
+              height={44}
+              src="/logo-with-text.png"
+              width={130}
+            />
+          </div>
+          <h1 className="text-center text-2xl font-bold">
             {t("signup.title")}
           </h1>
           <SignupForm subdomain={subdomain as string} />
@@ -29,6 +39,17 @@ export default function SignupPage() {
               {t("signup.signIn")}
             </Link>
           </div>
+
+          <p className="text-muted-foreground text-center text-sm">
+            {t("auth.agreeTo")}{" "}
+            <Link className="underline" href={"/terms"}>
+              {t("auth.termsOfService")}
+            </Link>{" "}
+            {t("auth.and")}{" "}
+            <Link className="underline" href={"/privacy"}>
+              {t("auth.privacyPolicy")}
+            </Link>
+          </p>
         </div>
       </div>
     </div>

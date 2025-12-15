@@ -1,3 +1,4 @@
+import { relations } from "drizzle-orm";
 import {
   boolean,
   integer,
@@ -8,8 +9,6 @@ import {
 } from "drizzle-orm/pg-core";
 import { courses } from "./course";
 import { students } from "./user";
-
-import { relations } from "drizzle-orm";
 export const courseCodes = pgTable("course_codes", {
   id: serial("id").primaryKey(),
   courseId: integer("course_id")

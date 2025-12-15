@@ -1,11 +1,11 @@
-import { Button } from "@/components/ui/button";
 import { IconLoader, IconTrash, IconVideo } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
-import { getVideo } from "@/lib/videos";
+import { useTranslations } from "next-intl";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import { VideoJsPlayer } from "@/components/video-js-player";
 import { attempt } from "@/lib/utils";
-import { toast } from "sonner";
-import { useTranslations } from "next-intl";
+import { getVideo } from "@/lib/videos";
 
 interface VideoPreviewProps {
   lessonId: number;
@@ -54,9 +54,9 @@ export const VideoPreview = ({
     <div className="space-y-4">
       <div className="relative aspect-video w-full overflow-hidden rounded-lg border bg-black">
         <VideoJsPlayer
-          src={video.manifestUrl}
-          poster="/video-placeholder.png"
           className="h-full w-full"
+          poster="/video-placeholder.png"
+          src={video.manifestUrl}
         />
       </div>
       <div className="flex items-center justify-between">
@@ -66,10 +66,10 @@ export const VideoPreview = ({
         </div>
         {onDelete && (
           <Button
-            variant="ghost"
-            size="sm"
-            onClick={onDelete}
             className="hover:bg-destructive/10 hover:text-destructive"
+            onClick={onDelete}
+            size="sm"
+            variant="ghost"
           >
             <IconTrash className="mr-2 h-4 w-4" />
             {tCommon("delete")} {t("video")}

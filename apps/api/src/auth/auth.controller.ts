@@ -1,4 +1,9 @@
 import {
+  CreateStudentDto,
+  CreateTeacherDto,
+  LoginUserDto,
+} from "@lms-saas/shared-lib";
+import {
   Body,
   Controller,
   HttpCode,
@@ -6,20 +11,15 @@ import {
   Post,
   Req,
   UseGuards,
-} from '@nestjs/common';
-import { AuthService } from './auth.service';
-import {
-  CreateStudentDto,
-  CreateTeacherDto,
-  LoginUserDto,
-} from '@lms-saas/shared-lib';
-import { ApiBearerAuth, ApiBody } from '@nestjs/swagger';
-import { LocalAuthGuard } from './guards/local-auth/local-auth.guard';
-import { RefreshAuthGuard } from './guards/refresh-auth/refresh-auth.guard';
-import { Public } from './decorators/public.decorator';
-import { Roles } from './decorators/roles.decorator';
+} from "@nestjs/common";
+import { ApiBearerAuth, ApiBody } from "@nestjs/swagger";
+import { AuthService } from "./auth.service";
+import { Public } from "./decorators/public.decorator";
+import { Roles } from "./decorators/roles.decorator";
+import { LocalAuthGuard } from "./guards/local-auth/local-auth.guard";
+import { RefreshAuthGuard } from "./guards/refresh-auth/refresh-auth.guard";
 
-@Controller('auth')
+@Controller("auth")
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
@@ -37,7 +37,7 @@ export class AuthController {
 
   @Public()
   @ApiBody({ type: LoginUserDto })
-  @Post('login')
+  @Post("login")
   @HttpCode(HttpStatus.OK)
   @UseGuards(LocalAuthGuard)
   async login(@Req() req, @Body() dto: LoginUserDto) {
@@ -45,7 +45,7 @@ export class AuthController {
       req.user.id,
       req.user.name,
       req.user.role,
-      req.user.subdomain || dto.subdomain,
+      req.user.subdomain || dto.subdomain
     );
     return res;
   }

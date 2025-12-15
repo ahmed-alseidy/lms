@@ -1,3 +1,4 @@
+import { InferSelectModel, relations, sql } from "drizzle-orm";
 import {
   boolean,
   integer,
@@ -9,11 +10,10 @@ import {
   unique,
   varchar,
 } from "drizzle-orm/pg-core";
-import { teachers, students } from "./user";
-import { InferSelectModel, relations, sql } from "drizzle-orm";
-import { studentVideoCompletions, videos } from "./video";
-import { quizzes, quizSubmissions } from "./quiz";
 import { courseCodes } from "./course-code";
+import { quizSubmissions, quizzes } from "./quiz";
+import { students, teachers } from "./user";
+import { studentVideoCompletions, videos } from "./video";
 
 export const courses = pgTable("courses", {
   id: serial("id").primaryKey(),
@@ -94,7 +94,7 @@ export const courseSectionsRelations = relations(
       references: [courses.id],
     }),
     lessons: many(lessons),
-  }),
+  })
 );
 
 export const lessonsRelations = relations(lessons, ({ one, many }) => ({
@@ -139,7 +139,7 @@ export const studentLessonCompletions = pgTable(
     unique("student_lesson_completion_unique")
       .on(t.enrollmentId, t.lessonId)
       .nullsNotDistinct(),
-  ],
+  ]
 );
 
 export const studentLessonCompletionsRelations = relations(
@@ -153,7 +153,7 @@ export const studentLessonCompletionsRelations = relations(
       fields: [studentLessonCompletions.lessonId],
       references: [lessons.id],
     }),
-  }),
+  })
 );
 
 export type SelectCourse = InferSelectModel<typeof courses>;

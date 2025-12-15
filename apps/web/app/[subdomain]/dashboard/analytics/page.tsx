@@ -1,48 +1,48 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Progress } from "@/components/ui/progress";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
 import {
-  LineChart,
-  Line,
-  BarChart,
-  Bar,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-} from "recharts";
-import {
-  IconUsers,
-  IconBook,
-  IconTrendingUp,
-  IconTrendingDown,
-  IconStar,
   IconActivity,
+  IconBook,
   IconCalendar,
-  IconRefresh,
-  IconLoader,
-  IconTarget,
   IconChartBar,
   IconChartLine,
   IconCurrencyDollar,
+  IconLoader,
+  IconRefresh,
+  IconStar,
+  IconTarget,
+  IconTrendingDown,
+  IconTrendingUp,
+  IconUsers,
 } from "@tabler/icons-react";
+import { RefreshCw } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
-import { useAnalytics } from "@/hooks/use-analytics";
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Line,
+  LineChart,
+  XAxis,
+  YAxis,
+} from "recharts";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { RefreshCw } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAnalytics } from "@/hooks/use-analytics";
 
 const mockData = {
   overview: {
@@ -248,7 +248,7 @@ const ActivityItem = ({ activity }: { activity: any }) => {
             {getActivityText(
               activity.type,
               activity.student.name,
-              activity.course.title,
+              activity.course.title
             )}
           </p>
         </div>
@@ -293,7 +293,7 @@ export default function AnalyticsPage() {
     return (
       <div className="flex h-screen flex-col items-center justify-center gap-4">
         <div className="text-red-500">{error.message}</div>
-        <Button variant="outline" onClick={handleRefresh}>
+        <Button onClick={handleRefresh} variant="outline">
           {t("refresh")}
         </Button>
       </div>
@@ -319,7 +319,7 @@ export default function AnalyticsPage() {
         <div className="flex items-center space-x-2 place-self-end">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
+              <Button size="sm" variant="outline">
                 <IconCalendar className="mr-2 h-4 w-4" />
                 {timeRange === "90d"
                   ? t("timeRanges.last90Days")
@@ -343,10 +343,10 @@ export default function AnalyticsPage() {
             </DropdownMenuContent>
           </DropdownMenu>
           <Button
-            variant="outline"
-            size="sm"
-            onClick={handleRefresh}
             disabled={isRefreshing}
+            onClick={handleRefresh}
+            size="sm"
+            variant="outline"
           >
             <IconRefresh
               className={`mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
@@ -359,37 +359,37 @@ export default function AnalyticsPage() {
       {/* Overview Metrics */}
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard
-          title={t("metrics.totalStudents")}
-          value={overview?.totalStudents || 0}
           change={Number(overview?.studentGrowth) || 0}
           icon={IconUsers}
+          title={t("metrics.totalStudents")}
           trend="up"
+          value={overview?.totalStudents || 0}
         />
         <MetricCard
-          title={t("metrics.totalCourses")}
-          value={overview?.totalCourses || 0}
           change={Number(overview?.courseGrowth) || 0}
           icon={IconBook}
+          title={t("metrics.totalCourses")}
           trend="up"
+          value={overview?.totalCourses || 0}
         />
         <MetricCard
-          title={t("metrics.totalRevenue")}
-          value={`$${overview?.totalRevenue?.toLocaleString()}`}
           change={Number(overview?.revenueGrowth) || 0}
           icon={IconCurrencyDollar}
+          title={t("metrics.totalRevenue")}
           trend="up"
+          value={`$${overview?.totalRevenue?.toLocaleString()}`}
         />
         <MetricCard
-          title={t("metrics.completionRate")}
-          value={`${Number(overview?.avgCompletionRate).toFixed(2)}%`}
           change={overview?.completionGrowth || 0}
           icon={IconTarget}
+          title={t("metrics.completionRate")}
           trend="down"
+          value={`${Number(overview?.avgCompletionRate).toFixed(2)}%`}
         />
       </div>
 
       {/* Main Content Tabs */}
-      <Tabs defaultValue="overview" className="space-y-6">
+      <Tabs className="space-y-6" defaultValue="overview">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview">{t("tabs.overview")}</TabsTrigger>
           <TabsTrigger value="courses">{t("tabs.courses")}</TabsTrigger>
@@ -397,7 +397,7 @@ export default function AnalyticsPage() {
           <TabsTrigger value="revenue">{t("tabs.revenue")}</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-6">
+        <TabsContent className="space-y-6" value="overview">
           <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
             {/* Growth Chart */}
             <Card>
@@ -414,8 +414,8 @@ export default function AnalyticsPage() {
                       <linearGradient
                         id="studentGradient"
                         x1="0"
-                        y1="0"
                         x2="0"
+                        y1="0"
                         y2="1"
                       >
                         <stop
@@ -431,20 +431,20 @@ export default function AnalyticsPage() {
                       </linearGradient>
                     </defs>
                     <CartesianGrid
-                      strokeDasharray="3 3"
                       className="stroke-muted"
+                      strokeDasharray="3 3"
                     />
                     <XAxis
-                      dataKey="month"
-                      className="text-muted-foreground text-xs"
-                      tickLine={false}
                       axisLine={false}
+                      className="text-muted-foreground text-xs"
+                      dataKey="month"
+                      tickLine={false}
                     />
                     <YAxis
-                      className="text-muted-foreground text-xs"
-                      tickLine={false}
                       axisLine={false}
+                      className="text-muted-foreground text-xs"
                       tickFormatter={(value) => `${value}`}
+                      tickLine={false}
                     />
                     <ChartTooltip
                       content={({ active, payload }) => {
@@ -468,11 +468,11 @@ export default function AnalyticsPage() {
                       }}
                     />
                     <Area
-                      type="monotone"
                       dataKey="students"
-                      stroke="hsl(var(--chart-1))"
                       fill="url(#studentGradient)"
+                      stroke="hsl(var(--chart-1))"
                       strokeWidth={2}
+                      type="monotone"
                     />
                   </AreaChart>
                 </ChartContainer>
@@ -491,20 +491,20 @@ export default function AnalyticsPage() {
                 <ChartContainer config={chartConfig}>
                   <LineChart data={monthlyData}>
                     <CartesianGrid
-                      strokeDasharray="3 3"
                       className="stroke-muted"
+                      strokeDasharray="3 3"
                     />
                     <XAxis
-                      dataKey="month"
-                      className="text-muted-foreground text-xs"
-                      tickLine={false}
                       axisLine={false}
+                      className="text-muted-foreground text-xs"
+                      dataKey="month"
+                      tickLine={false}
                     />
                     <YAxis
-                      className="text-muted-foreground text-xs"
-                      tickLine={false}
                       axisLine={false}
+                      className="text-muted-foreground text-xs"
                       tickFormatter={(value) => `$${value}`}
+                      tickLine={false}
                     />
                     <ChartTooltip
                       content={({ active, payload }) => {
@@ -528,20 +528,20 @@ export default function AnalyticsPage() {
                       }}
                     />
                     <Line
-                      type="monotone"
-                      dataKey="revenue"
-                      stroke="hsl(var(--chart-2))"
-                      strokeWidth={2}
-                      dot={{
-                        fill: "hsl(var(--chart-2))",
-                        strokeWidth: 2,
-                        r: 4,
-                      }}
                       activeDot={{
                         r: 6,
                         stroke: "hsl(var(--chart-2))",
                         strokeWidth: 2,
                       }}
+                      dataKey="revenue"
+                      dot={{
+                        fill: "hsl(var(--chart-2))",
+                        strokeWidth: 2,
+                        r: 4,
+                      }}
+                      stroke="hsl(var(--chart-2))"
+                      strokeWidth={2}
+                      type="monotone"
                     />
                   </LineChart>
                 </ChartContainer>
@@ -565,8 +565,8 @@ export default function AnalyticsPage() {
                     <Badge variant="secondary">{t("charts.target")}: 85%</Badge>
                   </div>
                   <Progress
-                    value={Number(overview?.avgCompletionRate) || 0}
                     className="h-2"
+                    value={Number(overview?.avgCompletionRate) || 0}
                   />
                   <p className="text-muted-foreground text-sm">
                     {Number(overview?.avgCompletionRate) >= 85
@@ -589,14 +589,14 @@ export default function AnalyticsPage() {
             <CardContent>
               <div className="space-y-2">
                 {recentActivity?.map((activity) => (
-                  <ActivityItem key={activity.id} activity={activity} />
+                  <ActivityItem activity={activity} key={activity.id} />
                 ))}
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="courses" className="space-y-6">
+        <TabsContent className="space-y-6" value="courses">
           <div className="grid gap-6 md:grid-cols-2">
             {/* Top Performing Courses */}
             <Card>
@@ -610,8 +610,8 @@ export default function AnalyticsPage() {
                 <div className="space-y-4">
                   {topCourses?.map((course, index) => (
                     <div
-                      key={index}
                       className="flex items-center justify-between rounded-lg border p-3"
+                      key={index}
                     >
                       <div className="space-y-1">
                         <p className="font-medium">{course.courseName}</p>
@@ -653,20 +653,20 @@ export default function AnalyticsPage() {
                     }))}
                   >
                     <CartesianGrid
-                      strokeDasharray="3 3"
                       className="stroke-muted"
+                      strokeDasharray="3 3"
                     />
                     <XAxis
-                      dataKey="courseName"
-                      className="text-muted-foreground text-xs"
-                      tickLine={false}
                       axisLine={false}
+                      className="text-muted-foreground text-xs"
+                      dataKey="courseName"
                       tickFormatter={(value) => value.split(" ")[0]}
+                      tickLine={false}
                     />
                     <YAxis
+                      axisLine={false}
                       className="text-muted-foreground text-xs"
                       tickLine={false}
-                      axisLine={false}
                     />
                     <ChartTooltip
                       content={({ active, payload }) => {
@@ -701,7 +701,7 @@ export default function AnalyticsPage() {
           </div>
         </TabsContent>
 
-        <TabsContent value="students" className="space-y-6">
+        <TabsContent className="space-y-6" value="students">
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {/* Student Demographics */}
             <Card>
@@ -716,7 +716,7 @@ export default function AnalyticsPage() {
                     </span>
                     <span className="font-medium">45%</span>
                   </div>
-                  <Progress value={45} className="h-2" />
+                  <Progress className="h-2" value={45} />
 
                   <div className="flex items-center justify-between">
                     <span className="text-sm">
@@ -724,7 +724,7 @@ export default function AnalyticsPage() {
                     </span>
                     <span className="font-medium">32%</span>
                   </div>
-                  <Progress value={32} className="h-2" />
+                  <Progress className="h-2" value={32} />
 
                   <div className="flex items-center justify-between">
                     <span className="text-sm">
@@ -732,7 +732,7 @@ export default function AnalyticsPage() {
                     </span>
                     <span className="font-medium">23%</span>
                   </div>
-                  <Progress value={23} className="h-2" />
+                  <Progress className="h-2" value={23} />
                 </div>
               </CardContent>
             </Card>
@@ -750,7 +750,7 @@ export default function AnalyticsPage() {
                     </span>
                     <span className="font-medium">52%</span>
                   </div>
-                  <Progress value={52} className="h-2" />
+                  <Progress className="h-2" value={52} />
 
                   <div className="flex items-center justify-between">
                     <span className="text-sm">
@@ -758,7 +758,7 @@ export default function AnalyticsPage() {
                     </span>
                     <span className="font-medium">28%</span>
                   </div>
-                  <Progress value={28} className="h-2" />
+                  <Progress className="h-2" value={28} />
 
                   <div className="flex items-center justify-between">
                     <span className="text-sm">
@@ -766,7 +766,7 @@ export default function AnalyticsPage() {
                     </span>
                     <span className="font-medium">20%</span>
                   </div>
-                  <Progress value={20} className="h-2" />
+                  <Progress className="h-2" value={20} />
                 </div>
               </CardContent>
             </Card>
@@ -804,7 +804,7 @@ export default function AnalyticsPage() {
           </div>
         </TabsContent>
 
-        <TabsContent value="revenue" className="space-y-6">
+        <TabsContent className="space-y-6" value="revenue">
           <div className="grid gap-6 md:grid-cols-2">
             {/* Revenue Breakdown */}
             <Card>
@@ -820,7 +820,7 @@ export default function AnalyticsPage() {
                     <span className="text-sm">{t("revenue.courseSales")}</span>
                     <span className="font-medium">$38,450</span>
                   </div>
-                  <Progress value={84} className="h-2" />
+                  <Progress className="h-2" value={84} />
 
                   <div className="flex items-center justify-between">
                     <span className="text-sm">
@@ -828,7 +828,7 @@ export default function AnalyticsPage() {
                     </span>
                     <span className="font-medium">$5,228</span>
                   </div>
-                  <Progress value={11} className="h-2" />
+                  <Progress className="h-2" value={11} />
 
                   <div className="flex items-center justify-between">
                     <span className="text-sm">
@@ -836,7 +836,7 @@ export default function AnalyticsPage() {
                     </span>
                     <span className="font-medium">$2,000</span>
                   </div>
-                  <Progress value={5} className="h-2" />
+                  <Progress className="h-2" value={5} />
                 </div>
               </CardContent>
             </Card>
@@ -856,8 +856,8 @@ export default function AnalyticsPage() {
                       <linearGradient
                         id="revenueGradient"
                         x1="0"
-                        y1="0"
                         x2="0"
+                        y1="0"
                         y2="1"
                       >
                         <stop
@@ -873,20 +873,20 @@ export default function AnalyticsPage() {
                       </linearGradient>
                     </defs>
                     <CartesianGrid
-                      strokeDasharray="3 3"
                       className="stroke-muted"
+                      strokeDasharray="3 3"
                     />
                     <XAxis
-                      dataKey="month"
-                      className="text-muted-foreground text-xs"
-                      tickLine={false}
                       axisLine={false}
+                      className="text-muted-foreground text-xs"
+                      dataKey="month"
+                      tickLine={false}
                     />
                     <YAxis
-                      className="text-muted-foreground text-xs"
-                      tickLine={false}
                       axisLine={false}
+                      className="text-muted-foreground text-xs"
                       tickFormatter={(value) => `$${value}`}
+                      tickLine={false}
                     />
                     <ChartTooltip
                       content={({ active, payload }) => {
@@ -910,11 +910,11 @@ export default function AnalyticsPage() {
                       }}
                     />
                     <Area
-                      type="monotone"
                       dataKey="revenue"
-                      stroke="hsl(var(--chart-2))"
                       fill="url(#revenueGradient)"
+                      stroke="hsl(var(--chart-2))"
                       strokeWidth={2}
+                      type="monotone"
                     />
                   </AreaChart>
                 </ChartContainer>

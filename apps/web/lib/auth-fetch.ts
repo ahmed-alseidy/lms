@@ -1,6 +1,6 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
-import { getSession } from "./session";
 import { refreshToken } from "./auth";
+import { getSession } from "./session";
 
 export async function authFetch<T>(
   url: string | URL,

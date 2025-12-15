@@ -12,7 +12,7 @@ export default async function middleware(req: Request) {
   const allowedDomains = ["localhost:3000"];
 
   const isAllowedDomain = allowedDomains.some(
-    (domain) => hostname === domain,
+    (domain) => hostname === domain
     // hostname.includes(domain)
   );
   const subdomain = hostname.split(".")[0];

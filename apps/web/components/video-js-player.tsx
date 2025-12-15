@@ -115,9 +115,9 @@ export const VideoJsPlayer = ({
     <div className={cn("relative", className)}>
       <div className="h-full" data-vjs-player>
         <video
-          ref={videoRef}
           className="video-js vjs-big-play-centered h-full w-full"
           onContextMenu={(e) => e.preventDefault()}
+          ref={videoRef}
         />
       </div>
     </div>

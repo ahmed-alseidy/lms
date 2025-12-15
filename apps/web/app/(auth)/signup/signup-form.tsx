@@ -1,20 +1,20 @@
 "use client";
 
+import { classValidatorResolver } from "@hookform/resolvers/class-validator";
+import { CreateTeacherDto } from "@lms-saas/shared-lib/dtos";
+import { useRouter } from "next/navigation";
 import React, { useMemo } from "react";
 import { useForm } from "react-hook-form";
-import { classValidatorResolver } from "@hookform/resolvers/class-validator";
-import { Input } from "@/components/ui/input";
-import { CreateTeacherDto } from "@lms-saas/shared-lib/dtos";
+import { Button } from "@/components/ui/button";
 import {
   Form,
+  FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormControl,
   FormMessage,
 } from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
+import { Input } from "@/components/ui/input";
 import { signupTeacher } from "@/lib/auth";
 
 export function SignupForm() {
@@ -49,8 +49,8 @@ export function SignupForm() {
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit(onSubmit)}
         className="mb-3 w-full space-y-3"
+        onSubmit={form.handleSubmit(onSubmit)}
       >
         <div className="text-destructive text-sm">
           {form.formState.errors.root?.message}

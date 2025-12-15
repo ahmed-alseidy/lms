@@ -1,13 +1,14 @@
 "use client";
 
-import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
 import { IconPencil, IconX } from "@tabler/icons-react";
-import { useState } from "react";
-import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-
+import { useTranslations } from "next-intl";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import * as z from "zod";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -16,10 +17,9 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { updateLesson } from "@/lib/courses";
 import { attempt } from "@/lib/utils";
-import { useTranslations } from "next-intl";
+
 interface TitleFormProps {
   initialData: {
     title: string;
@@ -63,7 +63,7 @@ export const TitleForm = ({
       const [, error] = await attempt(
         updateLesson(courseId, sectionId, lessonId, {
           title: values.title,
-        }),
+        })
       );
       if (error) {
         toast.error(tCommon("somethingWentWrong"));
@@ -100,8 +100,8 @@ export const TitleForm = ({
       {isEditing && (
         <Form {...form}>
           <form
-            onSubmit={form.handleSubmit(onSubmit)}
             className="mt-4 space-y-4"
+            onSubmit={form.handleSubmit(onSubmit)}
           >
             <FormField
               control={form.control}

@@ -1,4 +1,12 @@
-import { Roles } from '@/auth/decorators/roles.decorator';
+import {
+  CompleteQuizDto,
+  CreateQuizAnswerDto,
+  CreateQuizDto,
+  CreateQuizQuestionDto,
+  UpdateQuizAnswerDto,
+  UpdateQuizDto,
+  UpdateQuizQuestionDto,
+} from "@lms-saas/shared-lib";
 import {
   Body,
   Controller,
@@ -12,31 +20,23 @@ import {
   Query,
   Req,
   UseGuards,
-} from '@nestjs/common';
-import { ApiBearerAuth } from '@nestjs/swagger';
-import { QuizzesService } from './quizzes.service';
-import {
-  CompleteQuizDto,
-  CreateQuizAnswerDto,
-  CreateQuizDto,
-  CreateQuizQuestionDto,
-  UpdateQuizAnswerDto,
-  UpdateQuizDto,
-  UpdateQuizQuestionDto,
-} from '@lms-saas/shared-lib';
-import { RolesGuard } from '@/auth/guards/roles/roles.guard';
+} from "@nestjs/common";
+import { ApiBearerAuth } from "@nestjs/swagger";
+import { Roles } from "@/auth/decorators/roles.decorator";
+import { RolesGuard } from "@/auth/guards/roles/roles.guard";
+import { QuizzesService } from "./quizzes.service";
 
 @ApiBearerAuth()
 @UseGuards(RolesGuard)
-@Controller('lessons/:lessonId/quizzes')
+@Controller("lessons/:lessonId/quizzes")
 export class QuizzesController {
   constructor(private quizzesService: QuizzesService) {}
 
   @Post()
-  @Roles('teacher')
+  @Roles("teacher")
   async create(
     @Param('lessonId', ParseIntPipe) lessonId: number,
-    @Body() dto: CreateQuizDto,
+    @Body() dto: CreateQuizDto
   ) {
     return this.quizzesService.create(lessonId, dto);
   }
@@ -47,11 +47,11 @@ export class QuizzesController {
     return this.quizzesService.findOne(quizId);
   }
 
-  @Put('/:quizId')
-  @Roles('teacher')
+  @Put("/:quizId")
+  @Roles("teacher")
   async update(
     @Param('quizId', ParseUUIDPipe) quizId: string,
-    @Body() dto: UpdateQuizDto,
+    @Body() dto: UpdateQuizDto
   ) {
     return this.quizzesService.update(quizId, dto);
   }
@@ -62,21 +62,21 @@ export class QuizzesController {
     return this.quizzesService.delete(quizId);
   }
 
-  @Post('/:quizId/submit')
-  @Roles('student')
+  @Post("/:quizId/submit")
+  @Roles("student")
   async completeQuiz(
     @Req() req: any,
     @Param('quizId', ParseUUIDPipe) quizId: string,
-    @Body() dto: CompleteQuizDto,
+    @Body() dto: CompleteQuizDto
   ) {
     return this.quizzesService.completeQuiz(quizId, req.user.id, dto);
   }
 
-  @Get('/:quizId/completed')
-  @Roles('student')
+  @Get("/:quizId/completed")
+  @Roles("student")
   async checkIfCompleted(
     @Req() req: any,
-    @Param('quizId', ParseUUIDPipe) quizId: string,
+    @Param('quizId', ParseUUIDPipe) quizId: string
   ) {
     return this.quizzesService.checkIfCompleted(quizId, req.user.id);
   }
@@ -87,11 +87,11 @@ export class QuizzesController {
     return this.quizzesService.getQuizQuestions(quizId);
   }
 
-  @Post('/:quizId/questions')
-  @Roles('teacher')
+  @Post("/:quizId/questions")
+  @Roles("teacher")
   async createQuestion(
     @Param('quizId', ParseUUIDPipe) quizId: string,
-    @Body() dto: CreateQuizQuestionDto,
+    @Body() dto: CreateQuizQuestionDto
   ) {
     return this.quizzesService.createQuestion(quizId, dto);
   }
@@ -102,11 +102,11 @@ export class QuizzesController {
     return this.quizzesService.findQuestion(questionId);
   }
 
-  @Put('/:quizId/questions/:questionId')
-  @Roles('teacher')
+  @Put("/:quizId/questions/:questionId")
+  @Roles("teacher")
   async updateQuestion(
     @Param('questionId', ParseIntPipe) questionId: number,
-    @Body() dto: UpdateQuizQuestionDto,
+    @Body() dto: UpdateQuizQuestionDto
   ) {
     return this.quizzesService.updateQuestion(questionId, dto);
   }
@@ -117,20 +117,20 @@ export class QuizzesController {
     return this.quizzesService.deleteQuestion(questionId);
   }
 
-  @Post('/:quizId/questions/:questionId/answers')
-  @Roles('teacher')
+  @Post("/:quizId/questions/:questionId/answers")
+  @Roles("teacher")
   async createAnswer(
     @Param('questionId', ParseIntPipe) questionId: number,
-    @Body() dto: CreateQuizAnswerDto,
+    @Body() dto: CreateQuizAnswerDto
   ) {
     return this.quizzesService.createAnswer(questionId, dto);
   }
 
-  @Put('/:quizId/questions/:questionId/answers/:answerId')
-  @Roles('teacher')
+  @Put("/:quizId/questions/:questionId/answers/:answerId")
+  @Roles("teacher")
   async updateAnswer(
     @Param('answerId', ParseIntPipe) answerId: number,
-    @Body() dto: UpdateQuizAnswerDto,
+    @Body() dto: UpdateQuizAnswerDto
   ) {
     return this.quizzesService.updateAnswer(answerId, dto);
   }
@@ -141,11 +141,11 @@ export class QuizzesController {
     return this.quizzesService.deleteAnswer(answerId);
   }
 
-  @Get('/:quizId/results')
-  @Roles('student')
+  @Get("/:quizId/results")
+  @Roles("student")
   async getQuizResults(
     @Req() req: any,
-    @Param('quizId', ParseUUIDPipe) quizId: string,
+    @Param('quizId', ParseUUIDPipe) quizId: string
   ) {
     return this.quizzesService.getQuizResults(req.user.id, quizId);
   }

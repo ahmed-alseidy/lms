@@ -1,13 +1,14 @@
 "use client";
 
-import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
 import { IconPencil, IconX } from "@tabler/icons-react";
-import { useState } from "react";
-import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-
+import { useTranslations } from "next-intl";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import * as z from "zod";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -15,12 +16,10 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
 import { updateCourse } from "@/lib/courses";
-import { attempt } from "@/lib/utils";
-import { useTranslations } from "next-intl";
+import { attempt, cn } from "@/lib/utils";
+
 interface DescriptionFormProps {
   initialData: { description: string };
   courseId: number;
@@ -57,7 +56,7 @@ export const DescriptionForm = ({
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       const [, error] = await attempt(
-        updateCourse(courseId, { description: values.description }),
+        updateCourse(courseId, { description: values.description })
       );
       if (error) {
         toast.error(tCommon("somethingWentWrong"));
@@ -94,7 +93,7 @@ export const DescriptionForm = ({
         <p
           className={cn(
             "mt-2 text-sm",
-            !description && "text-slate-500 italic",
+            !description && "text-slate-500 italic"
           )}
         >
           {description || t("noDescriptionAvailable")}
@@ -103,8 +102,8 @@ export const DescriptionForm = ({
       {isEditing && (
         <Form {...form}>
           <form
-            onSubmit={form.handleSubmit(onSubmit)}
             className="mt-4 space-y-4"
+            onSubmit={form.handleSubmit(onSubmit)}
           >
             <FormField
               control={form.control}

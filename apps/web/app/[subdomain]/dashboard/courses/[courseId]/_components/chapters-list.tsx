@@ -1,24 +1,19 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import {
-  CourseSection,
-  createCourseSection,
-  deleteCourseSection,
-  updateCourseSection,
-} from "@/lib/courses";
-import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
-import {
-  IconListCheck,
-  IconPlus,
   IconGripVertical,
-  IconTrash,
-  IconPin,
+  IconListCheck,
   IconPencil,
+  IconPin,
+  IconPlus,
+  IconTrash,
 } from "@tabler/icons-react";
-import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { useState } from "react";
+import { toast } from "sonner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,14 +25,19 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { useQueryClient } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  CourseSection,
+  createCourseSection,
+  deleteCourseSection,
+  updateCourseSection,
+} from "@/lib/courses";
 import { attempt } from "@/lib/utils";
-import { toast } from "sonner";
-import { useTranslations } from "next-intl";
 export const ChaptersList = ({ course }: { course: any }) => {
   const queryClient = useQueryClient();
   const [sections, setSections] = useState<Omit<CourseSection, "courseId">[]>(
-    course?.courseSections || [],
+    course?.courseSections || []
   );
   const t = useTranslations("courses");
   const tCommon = useTranslations("common");
@@ -49,7 +49,7 @@ export const ChaptersList = ({ course }: { course: any }) => {
     };
 
     const [res, error] = await attempt(
-      createCourseSection(course.id, newSection),
+      createCourseSection(course.id, newSection)
     );
     if (error) {
       console.log(error);
@@ -71,7 +71,7 @@ export const ChaptersList = ({ course }: { course: any }) => {
 
     setSections(updatedSections);
     const [, error] = await attempt(
-      deleteCourseSection(course.id, sections[index]!.id),
+      deleteCourseSection(course.id, sections[index]!.id)
     );
     if (error) {
       toast.error(tCommon("somethingWentWrong"));
@@ -93,7 +93,7 @@ export const ChaptersList = ({ course }: { course: any }) => {
         const [, error] = await attempt(
           updateCourseSection(course.id, section.id, {
             orderIndex: idx,
-          }),
+          })
         );
         if (error) {
           toast.error("Something went wrong");
@@ -112,15 +112,15 @@ export const ChaptersList = ({ course }: { course: any }) => {
             {(provided) => (
               <div
                 {...provided.droppableProps}
-                ref={provided.innerRef}
                 className="space-y-4"
+                ref={provided.innerRef}
               >
                 {sections.length > 0 ? (
                   sections.map((section, sectionIndex) => (
                     <Draggable
-                      key={`section-${sectionIndex}`}
                       draggableId={`section-${sectionIndex}`}
                       index={sectionIndex}
+                      key={`section-${sectionIndex}`}
                     >
                       {(provided) => (
                         <div
@@ -148,9 +148,9 @@ export const ChaptersList = ({ course }: { course: any }) => {
                                 href={`/dashboard/courses/${course.id}/sections/${section.id}`}
                               >
                                 <Button
-                                  variant="outline"
-                                  size="sm"
                                   className="gap-2"
+                                  size="sm"
+                                  variant="outline"
                                 >
                                   <IconPencil className="h-4 w-4" />
                                   {tCommon("edit")}
@@ -159,9 +159,9 @@ export const ChaptersList = ({ course }: { course: any }) => {
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
                                   <Button
-                                    variant="ghost"
-                                    size="icon"
                                     className="text-muted-foreground hover:text-destructive"
+                                    size="icon"
+                                    variant="ghost"
                                   >
                                     <IconTrash className="h-4 w-4" />
                                   </Button>
@@ -180,10 +180,10 @@ export const ChaptersList = ({ course }: { course: any }) => {
                                       {tCommon("cancel")}
                                     </AlertDialogCancel>
                                     <AlertDialogAction
+                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                       onClick={() =>
                                         removeSection(sectionIndex)
                                       }
-                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                     >
                                       {tCommon("delete")}
                                     </AlertDialogAction>
@@ -205,7 +205,7 @@ export const ChaptersList = ({ course }: { course: any }) => {
                     <p className="text-muted-foreground mb-4 text-sm">
                       {t("getStartedByCreatingYourFirstCourseSection")}
                     </p>
-                    <Button onClick={addSection} className="gap-2">
+                    <Button className="gap-2" onClick={addSection}>
                       <IconPlus className="h-4 w-4" />
                       {tCommon("add")} {t("section")}
                     </Button>
@@ -219,9 +219,9 @@ export const ChaptersList = ({ course }: { course: any }) => {
 
         {sections.length > 0 && (
           <Button
+            className="w-full gap-2"
             onClick={addSection}
             variant="outline"
-            className="w-full gap-2"
           >
             <IconPlus className="h-4 w-4" />
             {tCommon("add")} {t("section")}

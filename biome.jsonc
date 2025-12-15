@@ -1,10 +1,7 @@
 {
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
-  "extends": [
-    "ultracite/core",
-    "ultracite/next"
-  ],
-    "linter": {
+  "extends": ["ultracite/core", "ultracite/next"],
+  "linter": {
     "enabled": false
-    }
+  }
 }

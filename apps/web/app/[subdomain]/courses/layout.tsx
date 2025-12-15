@@ -1,6 +1,6 @@
-import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { ReactNode } from "react";
+import { getSession } from "@/lib/session";
 import { Topbar } from "./topbar";
 
 export default async function HomeLayout({

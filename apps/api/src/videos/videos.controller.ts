@@ -1,11 +1,8 @@
-import { Roles } from '@/auth/decorators/roles.decorator';
-import { S3Service } from '@/s3/s3.service';
-import { User } from '@/users/decorators/user.decorator';
 import {
   CompleteVideoDto,
   CreateVideoDto,
   UploadDto,
-} from '@lms-saas/shared-lib';
+} from "@lms-saas/shared-lib";
 import {
   Body,
   Controller,
@@ -17,17 +14,20 @@ import {
   ParseUUIDPipe,
   Post,
   Query,
-} from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { VideosService } from './videos.service';
+} from "@nestjs/common";
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
+import { Roles } from "@/auth/decorators/roles.decorator";
+import { S3Service } from "@/s3/s3.service";
+import { User } from "@/users/decorators/user.decorator";
+import { VideosService } from "./videos.service";
 
 @ApiBearerAuth()
-@ApiTags('videos')
-@Controller('lessons/:lessonId/videos')
+@ApiTags("videos")
+@Controller("lessons/:lessonId/videos")
 export class VideosController {
   constructor(
     private s3Service: S3Service,
-    private videosService: VideosService,
+    private videosService: VideosService
   ) {}
 
   @Delete('/:id')
@@ -63,12 +63,12 @@ export class VideosController {
     };
   }
 
-  @Post('/')
-  @Roles('teacher')
+  @Post("/")
+  @Roles("teacher")
   async create(
     @User() teacher: any,
     @Param('lessonId', ParseIntPipe) lessonId: number,
-    @Body() dto: CreateVideoDto,
+    @Body() dto: CreateVideoDto
   ) {
     const videoId = crypto.randomUUID();
 
@@ -83,20 +83,20 @@ export class VideosController {
     });
   }
 
-  @Post(':videoId/complete')
-  @Roles('student')
+  @Post(":videoId/complete")
+  @Roles("student")
   completeVideo(
     @Param('videoId', ParseUUIDPipe) videoId: string,
-    @Body() dto: CompleteVideoDto,
+    @Body() dto: CompleteVideoDto
   ) {
     return this.videosService.completeVideo(videoId, dto.enrollmentId);
   }
 
-  @Get(':videoId/completed')
-  @Roles('student')
+  @Get(":videoId/completed")
+  @Roles("student")
   checkIfCompleted(
     @Param('videoId', ParseUUIDPipe) videoId: string,
-    @Query('enrollmentId', ParseIntPipe) enrollmentId: number,
+    @Query('enrollmentId', ParseIntPipe) enrollmentId: number
   ) {
     return this.videosService.checkIfCompleted(videoId, enrollmentId);
   }

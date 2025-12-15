@@ -14,7 +14,7 @@ export async function loadFFmpeg() {
 
 export async function transcodeToHLS(
   file: File,
-  onProgress: (progress: number) => void,
+  onProgress: (progress: number) => void
 ): Promise<{ manifest: File; segments: File[] }> {
   const ffmpeg = await loadFFmpeg();
 
@@ -25,7 +25,7 @@ export async function transcodeToHLS(
   // Write the input file to FFmpeg's virtual filesystem
   await ffmpeg.writeFile(
     inputFileName,
-    new Uint8Array(await file.arrayBuffer()),
+    new Uint8Array(await file.arrayBuffer())
   );
 
   // Set up progress monitoring

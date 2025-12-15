@@ -1,27 +1,26 @@
 "use client";
 
-import { Button, buttonVariants } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { deleteCourse, updateCourse } from "@/lib/courses";
-import { useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
-import { TitleForm } from "./title-form";
 import {
-  IconLoader,
+  IconArrowLeft,
   IconEye,
   IconEyeOff,
-  IconTrash,
-  IconList,
-  IconQrcode,
-  IconArrowLeft,
-  IconLoader2,
-  IconSettings2,
   IconLayoutDashboard,
+  IconList,
+  IconLoader,
+  IconLoader2,
+  IconQrcode,
+  IconSettings2,
+  IconTrash,
 } from "@tabler/icons-react";
-import { DescriptionForm } from "./description-form";
-import { PriceForm } from "./price-form";
-import { ImageForm } from "./image-form";
+import { useQueryClient } from "@tanstack/react-query";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useState } from "react";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -31,13 +30,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useState } from "react";
-import { ChaptersList } from "./chapters-list";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import Link from "next/link";
+import { deleteCourse, updateCourse } from "@/lib/courses";
 import { attempt, cn } from "@/lib/utils";
-import { useTranslations } from "next-intl";
+import { ChaptersList } from "./chapters-list";
+import { DescriptionForm } from "./description-form";
+import { ImageForm } from "./image-form";
+import { PriceForm } from "./price-form";
+import { TitleForm } from "./title-form";
 
 export default function CourseEdit({ course }: { course: any }) {
   const t = useTranslations("courses");
@@ -51,13 +51,13 @@ export default function CourseEdit({ course }: { course: any }) {
     if (course.published) {
       setPublishLoading(false);
       const [, error] = await attempt(
-        updateCourse(course.id, { published: false }),
+        updateCourse(course.id, { published: false })
       );
       if (error) toast("Cannot unpublish course");
     } else {
       setPublishLoading(true);
       const [, error] = await attempt(
-        updateCourse(course.id, { published: true }),
+        updateCourse(course.id, { published: true })
       );
       if (error) toast("Cannot publish course");
     }
@@ -80,8 +80,8 @@ export default function CourseEdit({ course }: { course: any }) {
       <div className="items-center justify-between md:flex">
         <div className="flex items-center gap-2 space-y-1">
           <Link
-            href={`/dashboard/courses/${course.id}/analytics`}
             className={cn(buttonVariants({ variant: "ghost", size: "icon" }))}
+            href={`/dashboard/courses/${course.id}/analytics`}
           >
             <IconArrowLeft className="rotate-rtl h-4 w-4" />
           </Link>
@@ -96,10 +96,10 @@ export default function CourseEdit({ course }: { course: any }) {
         </div>
         <div className="mt-3 flex items-center gap-2 md:mt-0">
           <Button
-            disabled={publishLoading}
-            variant={course.published ? "outline" : "default"}
-            onClick={onClickPublish}
             className="gap-2"
+            disabled={publishLoading}
+            onClick={onClickPublish}
+            variant={course.published ? "outline" : "default"}
           >
             {publishLoading ? (
               <IconLoader className="h-4 w-4 animate-spin" />
@@ -113,9 +113,9 @@ export default function CourseEdit({ course }: { course: any }) {
           <Dialog>
             <DialogTrigger asChild>
               <Button
+                className="gap-2"
                 disabled={publishLoading}
                 variant="destructive"
-                className="gap-2"
               >
                 <IconTrash className="h-4 w-4" />
                 {tCommon("delete")}
@@ -132,10 +132,10 @@ export default function CourseEdit({ course }: { course: any }) {
               </DialogHeader>
               <DialogFooter>
                 <Button
-                  variant="destructive"
+                  className="gap-2"
                   disabled={publishLoading}
                   onClick={onClickDelete}
-                  className="gap-2"
+                  variant="destructive"
                 >
                   {publishLoading && (
                     <IconLoader2 className="h-4 w-4 animate-spin" />
@@ -179,7 +179,7 @@ export default function CourseEdit({ course }: { course: any }) {
                 courseId={course.id}
                 initialData={{ price: course.price }}
               />
-              <ImageForm initialData={course} courseId={course.id} />
+              <ImageForm courseId={course.id} initialData={course} />
             </div>
           </CardContent>
         </Card>
@@ -204,8 +204,8 @@ export default function CourseEdit({ course }: { course: any }) {
                 {course.courseCodes?.length || 0} {t("courseCodesGenerated")}
               </p>
               <Link
-                href={`/dashboard/courses/${course.id}/codes`}
                 className={buttonVariants({ variant: "outline" })}
+                href={`/dashboard/courses/${course.id}/codes`}
               >
                 <IconSettings2 className="mr-1 h-4 w-4" />
                 {t("courseCodesGenerate")}
@@ -232,7 +232,7 @@ export default function CourseEdit({ course }: { course: any }) {
                   </div>
                 </div>
               </div>
-              <Badge variant="secondary" className="font-medium">
+              <Badge className="font-medium" variant="secondary">
                 {course.courseSections?.length || 0} {t("chapters")}
               </Badge>
             </div>

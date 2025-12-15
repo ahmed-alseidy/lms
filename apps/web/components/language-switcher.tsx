@@ -1,5 +1,9 @@
 "use client";
 
+import { IconWorld } from "@tabler/icons-react";
+import { useAtom } from "jotai";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -8,10 +12,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { localeAtom } from "@/lib/atoms";
-import { useAtom } from "jotai";
-import { IconWorld } from "@tabler/icons-react";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 
 export default function LanguageSwitcher() {
   const router = useRouter();
@@ -40,15 +40,15 @@ export default function LanguageSwitcher() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="icon" className="gap-2">
+        <Button className="gap-2" size="icon" variant="outline">
           <IconWorld />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         {languages.map((language) => (
           <DropdownMenuItem
-            key={language.code}
             className={locale === language.code ? "bg-accent" : ""}
+            key={language.code}
             onClick={() => handleLanguageChange(language.code)}
           >
             <span className="mr-2">{language.flag}</span>

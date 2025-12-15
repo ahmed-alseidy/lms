@@ -1,13 +1,13 @@
-import { SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { SidebarContent } from "./sidebar-content";
-import { CourseWithSectionsAndEnrollments } from "@/lib/courses";
 import { useAtom } from "jotai";
-import { localeAtom } from "@/lib/atoms";
-import Image from "next/image";
 import { Play } from "lucide-react";
+import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import { useTranslations } from "next-intl";
+import { SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { localeAtom } from "@/lib/atoms";
+import { CourseWithSectionsAndEnrollments } from "@/lib/courses";
+import { SidebarContent } from "./sidebar-content";
 
 export function MobileSidebar({
   course,
@@ -28,11 +28,11 @@ export function MobileSidebar({
         <div className="flex items-center gap-2 p-2">
           {course.imageUrl ? (
             <Image
-              src={course.imageUrl}
               alt={course.title}
-              width={50}
-              height={50}
               className="rounded-lg"
+              height={50}
+              src={course.imageUrl}
+              width={50}
             />
           ) : (
             <div className="bg-primary/10 flex h-[50px] w-[50px] items-center justify-center rounded-lg">

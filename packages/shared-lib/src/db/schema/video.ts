@@ -1,3 +1,4 @@
+import { relations } from "drizzle-orm";
 import {
   integer,
   pgTable,
@@ -8,7 +9,6 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 import { enrollments, lessons } from "./course";
-import { relations } from "drizzle-orm";
 
 export const videos = pgTable("videos", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -45,7 +45,7 @@ export const studentVideoCompletions = pgTable(
     unique("student_video_completion_unique")
       .on(t.enrollmentId, t.videoId)
       .nullsNotDistinct(),
-  ],
+  ]
 );
 
 export const videosRelations = relations(videos, ({ one, many }) => ({
@@ -67,5 +67,5 @@ export const studentVideoCompletionsRelations = relations(
       fields: [studentVideoCompletions.enrollmentId],
       references: [enrollments.id],
     }),
-  }),
+  })
 );

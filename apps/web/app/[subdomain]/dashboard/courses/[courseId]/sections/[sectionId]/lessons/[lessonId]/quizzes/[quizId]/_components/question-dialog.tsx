@@ -1,4 +1,12 @@
+import { classValidatorResolver } from "@hookform/resolvers/class-validator";
+import { CreateQuizQuestionDto } from "@lms-saas/shared-lib/dtos";
+import { IconPlus, IconTrash } from "@tabler/icons-react";
+import { useTranslations } from "next-intl";
+import { Dispatch, SetStateAction, useMemo } from "react";
+import { useFieldArray, useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -8,17 +16,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
-import { IconPlus, IconTrash } from "@tabler/icons-react";
-import { Dispatch, SetStateAction, useMemo } from "react";
-import { toast } from "sonner";
-import { QuizQuestion, createQuestion } from "@/lib/quizzes";
-import { CreateQuizQuestionDto } from "@lms-saas/shared-lib/dtos";
-import { useForm, useFieldArray } from "react-hook-form";
-import { classValidatorResolver } from "@hookform/resolvers/class-validator";
 import {
   Form,
   FormControl,
@@ -27,8 +24,12 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { createQuestion, QuizQuestion } from "@/lib/quizzes";
 import { attempt } from "@/lib/utils";
-import { useTranslations } from "next-intl";
+
 type QuestionDialogProps = {
   quizId: string;
   questionLength: number;
@@ -100,7 +101,7 @@ export const QuestionDialog = ({
       </div>
       <DialogContent className="max-w-2xl">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
             <DialogHeader>
               <DialogTitle>{t("quizzes.createQuestion")}</DialogTitle>
               <DialogDescription>
@@ -130,11 +131,11 @@ export const QuestionDialog = ({
                 <div className="flex items-center justify-between">
                   <Label>{t("quizzes.answers")}</Label>
                   <Button
+                    className="gap-2"
+                    onClick={() => append({ answerText: "", isCorrect: false })}
+                    size="sm"
                     type="button"
                     variant="outline"
-                    size="sm"
-                    onClick={() => append({ answerText: "", isCorrect: false })}
-                    className="gap-2"
                   >
                     <IconPlus className="h-4 w-4" />
                     {t("quizzes.addAnswer")}
@@ -144,8 +145,8 @@ export const QuestionDialog = ({
                 <div className="space-y-4">
                   {fields.map((field, index) => (
                     <div
-                      key={field.id}
                       className="bg-primary/5 flex items-start gap-4 rounded-lg border p-4"
+                      key={field.id}
                     >
                       <div className="flex-1 space-y-2">
                         <FormField
@@ -185,10 +186,10 @@ export const QuestionDialog = ({
                         />
                         {fields.length > 1 && (
                           <Button
+                            onClick={() => remove(index)}
+                            size="icon"
                             type="button"
                             variant="ghost"
-                            size="icon"
-                            onClick={() => remove(index)}
                           >
                             <IconTrash className="h-4 w-4" />
                           </Button>
@@ -201,7 +202,7 @@ export const QuestionDialog = ({
             </div>
 
             <DialogFooter>
-              <Button type="submit" disabled={isSubmitting || !isValid}>
+              <Button disabled={isSubmitting || !isValid} type="submit">
                 {isSubmitting
                   ? t("common.submitting")
                   : t("quizzes.createQuestion")}

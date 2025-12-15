@@ -1,11 +1,11 @@
 import {
+  IsArray,
   IsNumber,
   IsOptional,
   IsString,
   MaxLength,
   Min,
   MinLength,
-  IsArray,
   ValidateNested,
 } from "class-validator";
 import { UpdateVideoDto } from "../videos/update-video.dto";

@@ -1,18 +1,18 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import {
-  CreateStudentDto,
-  CreateTeacherDto,
-} from '@lms-saas/shared-lib/dist/dtos';
-import { hash } from 'argon2';
 import {
   db,
   SelectStudent,
   SelectTeacher,
   students,
   teachers,
-} from '@lms-saas/shared-lib';
-import { eq } from 'drizzle-orm';
-import { Role } from '@/auth/types/roles';
+} from "@lms-saas/shared-lib";
+import {
+  CreateStudentDto,
+  CreateTeacherDto,
+} from "@lms-saas/shared-lib/dist/dtos";
+import { BadRequestException, Injectable } from "@nestjs/common";
+import { hash } from "argon2";
+import { eq } from "drizzle-orm";
+import { Role } from "@/auth/types/roles";
 
 @Injectable()
 export class UsersService {
@@ -23,7 +23,7 @@ export class UsersService {
       where: eq(teachers.subdomain, subdomain),
     });
     if (domainExists)
-      throw new BadRequestException('Subdomain already exists, change it');
+      throw new BadRequestException("Subdomain already exists, change it");
 
     // Hash password
     const passwordHash = await hash(password);
@@ -44,7 +44,7 @@ export class UsersService {
         teacherId: true,
       },
     });
-    if (!res) throw new BadRequestException('No such domain');
+    if (!res) throw new BadRequestException("No such domain");
     const teacherId = res.teacherId;
 
     // Hash password
@@ -73,10 +73,10 @@ export class UsersService {
 
   async findUser(
     id: number,
-    role: Role,
+    role: Role
   ): Promise<SelectStudent | SelectTeacher | undefined> {
     const user =
-      role === 'teacher'
+      role === "teacher"
         ? await db.query.teachers.findFirst({
             where: eq(teachers.teacherId, id),
           })
@@ -89,9 +89,9 @@ export class UsersService {
   async updateHashedRefreshToken(
     userId: number,
     role: Role,
-    hashedRT: string | null,
+    hashedRT: string | null
   ) {
-    if (role === 'teacher')
+    if (role === "teacher")
       await db
         .update(teachers)
         .set({ hashedRefreshToken: hashedRT })

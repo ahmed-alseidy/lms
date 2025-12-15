@@ -1,21 +1,21 @@
 "use client";
 
+import { IconUpload, IconX } from "@tabler/icons-react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
+import { useCallback, useState } from "react";
+import { useDropzone } from "react-dropzone";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { transcodeToHLS } from "@/lib/transcode-video";
+import { attempt } from "@/lib/utils";
 import {
   createVideo,
   getUploadPresignedUrl,
   uploadVideo,
   Video as VideoInterface,
 } from "@/lib/videos";
-import { transcodeToHLS } from "@/lib/transcode-video";
-import { Button } from "@/components/ui/button";
-import { useState, useCallback } from "react";
-import { useDropzone } from "react-dropzone";
-import { toast } from "sonner";
-import { Progress } from "@/components/ui/progress";
-import { attempt } from "@/lib/utils";
-import { useTranslations } from "next-intl";
-import { IconUpload, IconX } from "@tabler/icons-react";
 
 export const VideoUploader = ({
   lessonId,
@@ -61,7 +61,7 @@ export const VideoUploader = ({
 
       // Transcode the video to HLS
       const [transcodeData, transcodeError] = await attempt(
-        transcodeToHLS(selectedFile, setTranscodingProgress),
+        transcodeToHLS(selectedFile, setTranscodingProgress)
       );
 
       if (transcodeError) {
@@ -79,7 +79,7 @@ export const VideoUploader = ({
       const [videoDetails, videoDetailsError] = await attempt(
         createVideo(lessonId, {
           title: manifest.name,
-        }),
+        })
       );
 
       if (videoDetailsError || !videoDetails) {
@@ -92,7 +92,7 @@ export const VideoUploader = ({
           key: videoDetails.data.manifestKey,
           contentType: manifest.type,
           expiresIn: 60 * 60 * 1000,
-        }),
+        })
       );
 
       if (manifestUploadError || !manifestUploadData) {
@@ -102,7 +102,7 @@ export const VideoUploader = ({
 
       // Upload manifest
       const [, error] = await attempt(
-        uploadVideo(manifest, manifestUploadData.data, setUploadProgress),
+        uploadVideo(manifest, manifestUploadData.data, setUploadProgress)
       );
       if (error) {
         toast.error("Failed to upload manifest");
@@ -121,7 +121,7 @@ export const VideoUploader = ({
             key: `${videoDetails.data.segmentsKey}/${segment.name}`,
             contentType: "video/mp2t",
             expiresIn: 60 * 60 * 1000,
-          }),
+          })
         );
 
         if (segmentUploadError || !segmentUploadData) {
@@ -133,7 +133,7 @@ export const VideoUploader = ({
           uploadVideo(segmentFile, segmentUploadData.data, () => {
             const segmentProgress = ((index + 1) / segments.length) * 100;
             setUploadProgress(segmentProgress);
-          }),
+          })
         );
         if (error) {
           toast.error("Failed to upload segment");
@@ -198,10 +198,10 @@ export const VideoUploader = ({
               </span>
             </div>
             <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setSelectedFile(null)}
               disabled={isUploading || isTranscoding}
+              onClick={() => setSelectedFile(null)}
+              size="icon"
+              variant="ghost"
             >
               <IconX className="h-4 w-4" />
             </Button>
@@ -222,7 +222,7 @@ export const VideoUploader = ({
               </p>
             </div>
           ) : (
-            <Button onClick={handleUpload} className="w-full">
+            <Button className="w-full" onClick={handleUpload}>
               {tCommon("upload")} {t("video")}
             </Button>
           )}

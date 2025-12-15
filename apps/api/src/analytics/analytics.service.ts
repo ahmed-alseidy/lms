@@ -1,8 +1,8 @@
-import { attempt } from '@/utils/error-handling';
-import { courses, db, enrollments, students } from '@lms-saas/shared-lib';
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import * as dayjs from 'dayjs';
-import 'dayjs/locale/ar';
+import { courses, db, enrollments, students } from "@lms-saas/shared-lib";
+import { Injectable, InternalServerErrorException } from "@nestjs/common";
+import * as dayjs from "dayjs";
+import { attempt } from "@/utils/error-handling";
+import "dayjs/locale/ar";
 import {
   and,
   avg,
@@ -14,7 +14,7 @@ import {
   lt,
   sql,
   sum,
-} from 'drizzle-orm';
+} from "drizzle-orm";
 
 @Injectable()
 export class AnalyticsService {
@@ -31,10 +31,10 @@ export class AnalyticsService {
           updatedAt: false,
           teacherId: false,
         },
-      }),
+      })
     );
     if (studentsError || !studentsResult) {
-      throw new InternalServerErrorException('Cannot process students');
+      throw new InternalServerErrorException("Cannot process students");
     }
     return { students: studentsResult };
   }
@@ -44,7 +44,7 @@ export class AnalyticsService {
       db
         .select({ count: count(students.id) })
         .from(students)
-        .where(eq(students.teacherId, teacherId)),
+        .where(eq(students.teacherId, teacherId))
     );
     if (studentsError || !studentCountResult) {
       studentCountResult = [{ count: 0 }];
@@ -54,7 +54,7 @@ export class AnalyticsService {
       db
         .select({ count: count(courses.id) })
         .from(courses)
-        .where(eq(courses.teacherId, teacherId)),
+        .where(eq(courses.teacherId, teacherId))
     );
     if (coursesError || !courseCountResult) {
       courseCountResult = [{ count: 0 }];
@@ -68,12 +68,12 @@ export class AnalyticsService {
         .where(
           and(
             eq(courses.teacherId, teacherId),
-            eq(enrollments.status, 'active'),
-          ),
-        ),
+            eq(enrollments.status, "active")
+          )
+        )
     );
     if (revenueError || !totalRevenue) {
-      totalRevenue = [{ sum: '0.00' }];
+      totalRevenue = [{ sum: "0.00" }];
     }
 
     let [avgCompletionRate, avgCompletionRateError] = await attempt(
@@ -81,10 +81,10 @@ export class AnalyticsService {
         .select({ avg: avg(enrollments.progress) })
         .from(enrollments)
         .innerJoin(courses, eq(enrollments.courseId, courses.id))
-        .where(eq(courses.teacherId, teacherId)),
+        .where(eq(courses.teacherId, teacherId))
     );
     if (avgCompletionRateError || !avgCompletionRate) {
-      avgCompletionRate = [{ avg: '0.00' }];
+      avgCompletionRate = [{ avg: "0.00" }];
     }
 
     let [studentCountBeforeMonth, studentCountBeforeMonthError] = await attempt(
@@ -94,9 +94,9 @@ export class AnalyticsService {
         .where(
           and(
             eq(students.teacherId, teacherId),
-            lt(students.createdAt, dayjs().subtract(1, 'month').toDate()),
-          ),
-        ),
+            lt(students.createdAt, dayjs().subtract(1, "month").toDate())
+          )
+        )
     );
     if (studentCountBeforeMonthError || !studentCountBeforeMonth) {
       studentCountBeforeMonth = [{ count: 0 }];
@@ -116,11 +116,11 @@ export class AnalyticsService {
             eq(courses.teacherId, teacherId),
             gte(
               enrollments.enrolledAt,
-              dayjs().subtract(1, 'month').endOf('month').toDate(),
+              dayjs().subtract(1, "month").endOf("month").toDate()
             ),
-            lt(enrollments.enrolledAt, dayjs().startOf('month').toDate()),
-          ),
-        ),
+            lt(enrollments.enrolledAt, dayjs().startOf("month").toDate())
+          )
+        )
     );
     let [currentMonthRevenue] = await attempt(
       db
@@ -130,11 +130,11 @@ export class AnalyticsService {
         .where(
           and(
             eq(courses.teacherId, teacherId),
-            eq(enrollments.status, 'active'),
-            gte(enrollments.enrolledAt, dayjs().startOf('month').toDate()),
-            lt(enrollments.enrolledAt, dayjs().endOf('month').toDate()),
-          ),
-        ),
+            eq(enrollments.status, "active"),
+            gte(enrollments.enrolledAt, dayjs().startOf("month").toDate()),
+            lt(enrollments.enrolledAt, dayjs().endOf("month").toDate())
+          )
+        )
     );
 
     // delta / previous month revenue
@@ -153,14 +153,14 @@ export class AnalyticsService {
             eq(courses.teacherId, teacherId),
             gte(
               courses.createdAt,
-              dayjs().subtract(1, 'month').startOf('month').toDate(),
+              dayjs().subtract(1, "month").startOf("month").toDate()
             ),
             lt(
               courses.createdAt,
-              dayjs().subtract(1, 'month').endOf('month').toDate(),
-            ),
-          ),
-        ),
+              dayjs().subtract(1, "month").endOf("month").toDate()
+            )
+          )
+        )
     );
     const courseGrowth =
       ((courseCountResult[0].count -
@@ -179,14 +179,14 @@ export class AnalyticsService {
               eq(courses.teacherId, teacherId),
               gte(
                 enrollments.completedAt,
-                dayjs().subtract(1, 'month').toDate(),
-              ),
-            ),
-          ),
+                dayjs().subtract(1, "month").toDate()
+              )
+            )
+          )
       );
 
     if (completionGrowthBeforeMonthError || !completionGrowthBeforeMonth) {
-      completionGrowthBeforeMonth = [{ avg: '0.00' }];
+      completionGrowthBeforeMonth = [{ avg: "0.00" }];
     }
 
     const completionGrowth =
@@ -199,8 +199,8 @@ export class AnalyticsService {
       overview: {
         totalStudents: studentCountResult[0].count,
         totalCourses: courseCountResult[0].count,
-        totalRevenue: totalRevenue[0].sum || '0.00',
-        avgCompletionRate: avgCompletionRate?.[0]?.avg || '0.00',
+        totalRevenue: totalRevenue[0].sum || "0.00",
+        avgCompletionRate: avgCompletionRate?.[0]?.avg || "0.00",
         studentGrowth,
         revenueGrowth,
         courseGrowth,
@@ -210,8 +210,8 @@ export class AnalyticsService {
   }
 
   async getMonthlyData(teacherId: number, period: number = 6) {
-    let startDate = dayjs().startOf('month');
-    let endDate = dayjs().endOf('month');
+    let startDate = dayjs().startOf("month");
+    let endDate = dayjs().endOf("month");
     let data: {
       month: string;
       students: number;
@@ -229,12 +229,12 @@ export class AnalyticsService {
             and(
               gte(students.createdAt, startDate.toDate()),
               lt(students.createdAt, endDate.toDate()),
-              eq(students.teacherId, teacherId),
-            ),
-          ),
+              eq(students.teacherId, teacherId)
+            )
+          )
       );
       if (studentCountError || !studentsCount) {
-        throw new InternalServerErrorException('Cannot process students count');
+        throw new InternalServerErrorException("Cannot process students count");
       }
 
       const [revenue, revenueError] = await attempt(
@@ -246,12 +246,12 @@ export class AnalyticsService {
             and(
               eq(courses.teacherId, teacherId),
               gte(enrollments.enrolledAt, startDate.toDate()),
-              lt(enrollments.enrolledAt, endDate.toDate()),
-            ),
-          ),
+              lt(enrollments.enrolledAt, endDate.toDate())
+            )
+          )
       );
       if (revenueError || !revenue) {
-        throw new InternalServerErrorException('Cannot process revenue');
+        throw new InternalServerErrorException("Cannot process revenue");
       }
 
       const [completions, completionsError] = await attempt(
@@ -262,14 +262,14 @@ export class AnalyticsService {
           .where(
             and(
               eq(enrollments.progress, 1),
-              eq(enrollments.status, 'active'),
+              eq(enrollments.status, "active"),
               gte(enrollments.completedAt, startDate.toDate()),
-              lt(enrollments.completedAt, endDate.toDate()),
-            ),
-          ),
+              lt(enrollments.completedAt, endDate.toDate())
+            )
+          )
       );
       if (completionsError || !completions) {
-        throw new InternalServerErrorException('Cannot process completions');
+        throw new InternalServerErrorException("Cannot process completions");
       }
 
       const [enrollmentsCount, enrollmentsCountError] = await attempt(
@@ -281,12 +281,12 @@ export class AnalyticsService {
             and(
               eq(courses.teacherId, teacherId),
               gte(enrollments.enrolledAt, startDate.toDate()),
-              lt(enrollments.enrolledAt, endDate.toDate()),
-            ),
-          ),
+              lt(enrollments.enrolledAt, endDate.toDate())
+            )
+          )
       );
       if (enrollmentsCountError || !enrollmentsCount) {
-        throw new InternalServerErrorException('Cannot process enrollments');
+        throw new InternalServerErrorException("Cannot process enrollments");
       }
 
       const [activeUsers, activeUsersError] = await attempt(
@@ -299,19 +299,19 @@ export class AnalyticsService {
               eq(courses.teacherId, teacherId),
               gte(enrollments.enrolledAt, startDate.toDate()),
               lt(enrollments.enrolledAt, endDate.toDate()),
-              eq(enrollments.status, 'active'),
-            ),
-          ),
+              eq(enrollments.status, "active")
+            )
+          )
       );
       if (activeUsersError || !activeUsers) {
-        throw new InternalServerErrorException('Cannot process active users');
+        throw new InternalServerErrorException("Cannot process active users");
       }
 
       data = [
         {
-          month: dayjs(startDate).format('MMM'),
+          month: dayjs(startDate).format("MMM"),
           students: studentsCount[0].count,
-          revenue: revenue[0].sum || '0.00',
+          revenue: revenue[0].sum || "0.00",
           completions: completions[0].count,
           enrollments: enrollmentsCount[0].count,
           activeUsers: activeUsers[0].count,
@@ -319,8 +319,8 @@ export class AnalyticsService {
         ...data,
       ];
 
-      startDate = dayjs(startDate).subtract(1, 'month');
-      endDate = dayjs(endDate).subtract(1, 'month');
+      startDate = dayjs(startDate).subtract(1, "month");
+      endDate = dayjs(endDate).subtract(1, "month");
     }
     return { monthlyData: data };
   }
@@ -343,10 +343,10 @@ export class AnalyticsService {
         .where(eq(courses.teacherId, teacherId))
         .groupBy(courses.id)
         .orderBy(desc(count(enrollments.id)), desc(courses.createdAt))
-        .limit(limit),
+        .limit(limit)
     );
     if (topCoursesError || !topCourses) {
-      throw new InternalServerErrorException('Cannot process top courses');
+      throw new InternalServerErrorException("Cannot process top courses");
     }
     return { topCourses };
   }
@@ -356,7 +356,7 @@ export class AnalyticsService {
       db
         .select({
           id: enrollments.id,
-          type: sql`'enrollment'`.as('type'),
+          type: sql`'enrollment'`.as("type"),
           studentId: students.id,
           studentName: students.name,
           studentEmail: students.email,
@@ -372,18 +372,18 @@ export class AnalyticsService {
         .where(
           and(
             eq(courses.teacherId, teacherId),
-            eq(enrollments.status, 'active'),
-          ),
+            eq(enrollments.status, "active")
+          )
         )
         .orderBy(desc(enrollments.enrolledAt))
-        .limit(limit),
+        .limit(limit)
     );
 
     const [recentCompletions, recentCompletionsError] = await attempt(
       db
         .select({
           id: enrollments.id,
-          type: sql`'completion'`.as('type'),
+          type: sql`'completion'`.as("type"),
           studentId: students.id,
           studentName: students.name,
           studentEmail: students.email,
@@ -400,19 +400,19 @@ export class AnalyticsService {
           and(
             eq(courses.teacherId, teacherId),
             eq(enrollments.progress, 1),
-            isNotNull(enrollments.completedAt),
-          ),
+            isNotNull(enrollments.completedAt)
+          )
         )
         .orderBy(desc(enrollments.completedAt))
-        .limit(limit),
+        .limit(limit)
     );
     if (recentCompletionsError || recentEnrollmentsError) {
       throw new InternalServerErrorException(
-        'Cannot process recent activities',
+        "Cannot process recent activities"
       );
     }
     const allActivities = [...recentEnrollments, ...recentCompletions].sort(
-      (a, b) => (b.timestamp?.getTime() || 0) - (a.timestamp?.getTime() || 0),
+      (a, b) => (b.timestamp?.getTime() || 0) - (a.timestamp?.getTime() || 0)
     );
     const formattedActivities = allActivities.slice(0, limit).map((a) => ({
       id: a.id,
@@ -437,7 +437,7 @@ export class AnalyticsService {
   private getTimeAgo(date: Date): string {
     const now = new Date();
     const diffInSeconds = Math.floor(
-      (now.getTime() - new Date(date).getTime()) / 1000,
+      (now.getTime() - new Date(date).getTime()) / 1000
     );
 
     if (diffInSeconds < 60) {
@@ -446,25 +446,25 @@ export class AnalyticsService {
 
     const diffInMinutes = Math.floor(diffInSeconds / 60);
     if (diffInMinutes < 60) {
-      return `${diffInMinutes} minute${diffInMinutes > 1 ? 's' : ''} ago`;
+      return `${diffInMinutes} minute${diffInMinutes > 1 ? "s" : ""} ago`;
     }
 
     const diffInHours = Math.floor(diffInMinutes / 60);
     if (diffInHours < 24) {
-      return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
+      return `${diffInHours} hour${diffInHours > 1 ? "s" : ""} ago`;
     }
     const diffInDays = Math.floor(diffInHours / 24);
     if (diffInDays < 7) {
-      return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
+      return `${diffInDays} day${diffInDays > 1 ? "s" : ""} ago`;
     }
 
     const diffInWeeks = Math.floor(diffInDays / 7);
     if (diffInWeeks < 4) {
-      return `${diffInWeeks} week${diffInWeeks > 1 ? 's' : ''} ago`;
+      return `${diffInWeeks} week${diffInWeeks > 1 ? "s" : ""} ago`;
     }
 
     const diffInMonths = Math.floor(diffInDays / 30);
-    return `${diffInMonths} month${diffInMonths > 1 ? 's' : ''} ago`;
+    return `${diffInMonths} month${diffInMonths > 1 ? "s" : ""} ago`;
   }
 
   async getRevenueBreakdown(teacherId: number, months: number = 6) {
@@ -475,23 +475,23 @@ export class AnalyticsService {
         })
         .from(enrollments)
         .innerJoin(courses, eq(enrollments.courseId, courses.id))
-        .where(eq(courses.teacherId, teacherId)),
+        .where(eq(courses.teacherId, teacherId))
     );
     if (courseSalesError || !courseSales) {
-      throw new InternalServerErrorException('Cannot process course sales');
+      throw new InternalServerErrorException("Cannot process course sales");
     }
     const byType = [
       {
-        type: 'course_sales',
+        type: "course_sales",
         amount: courseSales[0].amount,
       },
     ];
 
     let byPeriod: { month: string; revenue: string }[] = [];
-    let current = dayjs().startOf('month');
+    let current = dayjs().startOf("month");
     for (let i = 0; i < months; i++) {
-      const start = current.subtract(i, 'month').startOf('month').toDate();
-      const end = current.subtract(i, 'month').endOf('month').toDate();
+      const start = current.subtract(i, "month").startOf("month").toDate();
+      const end = current.subtract(i, "month").endOf("month").toDate();
 
       const [revenue, revenueError] = await attempt(
         db
@@ -503,19 +503,19 @@ export class AnalyticsService {
               eq(courses.teacherId, teacherId),
               gte(enrollments.enrolledAt, start),
               lt(enrollments.enrolledAt, end),
-              eq(enrollments.status, 'active'),
-            ),
-          ),
+              eq(enrollments.status, "active")
+            )
+          )
       );
       if (revenueError) {
         throw new InternalServerErrorException(
-          'Cannot process monthly revenue',
+          "Cannot process monthly revenue"
         );
       }
       byPeriod = [
         {
-          month: dayjs(start).format('MMM'),
-          revenue: revenue?.[0]?.sum || '0.00',
+          month: dayjs(start).format("MMM"),
+          revenue: revenue?.[0]?.sum || "0.00",
         },
         ...byPeriod,
       ];

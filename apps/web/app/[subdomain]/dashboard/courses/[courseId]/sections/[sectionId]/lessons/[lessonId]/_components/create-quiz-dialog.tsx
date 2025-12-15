@@ -1,26 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogTitle,
-  DialogHeader,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-  Form,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { createQuiz, createQuizSchema, Quiz } from "@/lib/quizzes";
-import { attempt } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CreateQuizDto } from "@lms-saas/shared-lib/dtos";
 import { IconLoader, IconPlus } from "@tabler/icons-react";
@@ -29,6 +8,27 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { createQuiz, createQuizSchema, Quiz } from "@/lib/quizzes";
+import { attempt } from "@/lib/utils";
 
 type CreateQuizDialogProps = {
   lessonId: number;
@@ -70,9 +70,9 @@ export const CreateQuizDialog = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger hidden={quizzesNumber >= 1} asChild>
-        <Button hidden={quizzesNumber >= 1} className="gap-2">
+    <Dialog onOpenChange={setOpen} open={open}>
+      <DialogTrigger asChild hidden={quizzesNumber >= 1}>
+        <Button className="gap-2" hidden={quizzesNumber >= 1}>
           <IconPlus className="h-4 w-4" />
           {tCommon("create")} {t("quiz")}
         </Button>
@@ -88,8 +88,8 @@ export const CreateQuizDialog = ({
         </DialogHeader>
         <Form {...form}>
           <form
-            onSubmit={form.handleSubmit(handleSubmit)}
             className="mb-2 w-full space-y-4"
+            onSubmit={form.handleSubmit(handleSubmit)}
           >
             <div className="text-sm text-red-500">
               {form.formState.errors.root?.message}
@@ -118,8 +118,8 @@ export const CreateQuizDialog = ({
                   <FormLabel>{tCommon("duration")}</FormLabel>
                   <FormControl>
                     <Input
-                      type="number"
                       placeholder={tCommon("durationPlaceholder")}
+                      type="number"
                       {...field}
                     />
                   </FormControl>
@@ -128,7 +128,7 @@ export const CreateQuizDialog = ({
               )}
             />
             <DialogFooter>
-              <Button type="submit" disabled={form.formState.isSubmitting}>
+              <Button disabled={form.formState.isSubmitting} type="submit">
                 {form.formState.isSubmitting ? (
                   <div>
                     <IconLoader className="animate-spin" />

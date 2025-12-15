@@ -1,5 +1,9 @@
 "use client";
 
+import { LogOut, User } from "lucide-react";
+import { useParams } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useEffect, useState } from "react";
 import LanguageSwitcher from "@/components/language-switcher";
 import { ModeToggle } from "@/components/mode-toggle";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -14,10 +18,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { logout } from "@/lib/auth";
 import { getSession } from "@/lib/session";
-import { LogOut, User } from "lucide-react";
-import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
 
 export function Topbar() {
   const params = useParams();
@@ -53,9 +53,9 @@ export function Topbar() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
-                variant="ghost"
                 className="bg-background border-input rounded-full border p-2"
                 size="icon"
+                variant="ghost"
               >
                 <User className="h-5 w-5" />
               </Button>

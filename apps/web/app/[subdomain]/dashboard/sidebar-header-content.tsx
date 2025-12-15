@@ -1,7 +1,12 @@
 "use client";
 
-import { ModeToggle } from "@/components/mode-toggle";
+import { IconBook, IconChartBar, IconSettings } from "@tabler/icons-react";
+import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import LanguageSwitcher from "@/components/language-switcher";
+import { ModeToggle } from "@/components/mode-toggle";
 import {
   SidebarContent,
   SidebarGroup,
@@ -11,26 +16,21 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { useTranslations } from "next-intl";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import Image from "next/image";
-import { IconChartBar, IconBook, IconSettings } from "@tabler/icons-react";
 
 export default function SidebarHeaderContent() {
   const t = useTranslations("sidebar");
   const path = usePathname();
   return (
     <>
-      <SidebarHeader className="text-xl font-bold">
+      <SidebarHeader className="p-3 text-xl font-bold">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <Image
-              className="dark:invert"
-              src="/logo.png"
               alt="logo"
-              width={50}
+              className="dark:invert"
               height={30}
+              src="/logo-with-text.png"
+              width={100}
             />
           </div>
           <div className="flex items-center gap-2">
@@ -39,54 +39,54 @@ export default function SidebarHeaderContent() {
           </div>
         </div>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="p-1">
         <SidebarGroup>
           <SidebarGroupLabel>{t("items")}</SidebarGroupLabel>
           <SidebarGroupContent className="flex flex-col gap-2">
             <SidebarMenuItem className="list-none">
               <SidebarMenuButton
+                asChild
                 className={
                   path.includes("/dashboard/courses")
                     ? `text-primary-foreground hover:text-primary-foreground bg-primary hover:bg-primary`
                     : `hover:text-primary/90 hover:bg-accent`
                 }
-                asChild
               >
-                <Link replace={true} href="/dashboard/courses">
-                  <IconBook className="h-5 w-5 opacity-90" />
-                  <span className="text-md">{t("courses")}</span>
+                <Link href="/dashboard/courses" replace={true}>
+                  <IconBook className="opacity-90" />
+                  <span>{t("courses")}</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
 
             <SidebarMenuItem className="list-none">
               <SidebarMenuButton
+                asChild
                 className={
                   path.includes("/dashboard/analytics")
                     ? `text-primary-foreground hover:text-primary-foreground bg-primary hover:bg-primary`
                     : `hover:text-primary/90 hover:bg-accent`
                 }
-                asChild
               >
-                <Link replace={true} href="/dashboard/analytics">
-                  <IconChartBar className="h-5 w-5 opacity-90" />
-                  <span className="text-md">{t("analytics")}</span>
+                <Link href="/dashboard/analytics" replace={true}>
+                  <IconChartBar className="opacity-90" />
+                  <span>{t("analytics")}</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
 
             <SidebarMenuItem className="list-none">
               <SidebarMenuButton
+                asChild
                 className={
                   path.includes("/dashboard/settings")
                     ? `text-primary-foreground hover:text-primary-foreground bg-primary hover:bg-primary`
                     : `hover:text-primary/90 hover:bg-accent`
                 }
-                asChild
               >
-                <Link replace={true} href="/dashboard/settings">
-                  <IconSettings size={20} className="opacity-90" />
-                  <span className="text-md">{t("settings")}</span>
+                <Link href="/dashboard/settings" replace={true}>
+                  <IconSettings className="opacity-90" />
+                  <span>{t("settings")}</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

@@ -1,23 +1,23 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  IconVideo,
-  IconTrash,
-  IconLoader,
   IconFileInfo,
+  IconLoader,
+  IconTrash,
+  IconVideo,
 } from "@tabler/icons-react";
-import { Lesson } from "@/lib/courses";
-import { toast } from "sonner";
-import { deleteVideo, Video as VideoInterface } from "@/lib/videos";
+import { useQuery } from "@tanstack/react-query";
+import { useParams, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Lesson } from "@/lib/courses";
+import { deleteQuiz, findQuiz, Quiz } from "@/lib/quizzes";
+import { attempt } from "@/lib/utils";
+import { deleteVideo, Video as VideoInterface } from "@/lib/videos";
+import { CreateQuizDialog } from "./create-quiz-dialog";
 import { VideoPreview } from "./video-preview";
 import { VideoUploader } from "./video-uploader";
-import { Button } from "@/components/ui/button";
-import { Quiz, deleteQuiz, findQuiz } from "@/lib/quizzes";
-import { CreateQuizDialog } from "./create-quiz-dialog";
-import { useParams, useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
-import { attempt } from "@/lib/utils";
-import { useTranslations } from "next-intl";
 
 type LessonTabsProps = {
   lesson: Lesson;
@@ -93,13 +93,13 @@ export const LessonTabs = ({ lesson }: LessonTabsProps) => {
   if (isQuizError) return <div>{tCommon("somethingWentWrong")}</div>;
 
   return (
-    <Tabs defaultValue="videos" className="w-full">
+    <Tabs className="w-full" defaultValue="videos">
       <TabsList className="mb-4">
-        <TabsTrigger value="videos" className="gap-2">
+        <TabsTrigger className="gap-2" value="videos">
           <IconVideo className="h-4 w-4" />
           {t("videos")}
         </TabsTrigger>
-        <TabsTrigger value="quizzes" className="gap-2">
+        <TabsTrigger className="gap-2" value="quizzes">
           <IconFileInfo className="h-4 w-4" />
           {t("quizzes")}
         </TabsTrigger>
@@ -111,9 +111,9 @@ export const LessonTabs = ({ lesson }: LessonTabsProps) => {
             <VideoPreview
               key={`video-${video.id}`}
               lessonId={lesson.id}
-              videoId={video.id}
-              title={video.title}
               onDelete={() => handleVideoDelete(videoIndex, video.id)}
+              title={video.title}
+              videoId={video.id}
             />
           ))}
 
@@ -130,8 +130,8 @@ export const LessonTabs = ({ lesson }: LessonTabsProps) => {
         <div className="space-y-4">
           {lessonQuizzes?.map((quiz, quizIndex) => (
             <div
-              key={`quiz-${quiz.id}`}
               className="flex items-center justify-between rounded-lg border p-4"
+              key={`quiz-${quiz.id}`}
             >
               <div className="flex items-center gap-3">
                 <div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-full">
@@ -147,21 +147,21 @@ export const LessonTabs = ({ lesson }: LessonTabsProps) => {
               </div>
               <div className="flex items-center gap-2">
                 <Button
-                  variant="outline"
-                  size="sm"
                   onClick={() =>
                     router.push(
-                      `/dashboard/courses/${params.courseId}/sections/${params.sectionId}/lessons/${params.lessonId}/quizzes/${quiz.id}`,
+                      `/dashboard/courses/${params.courseId}/sections/${params.sectionId}/lessons/${params.lessonId}/quizzes/${quiz.id}`
                     )
                   }
+                  size="sm"
+                  variant="outline"
                 >
                   {tCommon("edit")}
                 </Button>
                 <Button
-                  variant="ghost"
                   className="hover:bg-destructive/10 hover:text-destructive"
-                  size="icon"
                   onClick={() => handleQuizDelete(quizIndex, quiz.id)}
+                  size="icon"
+                  variant="ghost"
                 >
                   <IconTrash className="h-4 w-4" />
                 </Button>
@@ -179,17 +179,17 @@ export const LessonTabs = ({ lesson }: LessonTabsProps) => {
                 {t("createQuizToTestYourStudentsKnowledge")}
               </p>
               <CreateQuizDialog
-                quizzesNumber={lessonQuizzes.length || 0}
                 lessonId={lesson.id}
                 onQuizCreated={handleQuizCreated}
+                quizzesNumber={lessonQuizzes.length || 0}
               />
             </div>
           ) : (
             <div className="flex justify-end">
               <CreateQuizDialog
-                quizzesNumber={lessonQuizzes.length || 0}
                 lessonId={lesson.id}
                 onQuizCreated={handleQuizCreated}
+                quizzesNumber={lessonQuizzes.length || 0}
               />
             </div>
           )}

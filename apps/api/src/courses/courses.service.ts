@@ -1,22 +1,22 @@
-import { attempt } from '@/utils/error-handling';
 import {
   CourseEditDto,
-  courses,
-  courseSections,
   CreateCourseDto,
   CreateCourseSectionDto,
+  courseSections,
+  courses,
   db,
-  UpdateCourseSectionDto,
   enrollments,
   lessons,
   studentLessonCompletions,
-} from '@lms-saas/shared-lib';
+  UpdateCourseSectionDto,
+} from "@lms-saas/shared-lib";
 import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
-} from '@nestjs/common';
-import { and, count, desc, eq, inArray } from 'drizzle-orm';
+} from "@nestjs/common";
+import { and, count, desc, eq, inArray } from "drizzle-orm";
+import { attempt } from "@/utils/error-handling";
 
 type WithClause = {
   courseSections?: {
@@ -53,7 +53,7 @@ type WithClause = {
 @Injectable()
 export class CoursesService {
   async create(dto: CreateCourseDto, teacherId: number) {
-    await db.insert(courses).values({ price: '0.00', ...dto, teacherId });
+    await db.insert(courses).values({ price: "0.00", ...dto, teacherId });
   }
 
   async getByTeacherId(
@@ -63,7 +63,7 @@ export class CoursesService {
     withTeacher: boolean = false,
     published: boolean = false,
     withEnrollments?: boolean,
-    studentId?: number,
+    studentId?: number
   ) {
     const withClause: WithClause = {};
 
@@ -89,7 +89,7 @@ export class CoursesService {
       res = await db.query.courses.findMany({
         where: and(
           eq(courses.teacherId, teacherId),
-          eq(courses.published, published),
+          eq(courses.published, published)
         ),
         orderBy: [desc(courses.createdAt)],
         columns: {
@@ -102,7 +102,7 @@ export class CoursesService {
       res = await db.query.courses.findMany({
         where: and(
           eq(courses.teacherId, teacherId),
-          eq(courses.published, published),
+          eq(courses.published, published)
         ),
         orderBy: [desc(courses.createdAt)],
         columns: {
@@ -123,8 +123,8 @@ export class CoursesService {
         .where(
           and(
             eq(courses.teacherId, teacherId),
-            eq(courses.published, published),
-          ),
+            eq(courses.published, published)
+          )
         )
     )[0].count;
 
@@ -135,8 +135,8 @@ export class CoursesService {
       .where(
         inArray(
           enrollments.courseId,
-          res.map((r) => r.id),
-        ),
+          res.map((r) => r.id)
+        )
       );
 
     const coursesRes = res.map((r) => {
@@ -162,7 +162,7 @@ export class CoursesService {
     studentId?: number,
     withSections = false,
     withEnrollments = false,
-    withCourseCodes = false,
+    withCourseCodes = false
   ) {
     const withClause: WithClause = {};
 
@@ -232,15 +232,15 @@ export class CoursesService {
       db
         .select({ count: count(enrollments.id) })
         .from(enrollments)
-        .where(eq(enrollments.courseId, courseId)),
+        .where(eq(enrollments.courseId, courseId))
     );
 
     if (error) {
-      throw new InternalServerErrorException('Error fetching student count');
+      throw new InternalServerErrorException("Error fetching student count");
     }
 
     if (data) {
-      data['studentsCount'] = studentsCount[0].count;
+      data["studentsCount"] = studentsCount[0].count;
     }
 
     return data;
@@ -340,7 +340,7 @@ export class CoursesService {
     const res = await db.query.enrollments.findMany({
       where: and(
         eq(enrollments.studentId, studentId),
-        eq(enrollments.status, 'active'),
+        eq(enrollments.status, "active")
       ),
       with: {
         course: {
@@ -383,7 +383,7 @@ export class CoursesService {
     });
 
     if (!enrollment) {
-      throw new NotFoundException('Enrollment not found');
+      throw new NotFoundException("Enrollment not found");
     }
 
     const courseId = enrollment.courseId;
@@ -393,7 +393,7 @@ export class CoursesService {
     });
 
     if (!course) {
-      throw new NotFoundException('Course not found');
+      throw new NotFoundException("Course not found");
     }
 
     const lessonsResult = await db

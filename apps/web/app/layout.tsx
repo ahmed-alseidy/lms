@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import ReactQueryProvider from "@/components/react-query-provider";
-import { Toaster } from "@/components/ui/sonner";
-import { ThemeProvider } from "@/components/theme-provider";
-import { NextIntlClientProvider } from "next-intl";
-import { cookies } from "next/headers";
 import { Noto_Sans_Arabic, Rubik } from "next/font/google";
+import { cookies } from "next/headers";
+import { NextIntlClientProvider } from "next-intl";
+import ReactQueryProvider from "@/components/react-query-provider";
+import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
 
 const noto = Noto_Sans_Arabic({
   subsets: ["arabic"],
@@ -38,8 +38,8 @@ export default async function RootLayout({
           <ThemeProvider
             attribute="class"
             defaultTheme="system"
-            enableSystem
             disableTransitionOnChange
+            enableSystem
           >
             <NextIntlClientProvider locale={locale}>
               {children}

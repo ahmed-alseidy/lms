@@ -1,18 +1,18 @@
 "use client";
 
+import { BookOpen, Clock, Star, Users } from "lucide-react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Users, Clock, Star, BookOpen } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { useRouter } from "next/navigation";
 import { CourseWithEnrollments } from "@/lib/courses";
-import Image from "next/image";
-import { useTranslations } from "next-intl";
 
 export function CourseCard({ course }: { course: CourseWithEnrollments }) {
   const router = useRouter();
@@ -24,11 +24,11 @@ export function CourseCard({ course }: { course: CourseWithEnrollments }) {
         <div className="relative mb-0 aspect-video h-full">
           {course.imageUrl ? (
             <Image
-              src={course.imageUrl}
               alt={course.title}
               className="h-full w-full object-cover"
-              width={300}
               height={192}
+              src={course.imageUrl}
+              width={300}
             />
           ) : (
             <div className="bg-muted flex h-full w-full items-center justify-center">
@@ -38,8 +38,8 @@ export function CourseCard({ course }: { course: CourseWithEnrollments }) {
         </div>
         <div className="absolute top-2 right-2">
           <Badge
-            variant="secondary"
             className="border-border border backdrop-blur-sm"
+            variant="secondary"
           >
             ${course.price}
           </Badge>
@@ -88,9 +88,9 @@ export function CourseCard({ course }: { course: CourseWithEnrollments }) {
         ) : (
           <div>
             <Button
-              variant="outline"
               className="w-full gap-2 text-sm transition-colors"
               onClick={() => router.push(`/courses/${course.id}/enroll`)}
+              variant="outline"
             >
               <BookOpen className="h-4 w-4" />
               {t("courses.enrollNow")}
@@ -101,9 +101,9 @@ export function CourseCard({ course }: { course: CourseWithEnrollments }) {
 
       <CardFooter className="border-t p-4">
         <Button
-          variant="default"
           className="w-full gap-2 text-sm transition-colors"
           onClick={() => router.push(`/courses/${course.id}`)}
+          variant="default"
         >
           <BookOpen className="h-4 w-4" />
           {t("courses.courseDetails")}

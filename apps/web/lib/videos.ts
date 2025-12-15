@@ -1,8 +1,8 @@
 import { CreateVideoDto, UploadDto } from "@lms-saas/shared-lib";
+import axios from "axios";
 import { authFetch } from "./auth-fetch";
 import { BACKEND_URL } from "./constants";
 import { attempt } from "./utils";
-import axios from "axios";
 
 const baseUrl = `${BACKEND_URL}/lessons`;
 
@@ -42,14 +42,14 @@ export const getUploadPresignedUrl = (lessonId: number, data: UploadDto) => {
     {
       method: "POST",
       data,
-    },
+    }
   );
 };
 
 export const uploadVideo = async (
   file: File,
   presignedPostInput: SignedUrlResponse,
-  setProgress: (progress: number) => void,
+  setProgress: (progress: number) => void
 ) => {
   const { url, fields } = presignedPostInput;
 
@@ -100,20 +100,20 @@ export const getVideo = (lessonId: number, id: string) => {
 export const checkIfVideoCompleted = async (
   lessonId: number,
   videoId: string,
-  enrollmentId: number,
+  enrollmentId: number
 ) => {
   return authFetch<{ completed: boolean }>(
     `${baseUrl}/${lessonId}/videos/${videoId}/completed?enrollmentId=${enrollmentId}`,
     {
       method: "GET",
-    },
+    }
   );
 };
 
 export const completeVideo = (
   lessonId: number,
   videoId: string,
-  enrollmentId: number,
+  enrollmentId: number
 ) => {
   return authFetch(`${baseUrl}/${lessonId}/videos/${videoId}/complete`, {
     method: "POST",

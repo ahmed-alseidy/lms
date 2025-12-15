@@ -1,10 +1,12 @@
 "use client";
 
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Loader } from "lucide-react";
+import { useParams } from "next/navigation";
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
 import {
   Table,
   TableBody,
@@ -13,9 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useParams } from "next/navigation";
 import { generateCourseCodes, getCourseCodes } from "@/lib/course-codes";
-import { Loader } from "lucide-react";
 import { attempt } from "@/lib/utils";
 
 export default function CourseCodesPage() {
@@ -39,7 +39,7 @@ export default function CourseCodesPage() {
   const { mutate: generateCodes, isPending } = useMutation({
     mutationFn: async (quantity: number) => {
       const [data, error] = await attempt(
-        generateCourseCodes(courseId, quantity),
+        generateCourseCodes(courseId, quantity)
       );
       if (error) {
         toast.error("Failed to generate codes");
@@ -69,13 +69,13 @@ export default function CourseCodesPage() {
         <h1 className="mb-4 text-2xl font-bold">Course Codes</h1>
         <div className="flex gap-4">
           <Input
-            type="number"
-            min={1}
-            value={quantity}
-            onChange={(e) => setQuantity(Number(e.target.value))}
             className="w-32"
+            min={1}
+            onChange={(e) => setQuantity(Number(e.target.value))}
+            type="number"
+            value={quantity}
           />
-          <Button onClick={() => generateCodes(quantity)} disabled={isPending}>
+          <Button disabled={isPending} onClick={() => generateCodes(quantity)}>
             Generate Codes
           </Button>
         </div>

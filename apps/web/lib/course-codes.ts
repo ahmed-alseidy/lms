@@ -1,7 +1,7 @@
-import { BACKEND_URL } from "./constants";
-import { authFetch } from "./auth-fetch";
-import { attempt } from "./utils";
 import { CourseCode } from "@lms-saas/shared-lib";
+import { authFetch } from "./auth-fetch";
+import { BACKEND_URL } from "./constants";
+import { attempt } from "./utils";
 
 const baseUrl = `${BACKEND_URL}`;
 
@@ -11,7 +11,7 @@ export const generateCourseCodes = (courseId: number, quantity: number) => {
     {
       method: "POST",
       data: { quantity },
-    },
+    }
   );
 };
 
@@ -21,7 +21,7 @@ export const validateCourseCode = (courseId: number, code: string) => {
     {
       method: "POST",
       data: { code },
-    },
+    }
   );
 };
 

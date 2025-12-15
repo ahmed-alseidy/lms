@@ -1,34 +1,34 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { getCourse, findLesson } from "@/lib/courses";
-import { useParams } from "next/navigation";
+import purify from "dompurify";
 import {
   ArrowLeft,
   ArrowRight,
-  Menu,
-  VideoOffIcon,
   CheckCircle,
-  Video,
   Loader,
+  Menu,
   Play,
+  Video,
+  VideoOffIcon,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { attempt, cn } from "@/lib/utils";
+import { Progress } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetTrigger } from "@/components/ui/sheet";
+import { findLesson, getCourse } from "@/lib/courses";
+import { lexicalToHtml } from "@/lib/lexical-to-html";
+import { attempt, cn } from "@/lib/utils";
+import { checkIfVideoCompleted, completeVideo } from "@/lib/videos";
 import { MobileSidebar } from "./_components/mobile-sidebar";
 import { SidebarContent } from "./_components/sidebar-content";
 import { VideoPlayer } from "./_components/video-player";
-import { lexicalToHtml } from "@/lib/lexical-to-html";
-import purify from "dompurify";
-import { Separator } from "@/components/ui/separator";
-import { toast } from "sonner";
-import { checkIfVideoCompleted, completeVideo } from "@/lib/videos";
-import { useTranslations } from "next-intl";
-import Image from "next/image";
-import { Progress } from "@/components/ui/progress";
 
 export default function LessonPage() {
   const queryClient = useQueryClient();
@@ -55,7 +55,7 @@ export default function LessonPage() {
     queryKey: ["lesson", courseId, sectionId, lessonId],
     queryFn: async () => {
       const [response, error] = await attempt(
-        findLesson(courseId, sectionId, lessonId),
+        findLesson(courseId, sectionId, lessonId)
       );
       if (error) {
         toast.error(t("common.somethingWentWrong"));
@@ -77,8 +77,8 @@ export default function LessonPage() {
         checkIfVideoCompleted(
           lessonId,
           lesson?.videos?.[0]?.id!,
-          course?.enrollments?.[0]?.id!,
-        ),
+          course?.enrollments?.[0]?.id!
+        )
       );
       if (error) {
         toast.error(t("common.somethingWentWrong"));
@@ -118,7 +118,7 @@ export default function LessonPage() {
     if (!enrollmentId) return;
 
     const [, error] = await attempt(
-      completeVideo(lessonId, lesson?.videos?.[0]?.id!, enrollmentId),
+      completeVideo(lessonId, lesson?.videos?.[0]?.id!, enrollmentId)
     );
 
     if (error) {
@@ -163,8 +163,8 @@ export default function LessonPage() {
   return (
     <Sheet>
       <div
-        onClick={() => setBlur(false)}
         className="flex h-full min-h-screen w-full"
+        onClick={() => setBlur(false)}
         style={{
           WebkitUserSelect: "none",
           MozUserSelect: "none",
@@ -176,11 +176,11 @@ export default function LessonPage() {
           <div className="flex items-center gap-2 p-2">
             {course.imageUrl ? (
               <Image
-                src={course.imageUrl}
                 alt={course.title}
-                width={50}
-                height={50}
                 className="rounded-lg"
+                height={50}
+                src={course.imageUrl}
+                width={50}
               />
             ) : (
               <div className="bg-primary/10 flex h-[50px] w-[50px] items-center justify-center rounded-lg">
@@ -229,8 +229,8 @@ export default function LessonPage() {
               </SheetTrigger>
             </div>
             <Link
-              href={`/courses`}
               className={cn(buttonVariants({ variant: "outline" }))}
+              href={`/courses`}
             >
               <ArrowLeft className="rotate-rtl h-4 w-4" />
               <span>{t("courses.backToCourses")}</span>
@@ -258,7 +258,7 @@ export default function LessonPage() {
                   className="text-lg text-balance break-all whitespace-normal"
                   dangerouslySetInnerHTML={{
                     __html: purify.sanitize(
-                      lexicalToHtml(JSON.parse(lesson.description)),
+                      lexicalToHtml(JSON.parse(lesson.description))
                     ),
                   }}
                 />
@@ -269,8 +269,8 @@ export default function LessonPage() {
           <div className="flex w-full max-w-6xl justify-end gap-4">
             {lesson.videos?.[0] && (
               <Button
-                onClick={handleCompleteVideo}
                 disabled={isVideoCompleted?.completed}
+                onClick={handleCompleteVideo}
               >
                 {isVideoCompleted?.completed ? (
                   <CheckCircle className="text-primary-foreground h-3 w-3" />
@@ -284,22 +284,22 @@ export default function LessonPage() {
             )}
             {nav.prev && (
               <Link
-                href={`/courses/${courseId}/sections/${nav.prev.sectionId}/lessons/${nav.prev.lessonId}`}
                 className={cn(
                   "hover:bg-muted inline-flex items-center gap-2 rounded border px-4 py-2",
-                  buttonVariants({ variant: "outline" }),
+                  buttonVariants({ variant: "outline" })
                 )}
+                href={`/courses/${courseId}/sections/${nav.prev.sectionId}/lessons/${nav.prev.lessonId}`}
               >
                 <ArrowLeft className="rotate-rtl" />
               </Link>
             )}
             {nav.next && (
               <Link
-                href={`/courses/${courseId}/sections/${nav.next.sectionId}/lessons/${nav.next.lessonId}`}
                 className={cn(
                   "hover:bg-muted inline-flex items-center gap-2 rounded border px-4 py-2",
-                  buttonVariants({ variant: "outline" }),
+                  buttonVariants({ variant: "outline" })
                 )}
+                href={`/courses/${courseId}/sections/${nav.next.sectionId}/lessons/${nav.next.lessonId}`}
               >
                 <ArrowRight className="rotate-rtl" />
               </Link>

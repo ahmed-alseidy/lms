@@ -1,19 +1,19 @@
 "use client";
 
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useLocalStorage } from "@uidotdev/usehooks";
+import { CheckCircle, Clock, Loader, Loader2 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { Card, CardContent } from "@/components/ui/card";
+import { useTranslations } from "next-intl";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { toast } from "sonner";
-import { findQuiz, submitQuiz, isQuizCompleted } from "@/lib/quizzes";
 import { getCourse } from "@/lib/courses";
-import { Clock, CheckCircle, Loader, Loader2 } from "lucide-react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { findQuiz, isQuizCompleted, submitQuiz } from "@/lib/quizzes";
 import { attempt } from "@/lib/utils";
-import { useLocalStorage } from "@uidotdev/usehooks";
-import { useTranslations } from "next-intl";
 
 const LoadingSpinner = () => (
   <div className="flex min-h-[calc(100vh-200px)] items-center justify-center">
@@ -113,9 +113,6 @@ const QuestionPagination = ({
 
           return (
             <button
-              key={question.id}
-              onClick={() => onQuestionSelect(index)}
-              disabled={isTimerExpired}
               className={`relative flex h-10 w-10 items-center justify-center rounded-lg border-2 text-sm font-medium transition-all duration-200 ${
                 isCurrent
                   ? "border-primary bg-primary text-primary-foreground"
@@ -123,6 +120,9 @@ const QuestionPagination = ({
                     ? "border-green-500 bg-green-50 text-green-700 hover:border-green-600 hover:bg-green-100"
                     : "border-muted-foreground/30 bg-background text-muted-foreground hover:border-primary hover:bg-muted"
               } ${isTimerExpired ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
+              disabled={isTimerExpired}
+              key={question.id}
+              onClick={() => onQuestionSelect(index)}
               title={`Question ${index + 1}${isAnswered ? " (Answered)" : " (Not answered)"}`}
             >
               {index + 1}
@@ -196,7 +196,7 @@ export default function QuizPage() {
     queryKey: ["quiz-completed", quizId, courseId],
     queryFn: async () => {
       const [courseResponse, courseError] = await attempt(
-        getCourse(courseId, false, true),
+        getCourse(courseId, false, true)
       );
       if (courseError) {
         throw new Error("Failed to fetch course");
@@ -268,7 +268,7 @@ export default function QuizPage() {
           try {
             // Check if the old quiz is completed
             const [completionResponse, completionError] = await attempt(
-              isQuizCompleted(quizEndTimeDetails.quizId),
+              isQuizCompleted(quizEndTimeDetails.quizId)
             );
 
             if (completionError) {
@@ -286,9 +286,9 @@ export default function QuizPage() {
                     ([key, value]) => ({
                       questionId: Number(key),
                       answerId: Number(value),
-                    }),
-                  ),
-                ),
+                    })
+                  )
+                )
               );
 
               if (submitError) {
@@ -323,7 +323,7 @@ export default function QuizPage() {
         const now = new Date();
         const timeRemaining = Math.max(
           0,
-          quizEndTimeDetails.endTime - now.getTime(),
+          quizEndTimeDetails.endTime - now.getTime()
         );
         setSelectedAnswers(quizEndTimeDetails.localSelectedAnswers || {});
 
@@ -366,8 +366,8 @@ export default function QuizPage() {
           Object.entries(selectedAnswers).map(([key, value]) => ({
             questionId: Number(key),
             answerId: Number(value),
-          })),
-        ),
+          }))
+        )
       );
 
       if (error) {
@@ -426,7 +426,7 @@ export default function QuizPage() {
         return newSelectedAnswers;
       });
     },
-    [quizId],
+    [quizId]
   );
 
   const handleQuestionSelect = useCallback((index: number) => {
@@ -444,9 +444,9 @@ export default function QuizPage() {
   if (quizError) {
     return (
       <ErrorState
-        title={t("quizzes.failedToLoadQuiz")}
         buttonText={t("quizzes.backToCourse")}
         onButtonClick={() => router.push(`/courses/${courseId}`)}
+        title={t("quizzes.failedToLoadQuiz")}
       />
     );
   }
@@ -454,9 +454,9 @@ export default function QuizPage() {
   if (completionError?.message === "Not enrolled in course") {
     return (
       <ErrorState
-        title={t("quizzes.notEnrolledInCourse")}
         buttonText={t("quizzes.enrollNow")}
         onButtonClick={() => router.push(`/courses/${courseId}/enroll`)}
+        title={t("quizzes.notEnrolledInCourse")}
       />
     );
   }
@@ -464,9 +464,9 @@ export default function QuizPage() {
   if (completionError) {
     return (
       <ErrorState
-        title={t("quizzes.failedToLoadCourseData")}
         buttonText={t("quizzes.backToCourse")}
         onButtonClick={() => router.push(`/courses/${courseId}`)}
+        title={t("quizzes.failedToLoadCourseData")}
       />
     );
   }
@@ -478,9 +478,9 @@ export default function QuizPage() {
   if (!enrollmentId) {
     return (
       <ErrorState
-        title={t("quizzes.notEnrolledInCourse")}
         buttonText={t("quizzes.enrollNow")}
         onButtonClick={() => router.push(`/courses/${courseId}/enroll`)}
+        title={t("quizzes.notEnrolledInCourse")}
       />
     );
   }
@@ -488,9 +488,9 @@ export default function QuizPage() {
   if (!quiz) {
     return (
       <ErrorState
-        title={t("quizzes.quizNotFound")}
         buttonText={t("quizzes.backToCourse")}
         onButtonClick={() => router.push(`/courses/${courseId}`)}
+        title={t("quizzes.quizNotFound")}
       />
     );
   }
@@ -498,9 +498,9 @@ export default function QuizPage() {
   if (!currentQuestion) {
     return (
       <ErrorState
-        title={t("quizzes.noQuestionsAvailable")}
         buttonText={t("quizzes.backToCourse")}
         onButtonClick={() => router.push(`/courses/${courseId}`)}
+        title={t("quizzes.noQuestionsAvailable")}
       />
     );
   }
@@ -512,11 +512,11 @@ export default function QuizPage() {
     }
     return (
       <ErrorState
-        title={t("quizzes.quizAlreadyCompleted")}
         buttonText={t("quizzes.viewResults")}
         onButtonClick={() =>
           router.push(`/courses/${courseId}/quiz/${quizId}/results`)
         }
+        title={t("quizzes.quizAlreadyCompleted")}
       />
     );
   }
@@ -526,8 +526,8 @@ export default function QuizPage() {
       <Card className="border-border mx-auto w-full max-w-2xl rounded-xl border shadow-sm">
         <CardContent className="pt-6">
           <TimerDisplay
-            timeRemaining={timeRemaining}
             isTimerExpired={isTimerExpired}
+            timeRemaining={timeRemaining}
           />
 
           {/* Progress and question count */}
@@ -539,8 +539,8 @@ export default function QuizPage() {
             <div className="text-sm font-medium">{progressText}</div>
           </div>
           <Progress
-            value={progress}
             className="bg-muted mb-6 h-2 rounded-full"
+            value={progress}
           />
 
           {/* Question text */}
@@ -550,28 +550,28 @@ export default function QuizPage() {
 
           {/* Answer options */}
           <RadioGroup
-            value={selectedAnswers[currentQuestion.id]}
+            className="mb-8 space-y-4"
+            disabled={isTimerExpired}
             onValueChange={(value: string) =>
               handleAnswerSelect(currentQuestion.id, value)
             }
-            className="mb-8 space-y-4"
-            disabled={isTimerExpired}
+            value={selectedAnswers[currentQuestion.id]}
           >
             {currentQuestion.answers.map((option) => (
               <label
-                key={option.id}
-                htmlFor={option.id.toString()}
                 className={`flex cursor-pointer items-center rounded-lg border px-4 py-3 transition-colors ${
                   selectedAnswers[currentQuestion.id] === option.id.toString()
                     ? "border-primary bg-muted"
                     : "border-muted-foreground/60 bg-sidebar hover:border-primary"
                 } ${isTimerExpired ? "cursor-not-allowed opacity-50" : ""}`}
+                htmlFor={option.id.toString()}
+                key={option.id}
               >
                 <RadioGroupItem
-                  value={option.id.toString()}
-                  id={option.id.toString()}
                   className="mr-3"
                   disabled={isTimerExpired}
+                  id={option.id.toString()}
+                  value={option.id.toString()}
                 />
                 <span className="text-base">{option.answerText}</span>
               </label>
@@ -580,32 +580,32 @@ export default function QuizPage() {
 
           {/* Question Pagination */}
           <QuestionPagination
-            questions={quiz.questions}
             currentQuestionIndex={currentQuestionIndex}
-            selectedAnswers={selectedAnswers}
-            onQuestionSelect={handleQuestionSelect}
             isTimerExpired={isTimerExpired}
+            onQuestionSelect={handleQuestionSelect}
+            questions={quiz.questions}
+            selectedAnswers={selectedAnswers}
           />
 
           {/* Navigation buttons */}
           <div className="mt-8 flex justify-between">
             <Button
-              variant="outline"
-              onClick={handlePrevious}
-              disabled={currentQuestionIndex === 0 || isTimerExpired}
               className="min-w-[100px]"
+              disabled={currentQuestionIndex === 0 || isTimerExpired}
+              onClick={handlePrevious}
+              variant="outline"
             >
               {t("common.previous")}
             </Button>
             {currentQuestionIndex === totalQuestions - 1 ? (
               <Button
-                onClick={handleSubmit}
+                className="min-w-[100px]"
                 disabled={
                   isSubmitting ||
                   isTimerExpired ||
                   !selectedAnswers[currentQuestion.id]
                 }
-                className="min-w-[100px]"
+                onClick={handleSubmit}
               >
                 {isSubmitting ? (
                   <>
@@ -618,11 +618,11 @@ export default function QuizPage() {
               </Button>
             ) : (
               <Button
-                onClick={handleNext}
                 className="min-w-[100px]"
                 disabled={
                   !selectedAnswers[currentQuestion.id] || isTimerExpired
                 }
+                onClick={handleNext}
               >
                 {t("common.next")}
               </Button>

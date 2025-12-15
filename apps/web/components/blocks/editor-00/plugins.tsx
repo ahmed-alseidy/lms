@@ -1,18 +1,18 @@
-import { useState } from "react";
 import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary";
+import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
+import { useState } from "react";
 import { ContentEditable } from "@/components/editor/editor-ui/content-editable";
-import { ToolbarPlugin } from "@/components/editor/plugins/toolbar/toolbar-plugin";
-import { FormatQuote } from "@/components/editor/plugins/toolbar/block-format/format-quote";
-import { FormatCheckList } from "@/components/editor/plugins/toolbar/block-format/format-check-list";
-import { BlockFormatDropDown } from "@/components/editor/plugins/toolbar/block-format-toolbar-plugin";
 import { FormatBulletedList } from "@/components/editor/plugins/toolbar/block-format/format-bulleted-list";
+import { FormatCheckList } from "@/components/editor/plugins/toolbar/block-format/format-check-list";
 import { FormatHeading } from "@/components/editor/plugins/toolbar/block-format/format-heading";
 import { FormatNumberedList } from "@/components/editor/plugins/toolbar/block-format/format-numbered-list";
 import { FormatParagraph } from "@/components/editor/plugins/toolbar/block-format/format-paragraph";
-import { HistoryToolbarPlugin } from "@/components/editor/plugins/toolbar/history-toolbar-plugin";
-import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
+import { FormatQuote } from "@/components/editor/plugins/toolbar/block-format/format-quote";
+import { BlockFormatDropDown } from "@/components/editor/plugins/toolbar/block-format-toolbar-plugin";
 import { FontFormatToolbarPlugin } from "@/components/editor/plugins/toolbar/font-format-toolbar-plugin";
+import { HistoryToolbarPlugin } from "@/components/editor/plugins/toolbar/history-toolbar-plugin";
+import { ToolbarPlugin } from "@/components/editor/plugins/toolbar/toolbar-plugin";
 
 export function Plugins() {
   const [floatingAnchorElem, setFloatingAnchorElem] =

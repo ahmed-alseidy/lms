@@ -9,7 +9,8 @@
     "paths": {
       "@/*": ["./*"],
       "@lib/*": ["./lib/*"]
-    }
+    },
+    "strictNullChecks": true
   },
   "include": [
     "**/*.ts",

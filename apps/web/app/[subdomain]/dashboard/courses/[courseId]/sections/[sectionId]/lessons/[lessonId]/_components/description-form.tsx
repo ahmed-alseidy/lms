@@ -1,13 +1,17 @@
 "use client";
 
-import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
 import { IconPencil, IconX } from "@tabler/icons-react";
-import { useState } from "react";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 import purify from "dompurify";
+import { SerializedEditorState } from "lexical";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import * as z from "zod";
+import { Editor } from "@/components/blocks/editor-00/editor";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -15,13 +19,10 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
 import { updateLesson } from "@/lib/courses";
-import { attempt } from "@/lib/utils";
-import { SerializedEditorState } from "lexical";
 import { lexicalToHtml } from "@/lib/lexical-to-html";
-import { Editor } from "@/components/blocks/editor-00/editor";
-import { useTranslations } from "next-intl";
+import { attempt } from "@/lib/utils";
+
 interface DescriptionFormProps {
   initialData: SerializedEditorState;
   courseId: number;
@@ -94,7 +95,7 @@ export const DescriptionForm = ({
       const [, error] = await attempt(
         updateLesson(courseId, sectionId, lessonId, {
           description: JSON.stringify(values.description),
-        }),
+        })
       );
       if (error) {
         toast.error(tCommon("somethingWentWrong"));
@@ -132,8 +133,8 @@ export const DescriptionForm = ({
           dangerouslySetInnerHTML={{
             __html: purify.sanitize(
               lexicalToHtml(
-                form.getValues("description") || tCommon("noDescription"),
-              ),
+                form.getValues("description") || tCommon("noDescription")
+              )
             ),
           }}
         />
@@ -141,8 +142,8 @@ export const DescriptionForm = ({
       {isEditing && (
         <Form {...form}>
           <form
-            onSubmit={form.handleSubmit(onSubmit)}
             className="mt-4 space-y-4"
+            onSubmit={form.handleSubmit(onSubmit)}
           >
             <FormField
               control={form.control}

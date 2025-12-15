@@ -1,21 +1,22 @@
 "use client";
 
-import * as z from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  IconPencil,
-  IconPlus,
   IconImageInPicture,
   IconLoader2,
+  IconPencil,
+  IconPlus,
   IconX,
 } from "@tabler/icons-react";
-import { useRef, useState } from "react";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
-import Image from "next/image";
-import { Button } from "@/components/ui/button";
-import { uploadCoverImage } from "@/lib/courses";
 import { useQueryClient } from "@tanstack/react-query";
-import { Input } from "@/components/ui/input";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useRef, useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import * as z from "zod";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -23,10 +24,9 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { Input } from "@/components/ui/input";
+import { uploadCoverImage } from "@/lib/courses";
 import { attempt } from "@/lib/utils";
-import { useTranslations } from "next-intl";
 
 interface ImageFormProps {
   initialData: {
@@ -61,7 +61,7 @@ export const ImageForm = ({ initialData, courseId }: ImageFormProps) => {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       const [, error] = await attempt(
-        uploadCoverImage(courseId, values.coverImage),
+        uploadCoverImage(courseId, values.coverImage)
       );
       if (error) {
         toast.error(tCommon("somethingWentWrong"));
@@ -114,8 +114,8 @@ export const ImageForm = ({ initialData, courseId }: ImageFormProps) => {
           <div className="relative mt-2 aspect-video h-10/12 w-full overflow-hidden">
             <Image
               alt="Upload"
-              fill
               className="rounded-md object-cover"
+              fill
               src={initialData.imageUrl}
             />
           </div>
@@ -123,8 +123,8 @@ export const ImageForm = ({ initialData, courseId }: ImageFormProps) => {
       {isEditing && (
         <Form {...form}>
           <form
-            onSubmit={form.handleSubmit(onSubmit)}
             className="mt-4 space-y-4"
+            onSubmit={form.handleSubmit(onSubmit)}
           >
             <FormField
               control={form.control}
@@ -134,11 +134,11 @@ export const ImageForm = ({ initialData, courseId }: ImageFormProps) => {
                   <FormControl>
                     <Input
                       accept="image/*"
-                      type="file"
-                      disabled={isSubmitting || !isValid}
-                      ref={fileRef}
+                      disabled={isSubmitting}
                       onChange={(event) => onChange(event.target.files?.[0])}
                       placeholder="e.g. 'Advanced web development'"
+                      ref={fileRef}
+                      type="file"
                       {...fieldProps}
                     />
                   </FormControl>

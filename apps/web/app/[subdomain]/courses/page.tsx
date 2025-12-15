@@ -1,8 +1,11 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { getCoursesByTeacherId, getEnrolledCourses } from "@/lib/courses";
-import { CourseCard } from "./course-card";
+import { Loader } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useState } from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import {
   Pagination,
   PaginationContent,
@@ -12,13 +15,10 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { useState } from "react";
-import { Loader } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { toast } from "sonner";
+import { getCoursesByTeacherId, getEnrolledCourses } from "@/lib/courses";
 import { attempt } from "@/lib/utils";
-import { useTranslations } from "next-intl";
+import { CourseCard } from "./course-card";
 
 export default function StudentHomePage() {
   const t = useTranslations();
@@ -29,7 +29,7 @@ export default function StudentHomePage() {
     queryKey: ["student-courses", page],
     queryFn: async () => {
       const [response, error] = await attempt(
-        getCoursesByTeacherId(true, page, 8, false, true),
+        getCoursesByTeacherId(true, page, 8, false, true)
       );
       if (error) {
         toast.error("Error fetching courses");
@@ -85,16 +85,16 @@ export default function StudentHomePage() {
 
       <div className="mt-4 mb-2">
         <Button
-          variant={"link"}
           className={coursesType === "all" ? "underline" : ""}
           onClick={() => setCoursesType("all")}
+          variant={"link"}
         >
           {t("courses.all")}
         </Button>
         <Button
-          variant={"link"}
           className={coursesType === "enrolled" ? "underline" : ""}
           onClick={() => setCoursesType("enrolled")}
+          variant={"link"}
         >
           {t("courses.enrolled")}
         </Button>
@@ -109,7 +109,7 @@ export default function StudentHomePage() {
           </div>
         ) : (
           courses?.map((course) => (
-            <CourseCard key={course.id} course={course} />
+            <CourseCard course={course} key={course.id} />
           ))
         )}
       </div>
@@ -118,19 +118,19 @@ export default function StudentHomePage() {
         <PaginationContent>
           <PaginationItem className={page === 1 ? "hidden" : ""}>
             <PaginationPrevious
-              size={"icon"}
-              onClick={() => handlePageChange(page - 1)}
               aria-disabled={page === 1}
+              onClick={() => handlePageChange(page - 1)}
+              size={"icon"}
             />
           </PaginationItem>
 
           {Array.from({ length: totalPages }, (_, i) => (
             <PaginationItem key={i}>
               <PaginationLink
-                size={"icon"}
                 href="#"
-                onClick={() => handlePageChange(i + 1)}
                 isActive={i + 1 === page}
+                onClick={() => handlePageChange(i + 1)}
+                size={"icon"}
               >
                 {i + 1}
               </PaginationLink>
@@ -143,9 +143,9 @@ export default function StudentHomePage() {
             className={page === totalPages || totalPages === 0 ? "hidden" : ""}
           >
             <PaginationNext
-              size={"sm"}
-              onClick={() => handlePageChange(page + 1)}
               aria-disabled={page === totalPages}
+              onClick={() => handlePageChange(page + 1)}
+              size={"sm"}
             />
           </PaginationItem>
         </PaginationContent>
