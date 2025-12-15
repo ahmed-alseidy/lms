@@ -1,5 +1,13 @@
 // @ts-nocheck
-import { IsNumber, IsString, MaxLength, Min, MinLength } from "class-validator";
+import {
+  IsBoolean,
+  IsNumber,
+  IsOptional,
+  IsString,
+  MaxLength,
+  Min,
+  MinLength,
+} from "class-validator";
 
 export class CreateQuizDto {
   @IsString()
@@ -10,4 +18,8 @@ export class CreateQuizDto {
   @IsNumber()
   @Min(1)
   duration: number;
+
+  @IsBoolean()
+  @IsOptional()
+  allowMultipleAttempts?: boolean;
 }

@@ -1,5 +1,6 @@
 import {
   IsArray,
+  IsBoolean,
   IsNumber,
   IsOptional,
   IsString,
@@ -20,6 +21,10 @@ export class UpdateQuizDto {
   @IsOptional()
   @Min(1)
   duration?: number;
+
+  @IsBoolean()
+  @IsOptional()
+  allowMultipleAttempts?: boolean;
 
   @IsArray()
   @IsOptional()

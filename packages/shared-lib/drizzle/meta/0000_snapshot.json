@@ -1,5 +1,5 @@
 {
-  "id": "2f8f0f1c-bd4d-4746-a0a4-de9b4c284af4",
+  "id": "7551f956-508d-48e4-9d36-a9e6fb10f56b",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -413,6 +413,438 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.quiz_answers": {
+      "name": "quiz_answers",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "question_id": {
+          "name": "question_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "answer_text": {
+          "name": "answer_text",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "is_correct": {
+          "name": "is_correct",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "quiz_answers_question_id_quiz_questions_id_fk": {
+          "name": "quiz_answers_question_id_quiz_questions_id_fk",
+          "tableFrom": "quiz_answers",
+          "tableTo": "quiz_questions",
+          "columnsFrom": ["question_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.quiz_questions": {
+      "name": "quiz_questions",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "quiz_id": {
+          "name": "quiz_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "question_text": {
+          "name": "question_text",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "question_type": {
+          "name": "question_type",
+          "type": "question_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'mcq'"
+        },
+        "order_index": {
+          "name": "order_index",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "quiz_questions_quiz_id_quizzes_id_fk": {
+          "name": "quiz_questions_quiz_id_quizzes_id_fk",
+          "tableFrom": "quiz_questions",
+          "tableTo": "quizzes",
+          "columnsFrom": ["quiz_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.quiz_responses": {
+      "name": "quiz_responses",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "submission_id": {
+          "name": "submission_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "question_id": {
+          "name": "question_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "answer_id": {
+          "name": "answer_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "quiz_responses_submission_id_quiz_submissions_id_fk": {
+          "name": "quiz_responses_submission_id_quiz_submissions_id_fk",
+          "tableFrom": "quiz_responses",
+          "tableTo": "quiz_submissions",
+          "columnsFrom": ["submission_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        },
+        "quiz_responses_question_id_quiz_questions_id_fk": {
+          "name": "quiz_responses_question_id_quiz_questions_id_fk",
+          "tableFrom": "quiz_responses",
+          "tableTo": "quiz_questions",
+          "columnsFrom": ["question_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        },
+        "quiz_responses_answer_id_quiz_answers_id_fk": {
+          "name": "quiz_responses_answer_id_quiz_answers_id_fk",
+          "tableFrom": "quiz_responses",
+          "tableTo": "quiz_answers",
+          "columnsFrom": ["answer_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "quiz_response_unique": {
+          "name": "quiz_response_unique",
+          "nullsNotDistinct": false,
+          "columns": ["submission_id", "question_id"]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.quiz_submissions": {
+      "name": "quiz_submissions",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "enrollment_id": {
+          "name": "enrollment_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "quiz_id": {
+          "name": "quiz_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "student_id": {
+          "name": "student_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "attempt": {
+          "name": "attempt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1
+        },
+        "started_at": {
+          "name": "started_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "completed": {
+          "name": "completed",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "score": {
+          "name": "score",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "completed_at": {
+          "name": "completed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "quiz_submissions_enrollment_id_enrollments_id_fk": {
+          "name": "quiz_submissions_enrollment_id_enrollments_id_fk",
+          "tableFrom": "quiz_submissions",
+          "tableTo": "enrollments",
+          "columnsFrom": ["enrollment_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        },
+        "quiz_submissions_quiz_id_quizzes_id_fk": {
+          "name": "quiz_submissions_quiz_id_quizzes_id_fk",
+          "tableFrom": "quiz_submissions",
+          "tableTo": "quizzes",
+          "columnsFrom": ["quiz_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "quiz_submissions_student_id_students_id_fk": {
+          "name": "quiz_submissions_student_id_students_id_fk",
+          "tableFrom": "quiz_submissions",
+          "tableTo": "students",
+          "columnsFrom": ["student_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "quiz_submission_unique": {
+          "name": "quiz_submission_unique",
+          "nullsNotDistinct": true,
+          "columns": ["enrollment_id", "quiz_id", "attempt"]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.quizzes": {
+      "name": "quizzes",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "lesson_id": {
+          "name": "lesson_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "title": {
+          "name": "title",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "duration": {
+          "name": "duration",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "allow_multiple_attempts": {
+          "name": "allow_multiple_attempts",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "quizzes_lesson_id_lessons_id_fk": {
+          "name": "quizzes_lesson_id_lessons_id_fk",
+          "tableFrom": "quizzes",
+          "tableTo": "lessons",
+          "columnsFrom": ["lesson_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.submitted_question_answers": {
+      "name": "submitted_question_answers",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "question_id": {
+          "name": "question_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "answer_id": {
+          "name": "answer_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "submission_id": {
+          "name": "submission_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "submitted_question_answers_question_id_quiz_questions_id_fk": {
+          "name": "submitted_question_answers_question_id_quiz_questions_id_fk",
+          "tableFrom": "submitted_question_answers",
+          "tableTo": "quiz_questions",
+          "columnsFrom": ["question_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        },
+        "submitted_question_answers_answer_id_quiz_answers_id_fk": {
+          "name": "submitted_question_answers_answer_id_quiz_answers_id_fk",
+          "tableFrom": "submitted_question_answers",
+          "tableTo": "quiz_answers",
+          "columnsFrom": ["answer_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        },
+        "submitted_question_answers_submission_id_quiz_submissions_id_fk": {
+          "name": "submitted_question_answers_submission_id_quiz_submissions_id_fk",
+          "tableFrom": "submitted_question_answers",
+          "tableTo": "quiz_submissions",
+          "columnsFrom": ["submission_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "submitted_question_answer_unique": {
+          "name": "submitted_question_answer_unique",
+          "nullsNotDistinct": false,
+          "columns": ["question_id", "answer_id"]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.students": {
       "name": "students",
       "schema": "",
@@ -695,321 +1127,15 @@
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
-    },
-    "public.quiz_answers": {
-      "name": "quiz_answers",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "question_id": {
-          "name": "question_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "answer_text": {
-          "name": "answer_text",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "is_correct": {
-          "name": "is_correct",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "quiz_answers_question_id_quiz_questions_id_fk": {
-          "name": "quiz_answers_question_id_quiz_questions_id_fk",
-          "tableFrom": "quiz_answers",
-          "tableTo": "quiz_questions",
-          "columnsFrom": ["question_id"],
-          "columnsTo": ["id"],
-          "onDelete": "cascade",
-          "onUpdate": "cascade"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.quiz_questions": {
-      "name": "quiz_questions",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "quiz_id": {
-          "name": "quiz_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "question_text": {
-          "name": "question_text",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "order_index": {
-          "name": "order_index",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "quiz_questions_quiz_id_quizzes_id_fk": {
-          "name": "quiz_questions_quiz_id_quizzes_id_fk",
-          "tableFrom": "quiz_questions",
-          "tableTo": "quizzes",
-          "columnsFrom": ["quiz_id"],
-          "columnsTo": ["id"],
-          "onDelete": "cascade",
-          "onUpdate": "cascade"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.quiz_submissions": {
-      "name": "quiz_submissions",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "enrollment_id": {
-          "name": "enrollment_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "quiz_id": {
-          "name": "quiz_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "student_id": {
-          "name": "student_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "score": {
-          "name": "score",
-          "type": "numeric(10, 2)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "completed_at": {
-          "name": "completed_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "quiz_submissions_enrollment_id_enrollments_id_fk": {
-          "name": "quiz_submissions_enrollment_id_enrollments_id_fk",
-          "tableFrom": "quiz_submissions",
-          "tableTo": "enrollments",
-          "columnsFrom": ["enrollment_id"],
-          "columnsTo": ["id"],
-          "onDelete": "cascade",
-          "onUpdate": "cascade"
-        },
-        "quiz_submissions_quiz_id_quizzes_id_fk": {
-          "name": "quiz_submissions_quiz_id_quizzes_id_fk",
-          "tableFrom": "quiz_submissions",
-          "tableTo": "quizzes",
-          "columnsFrom": ["quiz_id"],
-          "columnsTo": ["id"],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "quiz_submissions_student_id_students_id_fk": {
-          "name": "quiz_submissions_student_id_students_id_fk",
-          "tableFrom": "quiz_submissions",
-          "tableTo": "students",
-          "columnsFrom": ["student_id"],
-          "columnsTo": ["id"],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "quiz_submission_unique": {
-          "name": "quiz_submission_unique",
-          "nullsNotDistinct": true,
-          "columns": ["enrollment_id", "quiz_id"]
-        }
-      },
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.quizzes": {
-      "name": "quizzes",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "lesson_id": {
-          "name": "lesson_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "title": {
-          "name": "title",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "duration": {
-          "name": "duration",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "CURRENT_TIMESTAMP"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "quizzes_lesson_id_lessons_id_fk": {
-          "name": "quizzes_lesson_id_lessons_id_fk",
-          "tableFrom": "quizzes",
-          "tableTo": "lessons",
-          "columnsFrom": ["lesson_id"],
-          "columnsTo": ["id"],
-          "onDelete": "cascade",
-          "onUpdate": "cascade"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.submitted_question_answers": {
-      "name": "submitted_question_answers",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "question_id": {
-          "name": "question_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "answer_id": {
-          "name": "answer_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "submission_id": {
-          "name": "submission_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "submitted_question_answers_question_id_quiz_questions_id_fk": {
-          "name": "submitted_question_answers_question_id_quiz_questions_id_fk",
-          "tableFrom": "submitted_question_answers",
-          "tableTo": "quiz_questions",
-          "columnsFrom": ["question_id"],
-          "columnsTo": ["id"],
-          "onDelete": "cascade",
-          "onUpdate": "cascade"
-        },
-        "submitted_question_answers_answer_id_quiz_answers_id_fk": {
-          "name": "submitted_question_answers_answer_id_quiz_answers_id_fk",
-          "tableFrom": "submitted_question_answers",
-          "tableTo": "quiz_answers",
-          "columnsFrom": ["answer_id"],
-          "columnsTo": ["id"],
-          "onDelete": "cascade",
-          "onUpdate": "cascade"
-        },
-        "submitted_question_answers_submission_id_quiz_submissions_id_fk": {
-          "name": "submitted_question_answers_submission_id_quiz_submissions_id_fk",
-          "tableFrom": "submitted_question_answers",
-          "tableTo": "quiz_submissions",
-          "columnsFrom": ["submission_id"],
-          "columnsTo": ["id"],
-          "onDelete": "cascade",
-          "onUpdate": "cascade"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "submitted_question_answer_unique": {
-          "name": "submitted_question_answer_unique",
-          "nullsNotDistinct": false,
-          "columns": ["question_id", "answer_id"]
-        }
-      },
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
     }
   },
-  "enums": {},
+  "enums": {
+    "public.question_type": {
+      "name": "question_type",
+      "schema": "public",
+      "values": ["mcq", "true_false"]
+    }
+  },
   "schemas": {},
   "sequences": {},
   "roles": {},

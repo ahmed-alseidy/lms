@@ -30,6 +30,10 @@ export const quizzes = pgTable("quizzes", {
     .notNull(),
   title: varchar("title", { length: 255 }).notNull(),
   duration: integer("duration").notNull(),
+  // Allow students to retake the quiz multiple times
+  allowMultipleAttempts: boolean("allow_multiple_attempts")
+    .default(false)
+    .notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
@@ -65,6 +69,41 @@ export const quizAnswers = pgTable("quiz_answers", {
   isCorrect: boolean("is_correct").default(false).notNull(),
 });
 
+// Table for auto-saving answers during quiz taking (before final submission)
+export const quizResponses = pgTable(
+  "quiz_responses",
+  {
+    id: serial("id").primaryKey(),
+    submissionId: integer("submission_id")
+      .references(() => quizSubmissions.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      })
+      .notNull(),
+    questionId: integer("question_id")
+      .references(() => quizQuestions.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      })
+      .notNull(),
+    answerId: integer("answer_id")
+      .references(() => quizAnswers.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      })
+      .notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    // One answer per question per submission (can be updated)
+    unique("quiz_response_unique").on(t.submissionId, t.questionId),
+  ]
+);
+
+// Table for final submitted answers (locked after submission)
 export const submittedQuestionAnswers = pgTable(
   "submitted_question_answers",
   {
@@ -103,7 +142,6 @@ export const quizSubmissions = pgTable(
         onDelete: "cascade",
       })
       .notNull(),
-
     quizId: uuid("quiz_id")
       .references(() => quizzes.id, {
         onDelete: "cascade",
@@ -114,12 +152,22 @@ export const quizSubmissions = pgTable(
         onDelete: "cascade",
       })
       .notNull(),
-    score: numeric("score", { precision: 10, scale: 2 }).notNull(),
-    completedAt: timestamp("completed_at", { withTimezone: true }).defaultNow(),
+    // Track attempt number (1, 2, 3, etc.)
+    attempt: integer("attempt").notNull().default(1),
+    // Server-side timer: when the quiz was started
+    startedAt: timestamp("started_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    // Whether the quiz is completed (false = in progress, true = submitted)
+    completed: boolean("completed").default(false).notNull(),
+    // Score is nullable until quiz is completed
+    score: numeric("score", { precision: 10, scale: 2 }),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
   },
   (t) => [
+    // Unique constraint per enrollment, quiz, and attempt number
     unique("quiz_submission_unique")
-      .on(t.enrollmentId, t.quizId)
+      .on(t.enrollmentId, t.quizId, t.attempt)
       .nullsNotDistinct(),
   ]
 );
@@ -168,9 +216,25 @@ export const quizSubmissionsRelations = relations(
       fields: [quizSubmissions.studentId],
       references: [students.id],
     }),
+    quizResponses: many(quizResponses),
     submittedQuestionAnswers: many(submittedQuestionAnswers),
   })
 );
+
+export const quizResponsesRelations = relations(quizResponses, ({ one }) => ({
+  submission: one(quizSubmissions, {
+    fields: [quizResponses.submissionId],
+    references: [quizSubmissions.id],
+  }),
+  question: one(quizQuestions, {
+    fields: [quizResponses.questionId],
+    references: [quizQuestions.id],
+  }),
+  answer: one(quizAnswers, {
+    fields: [quizResponses.answerId],
+    references: [quizAnswers.id],
+  }),
+}));
 
 export const submittedQuestionAnswersRelations = relations(
   submittedQuestionAnswers,
@@ -194,6 +258,7 @@ export type SelectQuiz = InferSelectModel<typeof quizzes>;
 export type SelectQuizQuestion = InferSelectModel<typeof quizQuestions>;
 export type SelectQuizAnswer = InferSelectModel<typeof quizAnswers>;
 export type SelectQuizSubmission = InferSelectModel<typeof quizSubmissions>;
+export type SelectQuizResponse = InferSelectModel<typeof quizResponses>;
 export type SelectSubmittedQuestionAnswer = InferSelectModel<
   typeof submittedQuestionAnswers
 >;
