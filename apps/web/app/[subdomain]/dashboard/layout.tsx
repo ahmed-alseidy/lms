@@ -1,6 +1,8 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { PropsWithChildren } from "react";
+import LanguageSwitcher from "@/components/language-switcher";
+import { ModeToggle } from "@/components/mode-toggle";
 import {
   Sidebar,
   SidebarProvider,
@@ -13,16 +15,16 @@ import SidebarHeaderContent from "./sidebar-header-content";
 export default async function DashboardLayout({
   children,
   params,
-}: PropsWithChildren<{ params: { subdomain: string } }>) {
+}: PropsWithChildren<{ params: Promise<{ subdomain: string }> }>) {
   const session = await getSession();
-  console.log(session);
+  const { subdomain } = await params;
   if (
-    !session ||
-    !session.user ||
+    !session?.user ||
     session.user.role !== "teacher" ||
-    session.user.subdomain !== params.subdomain
-  )
+    session.user.subdomain !== subdomain
+  ) {
     redirect("/login-teacher");
+  }
 
   const cookieStore = await cookies();
   const locale = cookieStore.get("NEXT_LOCALE")?.value || "ar";
@@ -32,12 +34,20 @@ export default async function DashboardLayout({
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full">
-        <Sidebar dir={dir} side={side} variant="floating">
+        <Sidebar dir={dir} side={side} variant="sidebar">
           <SidebarHeaderContent />
           <LowerSidebar user={session.user} />
         </Sidebar>
         <div className="w-full">
-          <SidebarTrigger className="mt-1" />
+          <header className="pt-4 md:px-6 px-2">
+            <div className="flex items-center justify-between">
+              <SidebarTrigger />
+              <div className="flex items-center gap-2">
+                <LanguageSwitcher />
+                <ModeToggle />
+              </div>
+            </div>
+          </header>
           <div className="w-full px-4 py-1">{children}</div>
         </div>
       </div>

@@ -24,19 +24,13 @@ export default function SidebarHeaderContent() {
     <>
       <SidebarHeader className="p-3 text-xl font-bold">
         <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <Image
-              alt="logo"
-              className="dark:invert"
-              height={30}
-              src="/logo-with-text.png"
-              width={100}
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <LanguageSwitcher />
-            <ModeToggle />
-          </div>
+          <Image
+            alt="logo"
+            className="dark:invert"
+            height={30}
+            src="/logo-with-text.png"
+            width={100}
+          />
         </div>
       </SidebarHeader>
       <SidebarContent className="p-1">
