@@ -70,7 +70,7 @@ export default function CoursesPage() {
         <div className="flex w-full flex-col justify-between md:flex-row">
           <h2 className="text-3xl font-bold">{t("title")}</h2>
           <DialogTrigger asChild className="place-self-end">
-            <Button className="mt-2 md:mt-0" variant={"video"}>
+            <Button className="mt-2 md:mt-0">
               <IconPlus />
               {t("createCourse")}
             </Button>

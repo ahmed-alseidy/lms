@@ -71,7 +71,7 @@ export function CourseCard({
         </div>
       </CardContent>
 
-      <CardFooter className="bg-accent/50 border-t p-4">
+      <CardFooter className="border-t p-4">
         <Link className="w-full" href={`/dashboard/courses/${course.id}`}>
           <Button
             className="w-full gap-2 text-sm transition-colors"

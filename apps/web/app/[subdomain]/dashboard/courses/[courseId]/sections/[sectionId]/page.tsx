@@ -250,7 +250,7 @@ export default function SectionPage() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Card className="col-span-2 h-64 shadow-none lg:col-span-1 lg:h-50">
-          <CardHeader className="bg-primary/5 border-b">
+          <CardHeader className="bg-primary/5 border-b ring-0">
             <div className="flex items-center gap-3">
               <div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-full">
                 <IconPencil className="text-primary h-5 w-5" />
