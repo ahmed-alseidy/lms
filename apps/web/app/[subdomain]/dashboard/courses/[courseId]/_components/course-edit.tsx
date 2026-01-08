@@ -151,7 +151,7 @@ export default function CourseEdit({ course }: { course: any }) {
       <Separator />
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card className="border-none shadow-none">
+        <Card className="border-none shadow-none ring-0">
           <CardHeader className="flex-row justify-start px-0 pt-0">
             <div className="flex gap-3">
               <div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-full">

@@ -105,7 +105,7 @@ export const ChaptersList = ({ course }: { course: any }) => {
   }
 
   return (
-    <Card className="border-none shadow-none">
+    <Card className="border-none shadow-none ring-0">
       <CardContent className="space-y-6 p-0">
         <DragDropContext onDragEnd={handleDragEnd}>
           <Droppable droppableId="sections" type="section">

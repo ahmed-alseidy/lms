@@ -86,7 +86,7 @@ export const PriceForm = ({ initialData, courseId }: PriceFormProps) => {
         </Button>
       </div>
       {!isEditing && (
-        <p className={cn("mt-2 text-sm", !price && "text-slate-500 italic")}>
+        <p className={cn("mt-2 text-sm", !price && "text-primary/50 italic")}>
           {price ? formatPrice(price) : tCommon("noPriceAvailable")}
         </p>
       )}
