@@ -251,7 +251,7 @@ export default function LessonPage() {
           </div>
           <div className="border-border mb-8 w-full max-w-6xl rounded-lg border p-4">
             <h1 className="text-3xl font-bold">{lesson?.title}</h1>
-            {lesson.description.trim().length !== 0 && (
+            {(lesson.description || "").trim().length !== 0 && (
               <>
                 <Separator className="my-4" />
                 <p
