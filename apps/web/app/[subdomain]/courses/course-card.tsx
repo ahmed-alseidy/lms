@@ -31,7 +31,7 @@ export function CourseCard({ course }: { course: CourseWithEnrollments }) {
               width={300}
             />
           ) : (
-            <div className="bg-muted flex h-full w-full items-center justify-center">
+            <div className="bg-muted flex h-full items-center justify-center">
               <BookOpen className="text-muted-foreground h-12 w-12" />
             </div>
           )}
