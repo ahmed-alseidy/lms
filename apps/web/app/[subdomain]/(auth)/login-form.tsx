@@ -59,7 +59,7 @@ export function LoginForm({
   return (
     <Form {...form}>
       <form
-        className="mb-2 w-full space-y-4"
+        className="w-full space-y-6"
         onSubmit={form.handleSubmit(onSubmit)}
       >
         <div className="text-sm text-red-500">

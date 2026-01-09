@@ -22,14 +22,15 @@ export default function TeacherLoginPage() {
           width={130}
         />
       </div>
-      <div className="flex w-96 flex-col items-center justify-center rounded-lg border-1 p-6 shadow-sm">
-        <div className="w-full">
-          <h1 className="mb-1 text-2xl font-bold">{t("login.title")}</h1>
-          <p className="text-muted-foreground mb-4 text-sm">
-            {t("login.description")}
-          </p>
-          <LoginForm role="teacher" subdomain={subdomain as string} />
-        </div>
+      <div className="flex max-w-2xl flex-col justify-center rounded-lg p-6 shadow-sm border space-y-4">
+        <h1 className="mb-1 text-2xl font-bold">
+          {t("login.loginIntoTeacherAccount") || "Login into teacher account"}
+        </h1>
+        <p className="text-muted-foreground mb-4 text-sm">
+          {t("login.loginIntoTeacherAccountDescription") ||
+            "Login into your teacher account to access your platform"}
+        </p>
+        <LoginForm role="teacher" subdomain={subdomain as string} />
       </div>
 
       <p className="text-muted-foreground w-64 text-center text-sm">

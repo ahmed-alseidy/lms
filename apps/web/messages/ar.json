@@ -377,6 +377,8 @@
     "emailPlaceholder": "أدخل البريد الإلكتروني",
     "password": "كلمة المرور",
     "passwordPlaceholder": "أدخل كلمة المرور",
-    "signIn": "تسجيل الدخول"
+    "signIn": "تسجيل الدخول",
+    "loginIntoTeacherAccount": "تسجيل الدخول إلى حساب المعلم",
+    "loginIntoTeacherAccountDescription": "تسجيل الدخول إلى حساب المعلم للوصول إلى منصتك"
   }
 }
