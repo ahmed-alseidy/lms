@@ -78,29 +78,25 @@ export class QuizzesService {
   }
 
   async update(id: string, dto: UpdateQuizDto) {
-    const quiz = await db.transaction(async (tx) => {
-      const [quiz] = await db
-        .update(quizzes)
-        .set(dto)
-        .where(eq(quizzes.id, id))
-        .returning({
-          id: quizzes.id,
-        });
+    const updateData: Partial<typeof quizzes.$inferInsert> = {};
 
-      if (dto.questions) {
-        await tx.delete(quizQuestions).where(eq(quizQuestions.quizId, id));
+    if (dto.title !== undefined) {
+      updateData.title = dto.title;
+    }
+    if (dto.duration !== undefined) {
+      updateData.duration = dto.duration;
+    }
+    if (dto.allowMultipleAttempts !== undefined) {
+      updateData.allowMultipleAttempts = dto.allowMultipleAttempts;
+    }
 
-        await tx.insert(quizQuestions).values(
-          dto.questions.map((question) => ({
-            quizId: id,
-            questionText: question.questionText!,
-            orderIndex: question.orderIndex!,
-          }))
-        );
-      }
-
-      return quiz;
-    });
+    const [quiz] = await db
+      .update(quizzes)
+      .set(updateData)
+      .where(eq(quizzes.id, id))
+      .returning({
+        id: quizzes.id,
+      });
 
     return quiz;
   }
@@ -116,6 +112,7 @@ export class QuizzesService {
 
   // Question operations
   async createQuestion(quizId: string, dto: CreateQuizQuestionDto) {
+    console.log("dto", dto);
     const [question] = await db.transaction(async (tx) => {
       // Create question
       const [newQuestion] = await tx
@@ -145,6 +142,7 @@ export class QuizzesService {
             answerText: quizAnswers.answerText,
             isCorrect: quizAnswers.isCorrect,
           });
+        console.log("answers", answers);
       }
       newQuestion["answers"] = answers;
 
