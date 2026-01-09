@@ -48,7 +48,7 @@ const TimerDisplay = ({
   timeRemaining,
   isTimerExpired,
 }: {
-  timeRemaining: number;
+  timeRemaining: number | null;
   isTimerExpired: boolean;
 }) => {
   const t = useTranslations();
@@ -63,6 +63,10 @@ const TimerDisplay = ({
     if (seconds <= 600) return "text-yellow-500"; // Last 10 minutes
     return "text-green-500";
   }, []);
+
+  if (timeRemaining === null) {
+    return null;
+  }
 
   return (
     <div className="mb-4 flex items-center justify-between">
@@ -156,11 +160,14 @@ export default function QuizPage() {
     Record<number, number>
   >({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [timeRemaining, setTimeRemaining] = useState<number>(0);
+  const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const [isTimerExpired, setIsTimerExpired] = useState(false);
   const [submissionId, setSubmissionId] = useState<number | null>(null);
   const [isStarting, setIsStarting] = useState(true);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeRemainingRef = useRef<number | null>(null);
+  const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const hasAutoSubmittedRef = useRef(false);
 
   const { data: courseData, isLoading: isCourseLoading } = useQuery({
     queryKey: ["student-course", courseId],
@@ -213,17 +220,25 @@ export default function QuizPage() {
 
   const quizCompleted = quizCompletedResponse?.completed || false;
 
+  // Track when timer should be active (memoized to prevent unnecessary re-renders)
+  const shouldTimerRun = useMemo(() => {
+    return (
+      timeRemaining !== null && !isStarting && !isTimerExpired
+    );
+  }, [timeRemaining, isStarting, isTimerExpired, quizCompleted]);
+
   // Start or resume quiz on mount
   useEffect(() => {
-    if (!quiz || !enrollmentId || quizCompleted || isStarting === false) return;
+    if (!quiz || !enrollmentId || quizCompleted || !isStarting) return;
 
     const initializeQuiz = async () => {
-      setIsStarting(true);
       try {
         // Try to resume existing quiz first
         const [resumeResponse, resumeError] = await attempt(
           resumeQuiz(quizId, enrollmentId)
         );
+
+        console.log("resumeResponse", resumeResponse?.data);
 
         if (!resumeError && resumeResponse?.data) {
           // Resume existing quiz
@@ -240,6 +255,8 @@ export default function QuizPage() {
         const [startResponse, startError] = await attempt(
           startQuiz(quizId, enrollmentId)
         );
+
+        console.log("start response", startResponse?.data);
 
         if (startError || !startResponse?.data) {
           toast.error(t("quizzes.failedToStartQuiz"));
@@ -258,7 +275,7 @@ export default function QuizPage() {
     };
 
     initializeQuiz();
-  }, [quiz, enrollmentId, quizId, quizCompleted]);
+  }, [quiz, enrollmentId, quizId, quizCompleted, isStarting, t]);
 
   // Update timer from server periodically
   useEffect(() => {
@@ -294,27 +311,59 @@ export default function QuizPage() {
     isStarting,
   ]);
 
+  // Keep ref in sync with state for interval callback
+  useEffect(() => {
+    timeRemainingRef.current = timeRemaining;
+  }, [timeRemaining]);
+
+  // Check if timer should expire immediately when timeRemaining is set
+  useEffect(() => {
+    if (timeRemaining !== null && timeRemaining <= 0 && !isTimerExpired) {
+      setIsTimerExpired(true);
+    }
+  }, [timeRemaining, isTimerExpired]);
+
   // Client-side timer countdown
   useEffect(() => {
-    if (timeRemaining <= 0 || isTimerExpired || quizCompleted || isStarting) {
-      if (timeRemaining <= 0 && !isTimerExpired) {
-        setIsTimerExpired(true);
-      }
+    console.log("Timer effect - shouldTimerRun:", shouldTimerRun);
+    console.log("Timer effect - timeRemaining:", timeRemaining);
+    console.log("Timer effect - isStarting:", isStarting);
+
+    // Clear any existing timer first
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
+    }
+
+    // Don't start countdown if conditions aren't met
+    if (!shouldTimerRun) {
+      console.log("Timer not ready - shouldTimerRun is false");
       return;
     }
 
-    const timer = setInterval(() => {
+    console.log("Starting timer countdown with timeRemaining:", timeRemaining);
+
+    // Timer is ready to start - timeRemaining is set and initialization is complete
+    timerIntervalRef.current = setInterval(() => {
       setTimeRemaining((prev) => {
-        if (prev <= 1) {
+        // Use ref to get the most current value in case state hasn't updated yet
+        const current = prev ?? timeRemainingRef.current;
+        if (current === null || current <= 1) {
           setIsTimerExpired(true);
           return 0;
         }
-        return prev - 1;
+        return current - 1;
       });
     }, 1000);
 
-    return () => clearInterval(timer);
-  }, [timeRemaining, isTimerExpired, quizCompleted, isStarting]);
+    return () => {
+      console.log("Clearing timer on cleanup");
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = null;
+      }
+    };
+  }, [shouldTimerRun]);
 
   const { progress, progressText, totalQuestions, currentQuestion } =
     useMemo(() => {
@@ -390,7 +439,7 @@ export default function QuizPage() {
   }, [totalQuestions]);
 
   const handleSubmit = useCallback(async () => {
-    if (isSubmitting || quizCompleted || !enrollmentId || !submissionId) return;
+    if (isSubmitting || !enrollmentId || !submissionId) return;
     setIsSubmitting(true);
 
     // Clear any pending auto-save
@@ -444,7 +493,17 @@ export default function QuizPage() {
 
   // Auto-submit when timer expires
   useEffect(() => {
-    if (isTimerExpired && !isSubmitting && !quizCompleted && submissionId) {
+    // Only auto-submit if timer was actually initialized (timeRemaining !== null)
+    // and has expired
+    if (
+      isTimerExpired &&
+      !isSubmitting &&
+      !quizCompleted &&
+      submissionId &&
+      timeRemaining !== null &&
+      !hasAutoSubmittedRef.current
+    ) {
+      hasAutoSubmittedRef.current = true;
       toast.warning(t("quizzes.timeIsUpSubmittingQuizAutomatically"));
       handleSubmit();
     }
@@ -453,6 +512,7 @@ export default function QuizPage() {
     isSubmitting,
     quizCompleted,
     submissionId,
+    timeRemaining,
     handleSubmit,
     t,
   ]);
@@ -536,7 +596,7 @@ export default function QuizPage() {
     );
   }
 
-  if (quizCompleted) {
+  if (quizCompleted && isTimerExpired) {
     return (
       <ErrorState
         buttonText={t("quizzes.viewResults")}
@@ -632,7 +692,7 @@ export default function QuizPage() {
                 disabled={
                   isSubmitting ||
                   isTimerExpired ||
-                  !selectedAnswers[currentQuestion.id]
+                  Object.keys(selectedAnswers).length === 0
                 }
                 onClick={handleSubmit}
               >
