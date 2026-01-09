@@ -128,7 +128,7 @@ export const submittedQuestionAnswers = pgTable(
       .notNull(),
   },
   (t) => [
-    unique("submitted_question_answer_unique").on(t.questionId, t.answerId),
+    unique("submitted_question_answer_unique").on(t.questionId, t.answerId, t.submissionId),
   ]
 );
 

@@ -1,0 +1,2 @@
+ALTER TABLE "submitted_question_answers" DROP CONSTRAINT "submitted_question_answer_unique";--> statement-breakpoint
+ALTER TABLE "submitted_question_answers" ADD CONSTRAINT "submitted_question_answer_unique" UNIQUE("question_id","answer_id","submission_id");
