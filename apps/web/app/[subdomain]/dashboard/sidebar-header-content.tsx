@@ -43,7 +43,7 @@ export default function SidebarHeaderContent() {
                 className={
                   path.includes("/dashboard/courses")
                     ? `text-primary-foreground hover:text-primary-foreground bg-primary hover:bg-primary`
-                    : `hover:text-primary/90 hover:bg-accent`
+                    : `hover:text-primary-foreground hover:bg-accent`
                 }
               >
                 <Link href="/dashboard/courses" replace={true}>
@@ -59,7 +59,7 @@ export default function SidebarHeaderContent() {
                 className={
                   path.includes("/dashboard/analytics")
                     ? `text-primary-foreground hover:text-primary-foreground bg-primary hover:bg-primary`
-                    : `hover:text-primary/90 hover:bg-accent`
+                    : `hover:text-primary-foreground hover:bg-accent`
                 }
               >
                 <Link href="/dashboard/analytics" replace={true}>
@@ -75,7 +75,7 @@ export default function SidebarHeaderContent() {
                 className={
                   path.includes("/dashboard/settings")
                     ? `text-primary-foreground hover:text-primary-foreground bg-primary hover:bg-primary`
-                    : `hover:text-primary/90 hover:bg-accent`
+                    : `hover:text-primary-foreground hover:bg-accent`
                 }
               >
                 <Link href="/dashboard/settings" replace={true}>

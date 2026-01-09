@@ -41,7 +41,7 @@ export function CourseCard({
         </div>
       </CardHeader>
 
-      <CardContent className="flex flex-1 flex-col gap-3 p-4">
+      <CardContent className="flex flex-1 flex-col gap-3 p-4 pt-0">
         <div className="space-y-1">
           <h3 className="text-primary line-clamp-1 text-lg font-semibold">
             {course.title}
