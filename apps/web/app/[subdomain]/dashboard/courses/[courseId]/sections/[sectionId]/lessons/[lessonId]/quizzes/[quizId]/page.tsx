@@ -1,48 +1,12 @@
 "use client";
 
-import {
-  DragDropContext,
-  Draggable,
-  Droppable,
-  DropResult,
-} from "@hello-pangea/dnd";
 import { UpdateQuizQuestionDto } from "@lms-saas/shared-lib/dtos";
-import {
-  IconArrowLeft,
-  IconChartBar,
-  IconGripVertical,
-  IconLoader,
-  IconPlus,
-  IconTrash,
-} from "@tabler/icons-react";
+import { IconLoader } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { findCourseSection, findLesson, getCourse } from "@/lib/courses";
 import {
   addAnswer,
@@ -53,18 +17,17 @@ import {
   QuizQuestion,
   updateAnswer,
   updateQuestion,
-  updateQuiz,
 } from "@/lib/quizzes";
 import { attempt } from "@/lib/utils";
-import { AnswerEditForm } from "./_components/answer-edit-form";
-import { QuestionDialog } from "./_components/question-dialog";
-import { QuestionTitleForm } from "./_components/question-title-form";
+import { DeleteDialogs } from "./_components/delete-dialogs";
+import { EmptyQuestionsState } from "./_components/empty-questions-state";
+import { QuestionCard } from "./_components/question-card";
+import { QuestionsSidebar } from "./_components/questions-sidebar";
+import { QuizHeader } from "./_components/quiz-header";
 import { QuizSettingsForm } from "./_components/quiz-settings-form";
 
 export default function QuizEditPage() {
-  const [isLoading, setIsLoading] = useState(false);
   const params = useParams();
-  const router = useRouter();
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [deleteQuestionId, setDeleteQuestionId] = useState<number | null>(null);
   const [deleteAnswerId, setDeleteAnswerId] = useState<{
@@ -250,55 +213,9 @@ export default function QuizEditPage() {
     );
   };
 
-  const handleDragEnd = async (result: DropResult) => {
-    if (!result.destination || !questions) return;
-
-    const items = Array.from(questions);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    if (!reorderedItem) return;
-
-    items.splice(result.destination.index, 0, reorderedItem);
-
-    // Update the orderIndex for each question
-    const updatedQuestions = items.map((item, index) => ({
-      ...item,
-      orderIndex: index,
-    }));
-
-    // Update local state optimistically
-    setQuestions(updatedQuestions);
-
-    // Update all questions' orderIndex in the backend
-    try {
-      setIsLoading(true);
-      // Update all questions that changed order
-      const updatePromises = updatedQuestions.map((question, index) =>
-        updateQuestion(question.id, {
-          orderIndex: index,
-        })
-      );
-
-      const results = await Promise.all(
-        updatePromises.map((promise) => attempt(promise))
-      );
-
-      const hasError = results.some(([, error]) => error);
-      if (hasError) {
-        // Revert to original order on error
-        setQuestions(questions);
-        toast.error(t("quizzes.failedToUpdateQuestionOrder"));
-        return;
-      }
-
-      toast.success(t("quizzes.questionOrderUpdated"));
-    } catch (error) {
-      // Revert to original order on error
-      setQuestions(questions);
-      toast.error(t("quizzes.failedToUpdateQuestionOrder"));
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const [selectedQuestionId, setSelectedQuestionId] = useState<number | null>(
+    null
+  );
 
   if (isQuizLoading || isLessonLoading)
     return (
@@ -310,78 +227,14 @@ export default function QuizEditPage() {
 
   return (
     <div className="container mx-auto space-y-4">
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/dashboard/courses">
-              {t("navigation.courses")}
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink href={`/dashboard/courses/${params.courseId}`}>
-              {course?.data?.title}
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink
-              href={`/dashboard/courses/${params.courseId}/sections/${params.sectionId}`}
-            >
-              {section?.data?.title}
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink
-              href={`/dashboard/courses/${params.courseId}/sections/${params.sectionId}/lessons/${params.lessonId}`}
-            >
-              {lessonData?.data?.title}
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>{t("quizzes.editQuizTitle")}</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
-
-      <div className="mb-4 items-center justify-between md:flex">
-        <div className="flex items-center gap-4">
-          <Button
-            className="h-8 w-8"
-            onClick={() => router.back()}
-            size="icon"
-            variant="ghost"
-          >
-            <IconArrowLeft className="rotate-rtl h-4 w-4" />
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold">{t("quizzes.editQuizTitle")}</h1>
-            <p className="text-muted-foreground">
-              {t("quizzes.editQuizDescription")}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2 mt-4">
-          <Button
-            onClick={() =>
-              router.push(
-                `/dashboard/courses/${params.courseId}/sections/${params.sectionId}/lessons/${params.lessonId}/quizzes/${params.quizId}/analytics`
-              )
-            }
-            variant="outline"
-          >
-            <IconChartBar className="mr-2 h-4 w-4" />
-            Analytics
-          </Button>
-          <QuestionDialog
-            questionLength={quizData?.questions.length || 0}
-            quizId={params.quizId as string}
-            setQuestions={setQuestions}
-          />
-        </div>
-      </div>
+      <QuizHeader
+        courseTitle={course?.data?.title}
+        lessonTitle={lessonData?.data?.title}
+        questionLength={quizData?.questions.length || 0}
+        quizId={params.quizId as string}
+        sectionTitle={section?.data?.title}
+        setQuestions={setQuestions}
+      />
 
       {/* Quiz Settings Form */}
       {quizData && (
@@ -396,240 +249,58 @@ export default function QuizEditPage() {
         />
       )}
 
-      <div className="space-y-4">
-        <DragDropContext onDragEnd={handleDragEnd}>
-          <Droppable droppableId="questions" isDropDisabled={isLoading}>
-            {(provided) => (
-              <div
-                {...provided.droppableProps}
-                className="space-y-6"
-                ref={provided.innerRef}
-              >
-                {questions?.map((question, questionIndex) => (
-                  <Draggable
-                    draggableId={question.id.toString()}
-                    index={questionIndex}
-                    isDragDisabled={isLoading}
-                    key={question.id}
-                  >
-                    {(provided) => (
-                      <div ref={provided.innerRef} {...provided.draggableProps}>
-                        <Card
-                          className={`hover:border-primary/50 shadow-none hover:shadow-sm ${isLoading ? "opacity-50" : ""}`}
-                        >
-                          <CardHeader className="bg-primary/5 border-b">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <div
-                                  {...provided.dragHandleProps}
-                                  className="cursor-grab active:cursor-grabbing"
-                                >
-                                  <IconGripVertical className="text-muted-foreground h-5 w-5" />
-                                </div>
-                                <CardTitle className="text-lg">
-                                  {t("quizzes.question")} {questionIndex + 1}:{" "}
-                                  {question.questionText}
-                                </CardTitle>
-                              </div>
-                              <Button
-                                className="hover:bg-destructive/10 hover:text-destructive"
-                                onClick={() => setDeleteQuestionId(question.id)}
-                                size="icon"
-                                variant="ghost"
-                              >
-                                <IconTrash className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="space-y-6 pt-4">
-                              <div>
-                                <h3 className="text-sm font-medium mb-3">
-                                  {t("quizzes.questionDetails")}
-                                </h3>
-                                <QuestionTitleForm
-                                  initialData={{
-                                    questionText: question.questionText,
-                                  }}
-                                  questionId={question.id}
-                                />
-                              </div>
-                              <Separator />
-                              <div>
-                                <div className="flex items-center justify-between mb-4">
-                                  <h3 className="text-sm font-medium">
-                                    {t("quizzes.answers")}
-                                  </h3>
-                                  <Button
-                                    className="gap-2"
-                                    onClick={() => handleAddAnswer(question.id)}
-                                    size="sm"
-                                    variant="outline"
-                                  >
-                                    <IconPlus className="h-4 w-4" />
-                                    {t("quizzes.addAnswer")}
-                                  </Button>
-                                </div>
+      {/* Main Content Area with Sidebar */}
+      <div className="grid gap-4 lg:grid-cols-4">
+        {/* Questions Sidebar */}
 
-                                <div className="space-y-4">
-                                  {question.answers?.map(
-                                    (answer, answerIndex) => (
-                                      <div
-                                        className="flex items-start justify-between gap-4 rounded-lg border p-4"
-                                        key={answer.id}
-                                      >
-                                        <AnswerEditForm
-                                          answerId={answer.id}
-                                          initialData={{
-                                            answerText: answer.answerText,
-                                          }}
-                                        />
-                                        <div className="flex items-center gap-2 pt-8">
-                                          <div className="flex items-center gap-2">
-                                            <Checkbox
-                                              checked={answer.isCorrect}
-                                              id={`correct-${answer.id}`}
-                                              onCheckedChange={(checked) =>
-                                                handleUpdateAnswer(
-                                                  question.id,
-                                                  answer.id,
-                                                  {
-                                                    isCorrect: checked === true,
-                                                  }
-                                                )
-                                              }
-                                            />
-                                            <Label
-                                              htmlFor={`correct-${answer.id}`}
-                                            >
-                                              {t("quizzes.correct")}
-                                            </Label>
-                                          </div>
-                                          <Button
-                                            className="hover:bg-destructive/10 hover:text-destructive"
-                                            onClick={() =>
-                                              setDeleteAnswerId({
-                                                questionId: question.id,
-                                                answerId: answer.id,
-                                              })
-                                            }
-                                            size="icon"
-                                            variant="ghost"
-                                          >
-                                            <IconTrash className="h-4 w-4" />
-                                          </Button>
-                                        </div>
-                                      </div>
-                                    )
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </div>
-                    )}
-                  </Draggable>
-                ))}
-                {provided.placeholder}
-              </div>
-            )}
-          </Droppable>
-        </DragDropContext>
+        {/* Questions List */}
+        <div className="lg:col-span-3">
+          {questions && questions.length > 0 ? (
+            <div className="space-y-6">
+              {questions.map((question, questionIndex) => (
+                <QuestionCard
+                  isLoading={false}
+                  key={question.id}
+                  onAddAnswer={handleAddAnswer}
+                  onDelete={(questionId) => setDeleteQuestionId(questionId)}
+                  onDeleteAnswer={(questionId, answerId) =>
+                    setDeleteAnswerId({ questionId, answerId })
+                  }
+                  onUpdateAnswer={handleUpdateAnswer}
+                  question={question}
+                  questionIndex={questionIndex}
+                />
+              ))}
+            </div>
+          ) : (
+            <EmptyQuestionsState
+              questionLength={quizData?.questions.length || 0}
+              quizId={params.quizId as string}
+              setQuestions={setQuestions}
+            />
+          )}
+        </div>
 
-        {(!questions || questions.length === 0) && (
-          <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
-            <div className="bg-primary/10 flex h-12 w-12 items-center justify-center rounded-full">
-              <IconPlus className="text-primary h-6 w-6" />
-            </div>
-            <h3 className="mt-4 text-lg font-medium">
-              {t("quizzes.noQuestionsYet")}
-            </h3>
-            <p className="text-muted-foreground mt-2 text-sm">
-              {t("quizzes.addQuestionsToYourQuiz")}
-            </p>
-            <div className="mt-6">
-              <QuestionDialog
-                questionLength={quizData?.questions.length || 0}
-                quizId={params.quizId as string}
-                setQuestions={setQuestions}
-                trigger={
-                  <Button className="gap-2">
-                    <IconPlus className="h-4 w-4" />
-                    {t("quizzes.addQuestion")}
-                  </Button>
-                }
-              />
-            </div>
-          </div>
-        )}
+        <div className="lg:col-span-1">
+          <QuestionsSidebar
+            isLoading={false}
+            onQuestionSelect={setSelectedQuestionId}
+            onQuestionsChange={setQuestions}
+            questions={questions}
+            selectedQuestionId={selectedQuestionId}
+          />
+        </div>
       </div>
 
-      {/* Delete Question Confirmation Dialog */}
-      <AlertDialog
-        onOpenChange={(open) => !open && setDeleteQuestionId(null)}
-        open={deleteQuestionId !== null}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {t("quizzes.deleteQuestion") || "Delete Question"}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {t("quizzes.deleteQuestionConfirmation") ||
-                "Are you sure you want to delete this question? This action cannot be undone."}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>
-              {t("common.cancel") || "Cancel"}
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() =>
-                deleteQuestionId && handleDeleteQuestion(deleteQuestionId)
-              }
-              variant="destructive"
-            >
-              {t("common.delete") || "Delete"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Delete Answer Confirmation Dialog */}
-      <AlertDialog
-        onOpenChange={(open) => !open && setDeleteAnswerId(null)}
-        open={deleteAnswerId !== null}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {t("quizzes.deleteAnswer") || "Delete Answer"}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {t("quizzes.deleteAnswerConfirmation") ||
-                "Are you sure you want to delete this answer? This action cannot be undone."}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>
-              {t("common.cancel") || "Cancel"}
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() =>
-                deleteAnswerId &&
-                handleDeleteAnswer(
-                  deleteAnswerId.questionId,
-                  deleteAnswerId.answerId
-                )
-              }
-              variant="destructive"
-            >
-              {t("common.delete") || "Delete"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Delete Dialogs */}
+      <DeleteDialogs
+        deleteAnswerId={deleteAnswerId}
+        deleteQuestionId={deleteQuestionId}
+        onCloseAnswerDialog={() => setDeleteAnswerId(null)}
+        onCloseQuestionDialog={() => setDeleteQuestionId(null)}
+        onDeleteAnswer={handleDeleteAnswer}
+        onDeleteQuestion={handleDeleteQuestion}
+      />
     </div>
   );
 }
