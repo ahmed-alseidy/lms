@@ -2,9 +2,10 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { IconPencil, IconX } from "@tabler/icons-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -45,24 +46,15 @@ const formSchema = z.object({
     .max(255, {
       message: "Title must be at most 255 characters",
     }),
-  duration: z.preprocess(
-    (val) => {
-      if (typeof val === "string") {
-        const num = Number(val);
-        return isNaN(num) ? undefined : num;
-      }
-      return val;
-    },
-    z
-      .number({
-        required_error: "Duration is required",
-        invalid_type_error: "Duration must be a number",
-      })
-      .min(1, {
-        message: "Duration must be at least 1 minute",
-      })
-  ),
-  allowMultipleAttempts: z.boolean(),
+  duration: z.coerce
+    .number()
+    .min(1, {
+      error: "Duration is required",
+    })
+    .max(120, {
+      message: "Duration must be at most 120 minutes",
+    }),
+  allowMultipleAttempts: z.boolean().default(false),
 });
 
 export const QuizSettingsForm = ({
@@ -75,6 +67,7 @@ export const QuizSettingsForm = ({
   const router = useRouter();
   const t = useTranslations();
   const tCommon = useTranslations("common");
+  const queryClient = useQueryClient();
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -88,7 +81,8 @@ export const QuizSettingsForm = ({
 
   const { isSubmitting, isValid } = form.formState;
 
-  const toggleEdit = () => {
+  // Sync form with settings when entering edit mode
+  useEffect(() => {
     if (isEditing) {
       form.reset({
         title: settings.title,
@@ -96,6 +90,18 @@ export const QuizSettingsForm = ({
         allowMultipleAttempts: settings.allowMultipleAttempts,
       });
     }
+  }, [isEditing, settings, form]);
+
+  const toggleEdit = () => {
+    if (isEditing) {
+      // Reset form to current settings when canceling (discard unsaved changes)
+      form.reset({
+        title: settings.title,
+        duration: settings.duration,
+        allowMultipleAttempts: settings.allowMultipleAttempts,
+      });
+    }
+    // When entering edit mode, useEffect will handle resetting the form
     setIsEditing((current) => !current);
   };
 
@@ -118,15 +124,18 @@ export const QuizSettingsForm = ({
         return;
       }
 
-      setSettings({
+      const updatedSettings = {
         title: values.title,
         duration: values.duration,
         allowMultipleAttempts: values.allowMultipleAttempts,
-      });
+      };
+      setSettings(updatedSettings);
+      form.reset(updatedSettings);
       toast.success(
         tCommon("updatedSuccessfully") || "Quiz updated successfully"
       );
-      toggleEdit();
+      queryClient.invalidateQueries({ queryKey: ["dashboard-quiz", quizId] });
+      setIsEditing(false);
       router.refresh();
     } catch (error) {
       toast.error(tCommon("somethingWentWrong") || "Failed to update quiz");
@@ -173,7 +182,9 @@ export const QuizSettingsForm = ({
             <span className="text-muted-foreground text-sm font-medium">
               {tCommon("duration")}:
             </span>
-            <span className="font-medium">{settings.duration} minutes</span>
+            <span className="font-medium">
+              {settings.duration} {tCommon("minutes")}
+            </span>
           </div>
           <Separator />
           <div className="flex items-center justify-between">
@@ -220,7 +231,9 @@ export const QuizSettingsForm = ({
               name="duration"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{tCommon("duration")} (minutes)</FormLabel>
+                  <FormLabel>
+                    {tCommon("duration")} ({tCommon("minutes")})
+                  </FormLabel>
                   <FormControl>
                     <Input
                       disabled={isSubmitting}
@@ -275,7 +288,7 @@ export const QuizSettingsForm = ({
             <div className="flex items-center gap-x-2">
               <Button disabled={!isValid || isSubmitting} type="submit">
                 {isSubmitting
-                  ? tCommon("saving") || "Saving..."
+                  ? tCommon("submitting") || "Submitting..."
                   : tCommon("save")}
               </Button>
               <Button
