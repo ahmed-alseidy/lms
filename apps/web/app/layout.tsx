@@ -34,6 +34,12 @@ export default async function RootLayout({
   return (
     <ReactQueryProvider>
       <html dir={dir} lang={locale} suppressHydrationWarning>
+        <head>
+          <link
+            href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap"
+            rel="stylesheet"
+          />
+        </head>
         <body className={`${noto.variable} ${rubik.variable}`}>
           <ThemeProvider
             attribute="class"
