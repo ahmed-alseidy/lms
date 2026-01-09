@@ -66,8 +66,10 @@ export default function StudentHomePage() {
     toast.error(t("common.somethingWentWrong"));
   }
 
-  const courses = coursesType === "all" ? data.courses : enrolledCourses.data.courses;
-  const count = coursesType === "all" ? data.count : enrolledCourses.data.count || 0;
+  const courses =
+    coursesType === "all" ? data.courses : enrolledCourses.data.courses;
+  const count =
+    coursesType === "all" ? data.count : enrolledCourses.data.count || 0;
 
   const totalPages = Math.ceil(count / 8);
   const handlePageChange = (newPage: number) => {

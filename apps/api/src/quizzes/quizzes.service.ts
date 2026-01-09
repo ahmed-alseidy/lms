@@ -803,6 +803,7 @@ export class QuizzesService {
           eq(quizSubmissions.studentId, studentId)
         ),
         columns: {
+          completedAt: true,
           score: true,
           id: true,
         },
@@ -849,6 +850,7 @@ export class QuizzesService {
             },
           },
         },
+        orderBy: [desc(quizSubmissions.completedAt)],
       })
     );
 
@@ -867,6 +869,9 @@ export class QuizzesService {
         submittedAnswer: submittedAnswer?.answer,
       };
     });
+    console.log(response?.id);
+    console.log(questionsResult);
+    console.log(submittedQuestionAnswers);
 
     if (error) {
       throw error;

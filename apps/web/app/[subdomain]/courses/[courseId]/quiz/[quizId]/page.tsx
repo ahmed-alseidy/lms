@@ -222,9 +222,7 @@ export default function QuizPage() {
 
   // Track when timer should be active (memoized to prevent unnecessary re-renders)
   const shouldTimerRun = useMemo(() => {
-    return (
-      timeRemaining !== null && !isStarting && !isTimerExpired
-    );
+    return timeRemaining !== null && !isStarting && !isTimerExpired;
   }, [timeRemaining, isStarting, isTimerExpired, quizCompleted]);
 
   // Start or resume quiz on mount

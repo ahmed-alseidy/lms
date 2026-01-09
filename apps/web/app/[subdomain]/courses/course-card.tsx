@@ -46,7 +46,7 @@ export function CourseCard({ course }: { course: CourseWithEnrollments }) {
         </div>
       </CardHeader>
 
-      <CardContent className="flex flex-1 flex-col gap-3 p-4">
+      <CardContent className="flex flex-1 flex-col gap-3 p-4 py-0">
         <div className="space-y-1">
           <h3 className="line-clamp-1 text-lg font-semibold">{course.title}</h3>
           <p className="text-muted-foreground line-clamp-1 text-sm">
