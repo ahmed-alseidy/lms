@@ -114,7 +114,7 @@ export default function CoursePage() {
 
         <Card className="w-full md:w-[350px]">
           <CardHeader className="relative p-0">
-            <div className="relative aspect-video h-48">
+            <div className="relative h-48">
               {course.imageUrl ? (
                 <Image
                   alt={course.title}

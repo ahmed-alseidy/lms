@@ -77,7 +77,7 @@ export default function ResultsPage() {
   const questionsCount = results.questions.length;
 
   return (
-    <div className="mx-auto mt-10 max-w-2xl rounded-lg p-6 shadow">
+    <div className="mx-auto mt-10 max-w-2xl rounded-lg p-6 border border-border">
       <h1 className="mb-2 text-center text-2xl font-bold">
         {t("quizzes.quizResults")}
       </h1>
