@@ -93,7 +93,7 @@ export const DescriptionForm = ({
         <p
           className={cn(
             "mt-2 text-sm",
-            !description && "text-primary/50 italic"
+            !description && "text-muted-foreground italic"
           )}
         >
           {description || t("noDescriptionAvailable")}

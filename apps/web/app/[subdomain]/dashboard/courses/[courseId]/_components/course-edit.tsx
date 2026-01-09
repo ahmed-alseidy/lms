@@ -94,7 +94,7 @@ export default function CourseEdit({ course }: { course: any }) {
             </p>
           </div>
         </div>
-        <div className="mt-3 flex items-center gap-2 md:mt-0">
+        <div className="mt-3 flex items-center gap-2 md:mt-0 justify-end">
           <Button
             className="gap-2"
             disabled={publishLoading}
@@ -104,11 +104,16 @@ export default function CourseEdit({ course }: { course: any }) {
             {publishLoading ? (
               <IconLoader className="h-4 w-4 animate-spin" />
             ) : course.published ? (
-              <IconEyeOff className="h-4 w-4" />
+              <>
+                <IconEyeOff className="h-4 w-4" />
+                <span>{t("unpublish")}</span>
+              </>
             ) : (
-              <IconEye className="h-4 w-4" />
+              <>
+                <IconEye className="h-4 w-4" />
+                <span>{t("unpublish")}</span>
+              </>
             )}
-            {course.published ? t("unpublish") : t("publish")}
           </Button>
           <Dialog>
             <DialogTrigger asChild>
@@ -151,8 +156,8 @@ export default function CourseEdit({ course }: { course: any }) {
       <Separator />
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card className="border-none shadow-none ring-0">
-          <CardHeader className="flex-row justify-start px-0 pt-0">
+        <div className="space-y-6">
+          <div className="flex-row justify-start">
             <div className="flex gap-3">
               <div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-full">
                 <IconLayoutDashboard className="text-primary" />
@@ -164,8 +169,8 @@ export default function CourseEdit({ course }: { course: any }) {
                 </p>
               </div>
             </div>
-          </CardHeader>
-          <CardContent className="space-y-6 px-0">
+          </div>
+          <div className="space-y-6">
             <div className="space-y-4">
               <TitleForm
                 courseId={course.id}
@@ -181,8 +186,8 @@ export default function CourseEdit({ course }: { course: any }) {
               />
               <ImageForm courseId={course.id} initialData={course} />
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         <div className="space-y-6">
           <div className="space-y-6">
