@@ -277,7 +277,12 @@
     },
     "quizSettings": "إعدادات الاختبار",
     "manageQuizProperties": "إدارة خصائص الاختبار",
-    "multipleAttempts": "السماح للطلاب بإعادة الاختبار متعدد المرات"
+    "multipleAttempts": "السماح للطلاب بإعادة الاختبار متعدد المرات",
+    "deleteAnswer": "حذف الإجابة",
+    "deleteAnswerConfirmation": "هل أنت متأكد من حذف هذه الإجابة؟ هذا الإجراء غير قابل للتراجع",
+    "answerDeletedSuccessfully": "تم حذف الإجابة بنجاح",
+    "deleteQuestion": "حذف السؤال",
+    "deleteQuestionConfirmation": "حذف السؤال؟ هذا الإجراء غير قابل للتراجع"
   },
   "analytics": {
     "title": "لوحة التحليلات",
