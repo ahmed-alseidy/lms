@@ -279,7 +279,9 @@
     "deleteAnswerConfirmation": "Are you sure you want to delete this answer? This action cannot be undone",
     "answerDeletedSuccessfully": "Answer deleted successfully",
     "deleteQuestion": "Delete question",
-    "deleteQuestionConfirmation": "Are you sure you want to delete this question? This action cannot be undone"
+    "deleteQuestionConfirmation": "Are you sure you want to delete this question? This action cannot be undone",
+    "questions": "Questions",
+    "dragToReorder": "Drag to reorder questions"
   },
   "analytics": {
     "title": "Analytics Dashboard",

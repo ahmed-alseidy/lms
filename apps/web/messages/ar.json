@@ -282,7 +282,9 @@
     "deleteAnswerConfirmation": "هل أنت متأكد من حذف هذه الإجابة؟ هذا الإجراء غير قابل للتراجع",
     "answerDeletedSuccessfully": "تم حذف الإجابة بنجاح",
     "deleteQuestion": "حذف السؤال",
-    "deleteQuestionConfirmation": "حذف السؤال؟ هذا الإجراء غير قابل للتراجع"
+    "deleteQuestionConfirmation": "حذف السؤال؟ هذا الإجراء غير قابل للتراجع",
+    "questions": "الأسئلة",
+    "dragToReorder": "اسحب لإعادة ترتيب الأسئلة"
   },
   "analytics": {
     "title": "لوحة التحليلات",
