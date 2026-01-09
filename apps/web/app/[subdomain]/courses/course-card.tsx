@@ -72,16 +72,16 @@ export function CourseCard({ course }: { course: CourseWithEnrollments }) {
           </div>
         </div>
 
-        {course.enrollments?.[0] ? (
+        {course.myEnrollment?.[0] ? (
           <div>
             <div className="text-muted-foreground mb-2 flex items-center justify-between text-sm">
               <span>{t("courses.progress")}</span>
-              <span>{course.enrollments[0].progress}%</span>
+              <span>{course.myEnrollment[0].progress}%</span>
             </div>
             <div className="bg-secondary h-2 w-full rounded-full">
               <div
                 className="bg-primary h-full rounded-full transition-all duration-300"
-                style={{ width: `${course.enrollments[0].progress}%` }}
+                style={{ width: `${course.myEnrollment[0].progress}%` }}
               />
             </div>
           </div>

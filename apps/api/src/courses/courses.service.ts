@@ -7,6 +7,7 @@ import {
   db,
   enrollments,
   lessons,
+  SelectEnrollment,
   studentLessonCompletions,
   UpdateCourseSectionDto,
 } from "@lms-saas/shared-lib";
@@ -116,6 +117,30 @@ export class CoursesService {
       });
     }
 
+    let myEnrollment: {
+      id: number;
+      progress: number;
+      enrolledAt: Date | null;
+      courseId: number;
+    }[] = [];
+    if (studentId) {
+      myEnrollment = await db.query.enrollments.findMany({
+        where: and(
+          eq(enrollments.studentId, studentId),
+          inArray(
+            enrollments.courseId,
+            res.map((r) => r.id)
+          )
+        ),
+        columns: {
+          id: true,
+          progress: true,
+          enrolledAt: true,
+          courseId: true,
+        },
+      });
+    }
+
     const coursesCount = (
       await db
         .select({ count: count() })
@@ -144,6 +169,7 @@ export class CoursesService {
       return {
         ...r,
         studentsCount: course?.count || 0,
+        myEnrollment: [myEnrollment.find((m) => m.courseId === r.id) || null],
       };
     });
 
@@ -336,36 +362,85 @@ export class CoursesService {
     });
   }
 
-  async getEnrolledCourses(studentId: number) {
-    const res = await db.query.enrollments.findMany({
-      where: and(
-        eq(enrollments.studentId, studentId),
-        eq(enrollments.status, "active")
-      ),
-      with: {
-        course: {
-          columns: {
-            id: true,
-            title: true,
-            description: true,
-            imageUrl: true,
-            price: true,
-            published: true,
-            teacherId: true,
+  async getEnrolledCourses(offset: number, limit: number, studentId: number) {
+    let res;
+    if (!offset && !limit) {
+      res = await db.query.enrollments.findMany({
+        where: and(
+          eq(enrollments.studentId, studentId),
+          eq(enrollments.status, "active")
+        ),
+        orderBy: [desc(enrollments.enrolledAt)],
+        with: {
+          course: {
+            columns: {
+              id: true,
+              title: true,
+              lessonsCount: true,
+              description: true,
+              imageUrl: true,
+              price: true,
+              published: true,
+              teacherId: true,
+            },
+            with: {
+              enrollments: {
+                columns: {
+                  id: true,
+                },
+              },
+            },
           },
         },
-      },
-      columns: {
-        id: true,
-        progress: true,
-        enrolledAt: true,
-      },
-    });
+        columns: {
+          id: true,
+          progress: true,
+          enrolledAt: true,
+        },
+      });
+    } else {
+      res = await db.query.enrollments.findMany({
+        where: and(
+          eq(enrollments.studentId, studentId),
+          eq(enrollments.status, "active")
+        ),
+        orderBy: [desc(enrollments.enrolledAt)],
+        offset,
+        limit,
+        with: {
+          course: {
+            columns: {
+              id: true,
+              title: true,
+              lessonsCount: true,
+              description: true,
+              imageUrl: true,
+              price: true,
+              published: true,
+              teacherId: true,
+            },
+            with: {
+              enrollments: {
+                columns: {
+                  id: true,
+                },
+              },
+            },
+          },
+        },
+        columns: {
+          id: true,
+          progress: true,
+          enrolledAt: true,
+        },
+      });
+    }
 
     const courses = res.map((en) => {
       return {
         ...en.course,
-        enrollments: [
+        studentsCount: en.course.enrollments.length,
+        myEnrollment: [
           {
             id: en.id,
             progress: en.progress,
@@ -374,7 +449,13 @@ export class CoursesService {
         ],
       };
     });
-    return courses;
+
+    const coursesCount = await db
+      .select({ count: count(enrollments.id) })
+      .from(enrollments)
+      .where(eq(enrollments.studentId, studentId));
+
+    return { courses, count: coursesCount[0].count };
   }
 
   async updateEnrollmentProgress(enrollmentId: number) {

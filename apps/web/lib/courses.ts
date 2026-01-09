@@ -18,6 +18,11 @@ import { Video } from "./videos";
 const baseUrl = `${BACKEND_URL}/courses`;
 
 export type CourseWithEnrollments = SelectCourse & {
+  myEnrollment?: {
+    id: number;
+    progress: number;
+    enrolledAt: Date;
+  }[];
   courseCodes: {
     id: number;
   }[];
@@ -225,10 +230,13 @@ export const deleteLesson = (
   );
 };
 
-export const getEnrolledCourses = async () => {
-  return authFetch<CourseWithEnrollments[]>(`${baseUrl}/enrolled`, {
-    method: "GET",
-  });
+export const getEnrolledCourses = async (page: number, limit: number) => {
+  return authFetch<{ courses: CourseWithEnrollments[]; count: number }>(
+    `${baseUrl}/enrolled?page=${page}&limit=${limit}`,
+    {
+      method: "GET",
+    }
+  );
 };
 
 export const completeLesson = async (

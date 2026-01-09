@@ -282,8 +282,9 @@ export class CoursesController {
 
   @Get('/enrolled')
   @Roles('student')
-  getEnrolledCourses(@Req() req) {
-    return this.coursesService.getEnrolledCourses(req.user.id);
+  getEnrolledCourses(@Req() req, @Query('page', ParseIntPipe) page: number, @Query('limit', ParseIntPipe) limit: number) {
+    const offset = (page - 1) * limit;
+    return this.coursesService.getEnrolledCourses(offset, limit, req.user.id);
   }
 
   @Patch('/update-progress')

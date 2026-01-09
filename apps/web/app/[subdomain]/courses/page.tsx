@@ -44,9 +44,9 @@ export default function StudentHomePage() {
     isLoading: enrolledCoursesLoading,
     isError: enrolledCoursesError,
   } = useQuery({
-    queryKey: ["student-enrolled-courses"],
+    queryKey: ["student-enrolled-courses", page],
     queryFn: async () => {
-      const [response, error] = await attempt(getEnrolledCourses());
+      const [response, error] = await attempt(getEnrolledCourses(page, 8));
       if (error) {
         toast.error("Error fetching enrolled courses");
         return;
@@ -66,8 +66,8 @@ export default function StudentHomePage() {
     toast.error(t("common.somethingWentWrong"));
   }
 
-  const courses = coursesType === "all" ? data.courses : enrolledCourses.data;
-  const count = data.count || 0;
+  const courses = coursesType === "all" ? data.courses : enrolledCourses.data.courses;
+  const count = coursesType === "all" ? data.count : enrolledCourses.data.count || 0;
 
   const totalPages = Math.ceil(count / 8);
   const handlePageChange = (newPage: number) => {
@@ -102,7 +102,7 @@ export default function StudentHomePage() {
 
       <Separator />
 
-      <div className="grid grid-cols-[repeat(auto-fill,_minmax(320px,_1fr))] gap-6">
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-6">
         {courses && courses.length === 0 ? (
           <div className="text-muted-foreground col-span-full text-center">
             {t("courses.noCoursesAvailable")}
