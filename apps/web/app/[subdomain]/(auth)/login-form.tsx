@@ -58,10 +58,7 @@ export function LoginForm({
 
   return (
     <Form {...form}>
-      <form
-        className="w-full space-y-6"
-        onSubmit={form.handleSubmit(onSubmit)}
-      >
+      <form className="w-full space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
         <div className="text-sm text-red-500">
           {form.formState.errors.root?.message}
         </div>

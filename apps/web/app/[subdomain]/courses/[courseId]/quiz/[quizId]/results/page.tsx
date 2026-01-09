@@ -118,7 +118,7 @@ export default function ResultsPage() {
         <ul className="space-y-4">
           {results.questions.map((q, idx) => (
             <li
-              className={`rounded border-2 p-4 ${q.submittedAnswer.id === q.correctAnswer.id ? "bg-accent/50 border-green-300" : "bg-accent/50 border-red-300"}`}
+              className={`rounded border-2 p-4 ${q.submittedAnswer.id === q.correctAnswer.id ? "bg-input/30 border-green-300" : "bg-input/30 border-red-300"}`}
               key={idx}
             >
               <div className="font-medium">
