@@ -48,15 +48,16 @@ export function LowerSidebar({ user }: { user: any }) {
           </DropdownMenuTrigger>
           <DropdownMenuContent
             align="end"
+            alignOffset={20}
             className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
             side={"bottom"}
-            sideOffset={4}
+            sideOffset={10}
           >
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8">
                   <AvatarImage alt={user.name} src={user.image} />
-                  <AvatarFallback>
+                  <AvatarFallback className="bg-primary text-primary-foreground">
                     {user.name.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
