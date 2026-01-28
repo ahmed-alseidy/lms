@@ -7,9 +7,11 @@ import {
   db,
   enrollments,
   lessons,
-  SelectEnrollment,
   studentLessonCompletions,
+  students,
+  teachers,
   UpdateCourseSectionDto,
+  users,
 } from "@lms-saas/shared-lib";
 import {
   Injectable,
@@ -53,19 +55,40 @@ type WithClause = {
 
 @Injectable()
 export class CoursesService {
-  async create(dto: CreateCourseDto, teacherId: number) {
+  async create(dto: CreateCourseDto, userId: string) {
+    const [teacher, teacherError] = await attempt(
+      db.select().from(teachers).where(eq(teachers.authUserId, userId))
+    );
+    if (teacherError) throw new InternalServerErrorException("Error fetching teacher");
+    if (!teacher) throw new NotFoundException("Teacher not found");
+    const teacherId = teacher[0].teacherId;
     await db.insert(courses).values({ price: "0.00", ...dto, teacherId });
   }
 
   async getByTeacherId(
-    teacherId: number,
+    userId: string,
+    role: "teacher" | "student",
     offset: number = NaN,
     limit: number = NaN,
     withTeacher: boolean = false,
     published: boolean = false,
-    withEnrollments?: boolean,
-    studentId?: number
+    withEnrollments?: boolean
   ) {
+    const [userRes, userError] = await attempt(
+      db
+        .select()
+        .from(users)
+        .where(eq(users.id, userId))
+        .leftJoin(teachers, eq(users.id, teachers.authUserId))
+        .leftJoin(students, eq(users.id, students.authUserId))
+    );
+
+    const user = userRes?.[0];
+
+    if (userError)
+      throw new InternalServerErrorException("Error fetching user");
+    if (!user) throw new NotFoundException("User not found");
+
     const withClause: WithClause = {};
 
     if (withTeacher) {
@@ -73,10 +96,11 @@ export class CoursesService {
         columns: { name: true },
       };
     }
-    if (withEnrollments && studentId) {
+
+    if (withEnrollments && role === "student" && user.students?.id) {
       withClause.enrollments = {
         columns: { id: true, progress: true, enrolledAt: true },
-        where: eq(enrollments.studentId, studentId),
+        where: eq(enrollments.studentId, user.students?.id),
         with: {
           studentLessonCompletions: {
             columns: { id: true },
@@ -85,6 +109,11 @@ export class CoursesService {
       };
     }
 
+    // If the user is a teacher, use the teacherId from the user.teacher object.
+    // If the user is a student, use the teacherId from the user.student object.
+    const teacherId =
+      role === "teacher" ? user.teachers?.teacherId : user.students?.teacherId;
+    if (!teacherId) throw new NotFoundException("User not found");
     let res;
     if (!offset && !limit)
       res = await db.query.courses.findMany({
@@ -123,10 +152,10 @@ export class CoursesService {
       enrolledAt: Date | null;
       courseId: number;
     }[] = [];
-    if (studentId) {
+    if (role === "student" && user.students?.id) {
       myEnrollment = await db.query.enrollments.findMany({
         where: and(
-          eq(enrollments.studentId, studentId),
+          eq(enrollments.studentId, user.students?.id),
           inArray(
             enrollments.courseId,
             res.map((r) => r.id)

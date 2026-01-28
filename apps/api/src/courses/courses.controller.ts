@@ -8,7 +8,6 @@ import {
   UpdateCourseSectionDto,
   UpdateEnrollmentProgressDto,
 } from "@lms-saas/shared-lib";
-import { File, FileInterceptor } from "@nest-lab/fastify-multer";
 import {
   Body,
   ConflictException,
@@ -29,18 +28,20 @@ import {
   Query,
   Req,
   UploadedFile,
-  UseGuards,
   UseInterceptors,
 } from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
 import { ApiBearerAuth, ApiBody, ApiConsumes } from "@nestjs/swagger";
+import {
+  Session,
+  UserSession,
+} from "@thallesp/nestjs-better-auth";
 import { eq } from "drizzle-orm";
 import { Roles } from "@/auth/decorators/roles.decorator";
-import { RolesGuard } from "@/auth/guards/roles/roles.guard";
 import { CloudinaryService } from "@/cloudinary/cloudinary.service";
 import { CoursesService } from "./courses.service";
 
 @ApiBearerAuth()
-@UseGuards(RolesGuard)
 @Controller("courses")
 export class CoursesController {
   constructor(
@@ -56,6 +57,7 @@ export class CoursesController {
 
   @Get("/by-teacher-id")
   async getByTeacherId(
+    @Session() session: UserSession,
     @Req() req,
     @Query('page', ParseIntPipe) page: number,
     @Query('limit', ParseIntPipe) limit: number,
@@ -64,9 +66,10 @@ export class CoursesController {
     @Query('published', ParseBoolPipe) published: boolean
   ) {
     const offset = (page - 1) * limit;
-    if (req.user.role === "teacher")
+    if (session.user.role === "teacher")
       return this.coursesService.getByTeacherId(
-        req.user.id,
+        session.user.id,
+        session.user.role,
         offset,
         limit,
         withTeacher,
@@ -84,13 +87,13 @@ export class CoursesController {
       if (!teacherIdRes) throw new NotFoundException("Teacher not found");
 
       return this.coursesService.getByTeacherId(
-        teacherIdRes.teacherId,
+        session.user.id,
+        session.user.role as "teacher" | "student",
         offset,
         limit,
         withTeacher,
         published,
-        withEnrollments,
-        req.user.id
+        withEnrollments
       );
     }
   }
@@ -176,7 +179,7 @@ export class CoursesController {
         ],
       }),
     )
-    file: File
+    file: Express.Multer.File
   ) {
     const result = await this.cloudinaryService.uploadFile(file);
     return this.coursesService.update(courseId, {

@@ -4,15 +4,19 @@ import {
   SelectTeacher,
   students,
   teachers,
+  users,
 } from "@lms-saas/shared-lib";
 import {
   CreateStudentDto,
   CreateTeacherDto,
+  LoginUserDto,
 } from "@lms-saas/shared-lib/dist/dtos";
-import { BadRequestException, Injectable } from "@nestjs/common";
-import { hash } from "argon2";
+import { BadRequestException, Injectable, InternalServerErrorException } from "@nestjs/common";
+import { fromNodeHeaders } from "better-auth/node";
 import { eq } from "drizzle-orm";
 import { Role } from "@/auth/types/roles";
+import { auth } from "@/lib/auth";
+import { attempt } from "@/utils/error-handling";
 
 @Injectable()
 export class UsersService {
@@ -25,14 +29,25 @@ export class UsersService {
     if (domainExists)
       throw new BadRequestException("Subdomain already exists, change it");
 
-    // Hash password
-    const passwordHash = await hash(password);
-    // Create user
+    const [authUser, authUserError] = await attempt(
+      auth.api.signUpEmail({
+        body: {
+          name,
+          email,
+          password,
+          role: "teacher",
+        },
+      })
+    );
+
+    if (!authUser || authUserError)
+      throw new BadRequestException("Failed to create user");
+
     await db.insert(teachers).values({
       email,
-      passwordHash,
       subdomain,
       name,
+      authUserId: authUser.user.id,
     });
   }
 
@@ -47,13 +62,24 @@ export class UsersService {
     if (!res) throw new BadRequestException("No such domain");
     const teacherId = res.teacherId;
 
-    // Hash password
-    const passwordHash = await hash(password);
+    const [authUser, authUserError] = await attempt(
+      auth.api.signUpEmail({
+        body: {
+          name,
+          email,
+          password,
+          role: "student",
+        },
+      })
+    );
+
+    if (!authUser || authUserError)
+      throw new BadRequestException("Failed to create user");
 
     // Create user
     await db.insert(students).values({
       email,
-      passwordHash,
+      authUserId: authUser.user.id,
       name,
       teacherId,
     });
@@ -86,20 +112,54 @@ export class UsersService {
     return user;
   }
 
-  async updateHashedRefreshToken(
-    userId: number,
-    role: Role,
-    hashedRT: string | null
-  ) {
-    if (role === "teacher")
-      await db
-        .update(teachers)
-        .set({ hashedRefreshToken: hashedRT })
-        .where(eq(teachers.teacherId, userId));
-    else
-      await db
-        .update(students)
-        .set({ hashedRefreshToken: hashedRT })
-        .where(eq(students.id, userId));
+  async getCurrentSession(req: Request) {
+    console.log("headers", req.headers);
+    const res = await auth.api.getSession({
+      headers: req.headers,
+    });
+    console.log("res", res);
+    return res;
+  }
+
+  async loginUserByEmail(dto: LoginUserDto) {
+    const [user, userError] = await attempt(
+      db.query.users.findFirst({
+        where: eq(users.email, dto.email),
+      })
+    );
+    if (userError) throw new InternalServerErrorException("Failed to find user");
+    if (!user) throw new BadRequestException("User not found");
+
+    const [res, resError] = await attempt(
+      auth.api.signInEmail({
+        body: {
+          email: dto.email,
+          password: dto.password,
+        },
+        asResponse: true,
+        returnHeaders: true,
+      })
+    );
+
+    if (!res || resError) throw new BadRequestException("Failed to login");
+    const cookies: string[] = [];
+    res.headers.forEach((value, key) => {
+      if (key.toLowerCase() === "set-cookie") {
+        cookies.push(value);
+      }
+    });
+    const cookiesObject = cookies.map((cookie) => {
+      const c = cookie.split(";").map((item) => item.trim().split("="));
+      const co: Record<string, any> = {};
+      c.forEach((item) => {
+        if (item[0] === "HttpOnly" || item[0] === "Secure") co[item[0]] = true;
+        else co[item[0]] = item[1];
+      });
+      return co;
+    });
+    return {
+      ...res,
+      cookies: cookiesObject[0],
+    };
   }
 }
