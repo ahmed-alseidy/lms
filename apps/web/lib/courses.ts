@@ -76,7 +76,12 @@ export async function getCoursesByTeacherId(
     courses: CourseWithEnrollments[];
     count: number;
   }>(url);
-  return response.data;
+  // Some endpoints return `{courses, count}` directly, while the client types also
+  // support an `OkResponse` wrapper. Normalize here so callers always get `{courses, count}`.
+  const payload = response.data as unknown as
+    | { courses: CourseWithEnrollments[]; count: number }
+    | { data: { courses: CourseWithEnrollments[]; count: number } };
+  return "data" in payload ? payload.data : payload;
 }
 
 export async function createCourse(input: CreateCourseDto) {

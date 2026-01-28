@@ -12,7 +12,7 @@ export type OkResponse<T = unknown> = {
 export async function authFetch<T>(
   url: string | URL,
   options?: AxiosRequestConfig
-): Promise<AxiosResponse<OkResponse<T>>> {
+): Promise<AxiosResponse<T>> {
   const urlString = url.toString();
 
   // Check if the URL is pointing to the backend

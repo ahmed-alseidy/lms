@@ -17,7 +17,7 @@ import { getCourse } from "@/lib/courses";
 import { attempt } from "@/lib/utils";
 import CourseEdit from "./_components/course-edit";
 
-export default function EditCoursePage({}: {}) {
+export default function EditCoursePage() {
   const t = useTranslations("courses");
   const params = useParams();
   const courseId = Number.parseInt(params.courseId as string);
@@ -33,11 +33,12 @@ export default function EditCoursePage({}: {}) {
       const [response, error] = await attempt(
         getCourse(courseId, true, false, true)
       );
+      console.log(response)
       if (error) {
         toast.error("Error fetching course");
         return;
       }
-      return response;
+      return response?.data;
     },
   });
 
@@ -48,8 +49,7 @@ export default function EditCoursePage({}: {}) {
       </div>
     );
 
-  const course = data?.data;
-  if (!course) redirect("/dashboard/courses");
+  // if (!data) redirect("/dashboard/courses");
 
   return (
     <div className="container mx-auto">
@@ -62,12 +62,12 @@ export default function EditCoursePage({}: {}) {
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage>{course.title}</BreadcrumbPage>
+            <BreadcrumbPage>{data?.title}</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
 
-      <CourseEdit course={course} />
+      <CourseEdit course={data} />
     </div>
   );
 }

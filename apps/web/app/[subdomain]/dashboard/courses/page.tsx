@@ -23,7 +23,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { Separator } from "@/components/ui/separator";
-import { getCoursesByTeacherId } from "@/lib/courses";
+import { CourseWithEnrollments, getCoursesByTeacherId } from "@/lib/courses";
 import { attempt } from "@/lib/utils";
 import { CourseCard } from "./course-card";
 import { CreateCourseForm } from "./create-course-form";
@@ -33,30 +33,32 @@ export default function CoursesPage() {
   const [open, setOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [published, setPublished] = useState(true);
-  const { data, isLoading } = useQuery({
+  const { data, isLoading } = useQuery<{
+    courses: CourseWithEnrollments[];
+    count: number;
+  }>({
     queryKey: ["dashboard-courses", page, published],
     queryFn: async () => {
       const [response, error] = await attempt(
         getCoursesByTeacherId(published, page, 8, false)
       );
-      console.log("error", error);
       if (error) {
         toast.error("Error fetching courses");
-        return;
+        return { courses: [], count: 0 };
       }
-      return response;
+      return response ?? { courses: [], count: 0 };
     },
   });
 
-  if (isLoading || !data)
+  if (isLoading)
     return (
       <div className="flex h-[calc(100vh-200px)] items-center justify-center">
         <IconLoader className="text-muted-foreground h-8 w-8 animate-spin" />
       </div>
     );
 
-  const courses = data?.data.courses;
-  const count = data?.data.count || 0;
+  const courses = data?.courses ?? [];
+  const count = data?.count ?? 0;
 
   const totalPages = Math.ceil(count / 8);
   const handlePageChange = (newPage: number) => {
@@ -82,14 +84,20 @@ export default function CoursesPage() {
           <div className="mt-4 mb-2">
             <Button
               className={published ? "underline" : ""}
-              onClick={() => setPublished(true)}
+              onClick={() => {
+                setPublished(true);
+                setPage(1);
+              }}
               variant={"link"}
             >
               {t("published")}
             </Button>
             <Button
               className={!published ? "underline" : ""}
-              onClick={() => setPublished(false)}
+              onClick={() => {
+                setPublished(false);
+                setPage(1);
+              }}
               variant={"link"}
             >
               {t("unpublished")}
@@ -100,9 +108,11 @@ export default function CoursesPage() {
 
           <div className="mt-4 grid grid-cols-[repeat(auto-fill,minmax(350px,1fr))] gap-6">
             {courses.length === 0 ? (
-              <div>{t("noCourses")}</div>
+              <div className="text-muted-foreground col-span-full text-center">
+                {t("noCourses")}
+              </div>
             ) : (
-              courses.map((course) => (
+              courses.map((course: CourseWithEnrollments) => (
                 <CourseCard course={course} key={course.id} />
               ))
             )}

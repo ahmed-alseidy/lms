@@ -31,7 +31,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
-import { deleteCourse, updateCourse } from "@/lib/courses";
+import { CourseWithSectionsAndEnrollments, deleteCourse, updateCourse } from "@/lib/courses";
 import { attempt, cn } from "@/lib/utils";
 import { ChaptersList } from "./chapters-list";
 import { DescriptionForm } from "./description-form";
@@ -39,7 +39,7 @@ import { ImageForm } from "./image-form";
 import { PriceForm } from "./price-form";
 import { TitleForm } from "./title-form";
 
-export default function CourseEdit({ course }: { course: any }) {
+export default function CourseEdit({ course }: { course: CourseWithSectionsAndEnrollments }) {
   const t = useTranslations("courses");
   const tCommon = useTranslations("common");
 
@@ -111,7 +111,7 @@ export default function CourseEdit({ course }: { course: any }) {
             ) : (
               <>
                 <IconEye className="h-4 w-4" />
-                <span>{t("unpublish")}</span>
+                <span>{t("publish")}</span>
               </>
             )}
           </Button>
@@ -178,13 +178,13 @@ export default function CourseEdit({ course }: { course: any }) {
               />
               <DescriptionForm
                 courseId={course.id}
-                initialData={{ description: course.description }}
+                initialData={{ description: course.description || "" }}
               />
               <PriceForm
                 courseId={course.id}
                 initialData={{ price: course.price }}
               />
-              <ImageForm courseId={course.id} initialData={course} />
+              <ImageForm courseId={course.id} initialData={{ imageUrl: course.imageUrl || "" }} />
             </div>
           </div>
         </div>
