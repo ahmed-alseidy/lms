@@ -1,10 +1,11 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { PassportModule } from "@nestjs/passport";
+import { AuthModule } from "@thallesp/nestjs-better-auth";
+import { auth } from "@/lib/auth";
 import { AnalyticsModule } from "./analytics/analytics.module";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
-import { AuthModule } from "./auth/auth.module";
 import { CourseCodesModule } from "./course-codes/course-codes.module";
 import { CoursesModule } from "./courses/courses.module";
 import { LessonsModule } from "./lessons/lessons.module";
@@ -17,7 +18,9 @@ import { VideosModule } from "./videos/videos.module";
 @Module({
   imports: [
     UsersModule,
-    AuthModule,
+    AuthModule.forRoot({
+      auth,
+    }),
     PassportModule,
     ConfigModule.forRoot({ isGlobal: true }),
     CoursesModule,
