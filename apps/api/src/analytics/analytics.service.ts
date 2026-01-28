@@ -27,7 +27,7 @@ export class AnalyticsService {
         limit,
         columns: {
           hashedRefreshToken: false,
-          passwordHash: false,
+          authUserId: false,
           updatedAt: false,
           teacherId: false,
         },
