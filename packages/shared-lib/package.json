@@ -13,9 +13,11 @@
   "exports": {
     ".": "./dist/index.js",
     "./dtos": "./dist/dtos/index.js",
-    "./db/schema": "./dist/db/schema/index.js"
+    "./db/schema": "./dist/db/schema/index.js",
+    "./db": "./dist/db/index.js"
   },
   "devDependencies": {
+    "@types/minimatch": "^5.1.2",
     "drizzle-kit": "^0.30.4",
     "typescript": "latest"
   }
