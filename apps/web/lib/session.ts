@@ -1,7 +1,7 @@
 "use server";
 
 import { jwtVerify, SignJWT } from "jose";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 export type Session = {
@@ -33,6 +33,32 @@ export async function createSession(payload: Session) {
     expires: expiredAt,
     sameSite: "lax",
     path: "/",
+  });
+}
+
+export async function setBetterAuthCookieToken(
+  c: Record<string, string | boolean>
+) {
+  if (!c) return;
+
+  let token = c["better-auth.session_token"] as string | undefined;
+  if (!token) return;
+
+  // Decode once so we don't double-encode: the value from the API's Set-Cookie
+  // is already %-encoded (%2B, %2F, %3D). cookies().set can encode again → %252B
+  // etc. Better Auth then decodes once, gets the wrong string, signature fails.
+  try {
+    token = decodeURIComponent(token);
+  } catch {
+    // keep as-is if malformed
+  }
+
+  (await cookies()).set("better-auth.session_token", token, {
+    httpOnly: (c["HttpOnly"] as boolean) ?? true,
+    secure: (c["Secure"] as boolean) ?? process.env.NODE_ENV === "production",
+    expires: new Date(Date.now() + 60 * 60 * 24 * 30 * 1000), // 30 days
+    sameSite: (c["SameSite"] as "lax" | "strict" | "none") ?? "lax",
+    path: (c["Path"] as string) ?? "/",
   });
 }
 
@@ -75,4 +101,8 @@ export async function updateTokens({
   };
 
   await createSession(newPayload);
+}
+
+export async function getHeaders() {
+  return await headers();
 }
