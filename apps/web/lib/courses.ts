@@ -80,6 +80,7 @@ export async function getCoursesByTeacherId(
 }
 
 export async function createCourse(input: CreateCourseDto) {
+  console.log("input", input);
   await authFetch<void>(baseUrl, { method: "POST", data: input });
 }
 
@@ -101,7 +102,7 @@ export async function updateCourse(id: number, input: CourseEditDto) {
   await authFetch<void>(`${baseUrl}/${id}`, { method: "PUT", data: input });
 }
 
-export function deleteCourse(id: number) {
+export async function deleteCourse(id: number) {
   return authFetch(`${baseUrl}/${id}`, { method: "DELETE" });
 }
 
@@ -113,10 +114,10 @@ export type CourseSection = {
   lessons: Lesson[];
 };
 
-export const createCourseSection = (
+export async function createCourseSection(
   courseId: number,
   input: CreateCourseSectionDto
-) => {
+) {
   return authFetch<Omit<CourseSection, "courseId">[]>(
     `${baseUrl}/${courseId}/sections`,
     {
@@ -124,39 +125,39 @@ export const createCourseSection = (
       data: input,
     }
   );
-};
+}
 
-export const updateCourseSection = (
+export async function updateCourseSection(
   courseId: number,
   sectionId: number,
   input: UpdateCourseSectionDto
-) => {
+) {
   return authFetch<void>(`${baseUrl}/${courseId}/sections/${sectionId}`, {
     method: "PUT",
     data: input,
   });
-};
+}
 
-export const getCourseSections = (courseId: number) => {
+export async function getCourseSections(courseId: number) {
   return authFetch<SelectCourseSection[]>(`${baseUrl}/${courseId}/sections`, {
     method: "GET",
   });
-};
+}
 
-export const findCourseSection = (courseId: number, sectionId: number) => {
+export async function findCourseSection(courseId: number, sectionId: number) {
   return authFetch<CourseSection>(
     `${baseUrl}/${courseId}/sections/${sectionId}`,
     { method: "GET" }
   );
-};
+}
 
-export const deleteCourseSection = (courseId: number, sectionId: number) => {
+export async function deleteCourseSection(courseId: number, sectionId: number) {
   return authFetch<void>(`${baseUrl}/${courseId}/sections/${sectionId}`, {
     method: "DELETE",
   });
-};
+}
 
-export const uploadCoverImage = async (courseId: number, file: File) => {
+export async function uploadCoverImage(courseId: number, file: File) {
   const formData = new FormData();
   formData.append("coverImage", file);
 
@@ -165,7 +166,7 @@ export const uploadCoverImage = async (courseId: number, file: File) => {
     data: formData,
     headers: { "Content-Type": "multipart/form-data" },
   });
-};
+}
 
 // Lessons
 export interface Lesson {
@@ -177,11 +178,11 @@ export interface Lesson {
   description: string;
 }
 
-export const createLesson = (
+export async function createLesson(
   courseId: number,
   sectionId: number,
   input: CreateLessonDto
-) => {
+) {
   return authFetch<{ id: number }>(
     `${baseUrl}/${courseId}/sections/${sectionId}/lessons`,
     {
@@ -189,14 +190,14 @@ export const createLesson = (
       data: input,
     }
   );
-};
+}
 
-export const updateLesson = (
+export async function updateLesson(
   courseId: number,
   sectionId: number,
   lessonId: number,
   input: UpdateLessonDto
-) => {
+) {
   return authFetch<{ id: number }>(
     `${baseUrl}/${courseId}/sections/${sectionId}/lessons/${lessonId}`,
     {
@@ -204,47 +205,47 @@ export const updateLesson = (
       data: input,
     }
   );
-};
+}
 
-export const findLesson = (
+export async function findLesson(
   courseId: number,
   sectionId: number,
   lessonId: number
-) => {
+) {
   return authFetch<Lesson>(
     `${baseUrl}/${courseId}/sections/${sectionId}/lessons/${lessonId}`,
     { method: "GET" }
   );
-};
+}
 
-export const deleteLesson = (
+export async function deleteLesson(
   courseId: number,
   sectionId: number,
   lessonId: number
-) => {
+) {
   return authFetch<{ id: number }>(
     `${baseUrl}/${courseId}/sections/${sectionId}/lessons/${lessonId}`,
     {
       method: "DELETE",
     }
   );
-};
+}
 
-export const getEnrolledCourses = async (page: number, limit: number) => {
+export async function getEnrolledCourses(page: number, limit: number) {
   return authFetch<{ courses: CourseWithEnrollments[]; count: number }>(
     `${baseUrl}/enrolled?page=${page}&limit=${limit}`,
     {
       method: "GET",
     }
   );
-};
+}
 
-export const completeLesson = async (
+export async function completeLesson(
   courseId: number,
   sectionId: number,
   lessonId: number,
   enrollmentId: number
-) => {
+) {
   return authFetch<{ progress: number }>(
     `${baseUrl}/${courseId}/sections/${sectionId}/lessons/${lessonId}/complete`,
     {
@@ -252,16 +253,16 @@ export const completeLesson = async (
       data: { enrollmentId },
     }
   );
-};
+}
 
-export const checkIfLessonCompleted = async (
+export async function checkIfLessonCompleted(
   courseId: number,
   sectionId: number,
   lessonId: number,
   enrollmentId: number
-) => {
+) {
   return authFetch<{ completed: boolean }>(
     `${baseUrl}/${courseId}/sections/${sectionId}/lessons/${lessonId}/completed?enrollmentId=${enrollmentId}`,
     { method: "GET" }
   );
-};
+}
