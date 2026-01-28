@@ -8,21 +8,14 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { getSession } from "@/lib/session";
+import { getCurrentSession } from "@/lib/auth";
 import { LowerSidebar } from "./courses/_components/lower-sidebar";
 import SidebarHeaderContent from "./sidebar-header-content";
 
-export default async function DashboardLayout({
-  children,
-  params,
-}: PropsWithChildren<{ params: Promise<{ subdomain: string }> }>) {
-  const session = await getSession();
-  const { subdomain } = await params;
-  if (
-    !session?.user ||
-    session.user.role !== "teacher" ||
-    session.user.subdomain !== subdomain
-  ) {
+export default async function DashboardLayout({ children }: PropsWithChildren) {
+  const session = await getCurrentSession();
+  console.log("session", session);
+  if (!session || !session.user || session.user.role !== "teacher") {
     redirect("/login-teacher");
   }
 

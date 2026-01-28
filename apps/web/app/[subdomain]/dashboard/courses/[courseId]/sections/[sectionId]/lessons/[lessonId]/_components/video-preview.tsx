@@ -48,11 +48,11 @@ export const VideoPreview = ({
   if (isError) return <div>{tCommon("somethingWentWrong")}</div>;
   if (!videoData) return <div>{tCommon("somethingWentWrong")}</div>;
 
-  const video = videoData.data;
+  const video = videoData.data.data;
 
   return (
     <div className="space-y-4">
-      <div className="relative aspect-video w-full overflow-hidden rounded-lg border bg-black">
+      <div className="relative  w-full overflow-hidden rounded-lg border bg-black">
         <VideoJsPlayer
           className="h-full w-full"
           poster="/video-placeholder.png"

@@ -67,7 +67,7 @@ export default function LessonPage() {
         toast.error(tCommon("somethingWentWrong"));
         return;
       }
-      return response;
+      return response.data;
     },
   });
 
@@ -81,7 +81,7 @@ export default function LessonPage() {
         toast.error(tCommon("somethingWentWrong"));
         return;
       }
-      return response;
+      return response.data;
     },
   });
 
@@ -101,7 +101,7 @@ export default function LessonPage() {
         return;
       }
 
-      return response;
+      return response.data;
     },
   });
 
@@ -173,7 +173,7 @@ export default function LessonPage() {
     );
   }
 
-  const lesson = lessonData.data;
+  const lesson = lessonData.data.data;
 
   return (
     <div className="container mx-auto space-y-4">
@@ -273,7 +273,7 @@ export default function LessonPage() {
           />
         </div>
 
-        <div className="grid w-full gap-6 lg:h-[515px] lg:w-1/2">
+        <div className="grid w-full gap-6 lg:w-1/2">
           <Card className="shadow-none">
             <CardHeader className="bg-primary/5 border-b">
               <div className="flex items-center gap-3">

@@ -39,6 +39,7 @@ export default function CoursesPage() {
       const [response, error] = await attempt(
         getCoursesByTeacherId(published, page, 8, false)
       );
+      console.log("error", error);
       if (error) {
         toast.error("Error fetching courses");
         return;
@@ -54,8 +55,8 @@ export default function CoursesPage() {
       </div>
     );
 
-  const courses = data?.courses;
-  const count = data?.count || 0;
+  const courses = data?.data.courses;
+  const count = data?.data.count || 0;
 
   const totalPages = Math.ceil(count / 8);
   const handlePageChange = (newPage: number) => {
@@ -97,7 +98,7 @@ export default function CoursesPage() {
 
           <Separator />
 
-          <div className="mt-4 grid grid-cols-[repeat(auto-fill,_minmax(350px,_1fr))] gap-6">
+          <div className="mt-4 grid grid-cols-[repeat(auto-fill,minmax(350px,1fr))] gap-6">
             {courses.length === 0 ? (
               <div>{t("noCourses")}</div>
             ) : (
