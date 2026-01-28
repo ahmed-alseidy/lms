@@ -35,10 +35,10 @@ export const VideoPlayer = ({ lesson }: { lesson: Lesson }) => {
   if (isError) return <div>Error loading video</div>;
 
   return (
-    <div className="flex h-full w-full items-center justify-center bg-black">
+    <div className="flex w-full items-center justify-center bg-black">
       <VideoJsPlayer
-        className="aspect-video h-full w-auto max-w-full"
-        src={videoResponse?.data.manifestUrl || ""}
+        className="w-full"
+        src={videoResponse?.data.data.manifestUrl || ""}
       />
     </div>
   );

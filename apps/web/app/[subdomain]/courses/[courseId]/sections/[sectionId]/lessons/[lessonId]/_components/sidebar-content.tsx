@@ -217,7 +217,7 @@ function LessonItem({
   }
 
   return (
-    <li className="relative" key={lesson.id}>
+    <li className="" key={lesson.id}>
       <Link
         className={cn(
           "group hover:bg-accent/50 flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all duration-200",
@@ -279,6 +279,8 @@ function SectionAccordion({
   const [locale] = useAtom(localeAtom);
   const t = useTranslations();
 
+  console.log(section);
+
   return (
     <Card
       className={cn(
@@ -330,8 +332,8 @@ function SectionAccordion({
               )}
             </div>
           </AccordionTrigger>
-          <AccordionContent className="px-4 pb-4">
-            <div className="list-none space-y-3">
+          <AccordionContent className="px-4 pb-4 min-h-auto">
+            <ul className="list-none space-y-3">
               {section.lessons?.map((lesson) => (
                 <LessonItem
                   courseId={courseId}
@@ -342,7 +344,7 @@ function SectionAccordion({
                   sectionId={section.id}
                 />
               ))}
-            </div>
+            </ul>
           </AccordionContent>
         </AccordionItem>
       </Accordion>

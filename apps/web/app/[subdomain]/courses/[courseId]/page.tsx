@@ -40,7 +40,7 @@ export default function CoursePage() {
     },
   });
 
-  const course = courseResponse?.data;
+  const course = courseResponse?.data.data;
 
   if (isLoading || !course) {
     return (
@@ -166,7 +166,7 @@ export default function CoursePage() {
 
         <div className="space-y-4">
           {course.courseSections?.map((section) => (
-            <Card className="overflow-hidden" key={section.id}>
+            <Card className="overflow-hidden gap-0" key={section.id}>
               <CardHeader className="bg-muted/50 p-4">
                 <h3 className="font-semibold">{section.title}</h3>
               </CardHeader>

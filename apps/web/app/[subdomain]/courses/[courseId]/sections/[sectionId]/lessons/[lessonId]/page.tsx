@@ -65,8 +65,8 @@ export default function LessonPage() {
     },
   });
 
-  const course = courseResponse?.data;
-  const lesson = lessonResponse?.data;
+  const course = courseResponse?.data.data;
+  const lesson = lessonResponse?.data.data;
 
   const { data: isVideoCompleted, isLoading: isVideoLoading } = useQuery({
     queryKey: ["video-completed", lessonId],
@@ -84,7 +84,7 @@ export default function LessonPage() {
         toast.error(t("common.somethingWentWrong"));
         return;
       }
-      return response?.data;
+      return response?.data.data;
     },
   });
 
@@ -238,7 +238,7 @@ export default function LessonPage() {
           </div>
 
           <div
-            className="bg-muted mb-8 flex aspect-video w-full max-w-6xl items-center justify-center overflow-hidden border"
+            className="bg-muted relative mb-8 w-full max-w-6xl overflow-hidden rounded-lg border min-h-[240px]"
             style={{
               filter: blur ? "blur(10px)" : "none",
             }}
@@ -246,7 +246,9 @@ export default function LessonPage() {
             {lesson.videos?.[0] ? (
               <VideoPlayer lesson={lesson} />
             ) : (
-              <VideoOffIcon className="text-muted-foreground h-24 w-24" />
+              <div className="flex aspect-video items-center justify-center">
+                <VideoOffIcon className="text-muted-foreground h-24 w-24" />
+              </div>
             )}
           </div>
           <div className="border-border mb-8 w-full max-w-6xl rounded-lg border p-4">
