@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { QuizQuestion, updateQuestion } from "@/lib/quizzes";
-import { attempt, cn } from "@/lib/utils";
+import { attempt } from "@/lib/utils";
 
 interface QuestionsSidebarProps {
   questions: QuizQuestion[];
@@ -109,7 +109,7 @@ export function QuestionsSidebar({
                         className={`group flex items-start gap-2 rounded-lg border p-3 transition-colors ${
                           selectedQuestionId === question.id
                             ? "border-primary bg-primary/5"
-                            : "hover:border-primary/50 hover:bg-accent hover:text-primary-foreground"
+                            : "hover:border-primary hover:border-dashed"
                         } ${snapshot.isDragging ? "shadow-lg" : ""} ${
                           isLoading ? "opacity-50" : ""
                         }`}
@@ -117,12 +117,9 @@ export function QuestionsSidebar({
                       >
                         <div
                           {...provided.dragHandleProps}
-                          className={cn(
-                            "cursor-grab active:cursor-grabbing text-muted-foreground mt-0.5",
-                            selectedQuestionId === question.id
-                              ? "hover:text-muted-foreground"
-                              : "hover:text-primary-foreground"
-                          )}
+                          className={
+                            "cursor-grab active:cursor-grabbing text-muted-foreground mt-0.5"
+                          }
                         >
                           <IconGripVertical className="h-4 w-4" />
                         </div>
