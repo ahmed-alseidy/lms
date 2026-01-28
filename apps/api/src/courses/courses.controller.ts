@@ -32,13 +32,12 @@ import {
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { ApiBearerAuth, ApiBody, ApiConsumes } from "@nestjs/swagger";
-import {
-  Session,
-  UserSession,
-} from "@thallesp/nestjs-better-auth";
+import { Session, UserSession } from "@thallesp/nestjs-better-auth";
 import { eq } from "drizzle-orm";
 import { Roles } from "@/auth/decorators/roles.decorator";
+import { Role } from "@/auth/types/roles";
 import { CloudinaryService } from "@/cloudinary/cloudinary.service";
+import { attempt } from "@/utils/error-handling";
 import { CoursesService } from "./courses.service";
 
 @ApiBearerAuth()
@@ -66,36 +65,40 @@ export class CoursesController {
     @Query('published', ParseBoolPipe) published: boolean
   ) {
     const offset = (page - 1) * limit;
-    if (session.user.role === "teacher")
-      return this.coursesService.getByTeacherId(
-        session.user.id,
-        session.user.role,
-        offset,
-        limit,
-        withTeacher,
-        published,
-        withEnrollments
-      );
-    else {
-      const teacherIdRes = await db.query.students.findFirst({
-        where: eq(students.id, req.user.id),
+    return this.coursesService.getByTeacherId(
+      session.user.id,
+      session.user.role as Role,
+      offset,
+      limit,
+      withTeacher,
+      published,
+      withEnrollments
+    );
+  }
+
+  @Get("/enrolled")
+  @Roles("student")
+  async getEnrolledCourses(
+    @Query('page', ParseIntPipe) page: number,
+    @Query('limit', ParseIntPipe) limit: number,
+    @Session() session: UserSession
+  ) {
+    const [student, error] = await attempt(
+      db.query.students.findFirst({
+        where: eq(students.authUserId, session.user.id),
         columns: {
-          teacherId: true,
+          id: true,
         },
-      });
-
-      if (!teacherIdRes) throw new NotFoundException("Teacher not found");
-
-      return this.coursesService.getByTeacherId(
-        session.user.id,
-        session.user.role as "teacher" | "student",
-        offset,
-        limit,
-        withTeacher,
-        published,
-        withEnrollments
-      );
+      })
+    );
+    if (error) {
+      throw new InternalServerErrorException("Cannot find student");
     }
+    if (!student) {
+      throw new NotFoundException("Student not found");
+    }
+    const offset = (page - 1) * limit;
+    return this.coursesService.getEnrolledCourses(offset, limit, student.id);
   }
 
   @Get("/:courseId")
@@ -281,17 +284,6 @@ export class CoursesController {
     } catch (error) {
       throw new InternalServerErrorException("Failed to enroll in the course");
     }
-  }
-
-  @Get("/enrolled")
-  @Roles("student")
-  getEnrolledCourses(
-    @Req() req,
-    @Query('page', ParseIntPipe) page: number,
-    @Query('limit', ParseIntPipe) limit: number
-  ) {
-    const offset = (page - 1) * limit;
-    return this.coursesService.getEnrolledCourses(offset, limit, req.user.id);
   }
 
   @Patch('/update-progress')

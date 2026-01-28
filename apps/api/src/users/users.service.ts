@@ -11,7 +11,11 @@ import {
   CreateTeacherDto,
   LoginUserDto,
 } from "@lms-saas/shared-lib/dist/dtos";
-import { BadRequestException, Injectable, InternalServerErrorException } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+} from "@nestjs/common";
 import { fromNodeHeaders } from "better-auth/node";
 import { eq } from "drizzle-orm";
 import { Role } from "@/auth/types/roles";
@@ -127,7 +131,8 @@ export class UsersService {
         where: eq(users.email, dto.email),
       })
     );
-    if (userError) throw new InternalServerErrorException("Failed to find user");
+    if (userError)
+      throw new InternalServerErrorException("Failed to find user");
     if (!user) throw new BadRequestException("User not found");
 
     const [res, resError] = await attempt(

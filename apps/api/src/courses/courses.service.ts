@@ -19,6 +19,7 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { and, count, desc, eq, inArray } from "drizzle-orm";
+import { Role } from "@/auth/types/roles";
 import { attempt } from "@/utils/error-handling";
 
 type WithClause = {
@@ -59,7 +60,8 @@ export class CoursesService {
     const [teacher, teacherError] = await attempt(
       db.select().from(teachers).where(eq(teachers.authUserId, userId))
     );
-    if (teacherError) throw new InternalServerErrorException("Error fetching teacher");
+    if (teacherError)
+      throw new InternalServerErrorException("Error fetching teacher");
     if (!teacher) throw new NotFoundException("Teacher not found");
     const teacherId = teacher[0].teacherId;
     await db.insert(courses).values({ price: "0.00", ...dto, teacherId });
@@ -67,13 +69,20 @@ export class CoursesService {
 
   async getByTeacherId(
     userId: string,
-    role: "teacher" | "student",
+    role: Role,
     offset: number = NaN,
     limit: number = NaN,
     withTeacher: boolean = false,
     published: boolean = false,
     withEnrollments?: boolean
   ) {
+    console.log("userId", userId);
+    console.log("role", role);
+    console.log("offset", offset);
+    console.log("limit", limit);
+    console.log("withTeacher", withTeacher);
+    console.log("published", published);
+    console.log("withEnrollments", withEnrollments);
     const [userRes, userError] = await attempt(
       db
         .select()
@@ -113,6 +122,7 @@ export class CoursesService {
     // If the user is a student, use the teacherId from the user.student object.
     const teacherId =
       role === "teacher" ? user.teachers?.teacherId : user.students?.teacherId;
+    console.log("teacherId", teacherId);
     if (!teacherId) throw new NotFoundException("User not found");
     let res;
     if (!offset && !limit)
@@ -146,6 +156,7 @@ export class CoursesService {
       });
     }
 
+    console.log("courses", res);
     let myEnrollment: {
       id: number;
       progress: number;
@@ -483,6 +494,7 @@ export class CoursesService {
       .select({ count: count(enrollments.id) })
       .from(enrollments)
       .where(eq(enrollments.studentId, studentId));
+    console.log("res", res);
 
     return { courses, count: coursesCount[0].count };
   }
