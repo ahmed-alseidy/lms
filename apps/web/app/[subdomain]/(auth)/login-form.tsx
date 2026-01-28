@@ -5,7 +5,7 @@ import { LoginUserDto } from "@lms-saas/shared-lib/dtos";
 import { IconLoader2 } from "@tabler/icons-react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import {
@@ -48,11 +48,13 @@ export function LoginForm({
   async function onSubmit(data: LoginUserDto) {
     data.subdomain = subdomain;
     const res = await loginUser(data);
-    if (res?.status !== 200)
-      form.setError("root", { message: res?.data.message });
-    else {
+    if (res?.status === 200) {
       if (role === "teacher") router.replace("/dashboard/courses");
       else router.replace("/courses");
+    } else if (res?.status === 400) {
+      form.setError("root", { message: res?.data?.message });
+    } else {
+      form.setError("root", { message: res?.data?.message });
     }
   }
 
