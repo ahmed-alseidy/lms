@@ -23,7 +23,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
 import { authFetch } from "@/lib/auth-fetch";
 import { BACKEND_URL } from "@/lib/constants";
 import { getCourse } from "@/lib/courses";
@@ -124,7 +123,7 @@ export default function QuizAnalyticsPage() {
   }
 
   return (
-    <div className="container mx-auto space-y-6 p-6">
+    <div className="container mx-auto space-y-6">
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
@@ -140,7 +139,7 @@ export default function QuizAnalyticsPage() {
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage>Quiz Analytics</BreadcrumbPage>
+            <BreadcrumbPage>{t("quizzes.analytics")}</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
@@ -153,7 +152,7 @@ export default function QuizAnalyticsPage() {
             size="icon"
             variant="ghost"
           >
-            <IconArrowLeft className="h-4 w-4" />
+            <IconArrowLeft className="rotate-rtl h-4 w-4" />
           </Button>
           <div>
             <h1 className="text-3xl font-bold">{analytics.quiz.title}</h1>
