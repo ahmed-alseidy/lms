@@ -7,7 +7,7 @@ import axios, { AxiosError } from "axios";
 import { BACKEND_URL } from "./constants";
 import {
   deleteSession,
-  getHeaders,
+  getCurrentSession,
   setBetterAuthCookieToken,
   updateTokens,
 } from "./session";
@@ -29,7 +29,6 @@ export async function loginUser(input: LoginUserDto) {
     const res = await axios.post(`${BACKEND_URL}/users/login`, input);
     console.log(res.data);
     const cookies = res.data.cookies;
-    console.log(cookies);
 
     await setBetterAuthCookieToken(cookies);
 
@@ -89,39 +88,6 @@ export async function logout() {
   await deleteSession();
 }
 
-export async function getCurrentSession() {
-  try {
-    const headersList = await getHeaders();
-    const cookieHeader = headersList.get("cookie") || "";
-    console.log("cookieHeader", cookieHeader);
-    const res = await axios.get<{
-      session: {
-        expiresAt: string;
-        token: string;
-        createdAt: string;
-        updatedAt: string;
-        ipAddress: string;
-        userAgent: string;
-        userId: string;
-        id: string;
-      };
-      user: {
-        name: string;
-        email: string;
-        emailVerified: boolean;
-        image: string | null;
-        createdAt: string;
-        updatedAt: string;
-        role: "teacher" | "student";
-        id: string;
-      };
-    }>(`${BACKEND_URL}/users/session`, {
-      headers: { cookie: cookieHeader },
-      withCredentials: true,
-    });
-    return res.data;
-  } catch (error) {
-    console.log(error);
-    if (error instanceof AxiosError) return null;
-  }
+export async function getCurrentSessionClient() {
+  return await getCurrentSession();
 }

@@ -1,8 +1,10 @@
 "use server";
 
+import axios, { AxiosError } from "axios";
 import { jwtVerify, SignJWT } from "jose";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { BACKEND_URL } from "./constants";
 
 export type Session = {
   user: {
@@ -62,6 +64,43 @@ export async function setBetterAuthCookieToken(
   });
 }
 
+export async function getCurrentSession() {
+  try {
+    const headersList = await getHeaders();
+    const cookieHeader = headersList.get("cookie") || "";
+    console.log("cookieHeader", cookieHeader);
+    const res = await axios.get<{
+      session: {
+        expiresAt: string;
+        token: string;
+        createdAt: string;
+        updatedAt: string;
+        ipAddress: string;
+        userAgent: string;
+        userId: string;
+        id: string;
+      };
+      user: {
+        name: string;
+        email: string;
+        emailVerified: boolean;
+        image: string | null;
+        createdAt: string;
+        updatedAt: string;
+        role: "teacher" | "student";
+        id: string;
+      };
+    }>(`${BACKEND_URL}/users/session`, {
+      headers: { cookie: cookieHeader },
+      withCredentials: true,
+    });
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    if (error instanceof AxiosError) return null;
+  }
+}
+
 export async function getSession() {
   const cookie = (await cookies()).get("session")?.value;
   if (!cookie) return null;
@@ -78,7 +117,7 @@ export async function getSession() {
 }
 
 export async function deleteSession() {
-  (await cookies()).delete("session");
+  (await cookies()).delete("better-auth.session_token");
 }
 
 export async function updateTokens({
