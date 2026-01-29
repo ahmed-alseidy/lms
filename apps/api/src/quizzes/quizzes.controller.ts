@@ -3,8 +3,10 @@ import {
   CreateQuizAnswerDto,
   CreateQuizDto,
   CreateQuizQuestionDto,
+  db,
   SaveAnswerDto,
   StartQuizDto,
+  students,
   UpdateQuizAnswerDto,
   UpdateQuizDto,
   UpdateQuizQuestionDto,
@@ -14,6 +16,8 @@ import {
   Controller,
   Delete,
   Get,
+  InternalServerErrorException,
+  NotFoundException,
   Param,
   ParseIntPipe,
   ParseUUIDPipe,
@@ -24,8 +28,11 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { ApiBearerAuth } from "@nestjs/swagger";
+import { Session, UserSession } from "@thallesp/nestjs-better-auth";
+import { eq } from "drizzle-orm";
 import { Roles } from "@/auth/decorators/roles.decorator";
 import { RolesGuard } from "@/auth/guards/roles/roles.guard";
+import { attempt } from "@/utils/error-handling";
 import { QuizzesService } from "./quizzes.service";
 
 @ApiBearerAuth()
@@ -67,31 +74,73 @@ export class QuizzesController {
   @Post("/:quizId/start")
   @Roles("student")
   async startQuiz(
-    @Req() req: any,
+    @Session() session: UserSession,
     @Param("quizId", ParseUUIDPipe) quizId: string,
     @Body() dto: StartQuizDto
   ) {
-    return this.quizzesService.startQuiz(quizId, req.user.id, dto);
+    const [student, error] = await attempt(
+      db.query.students.findFirst({
+        where: eq(students.authUserId, session.user.id),
+        columns: {
+          id: true,
+        },
+      })
+    );
+    if (error) {
+      throw new InternalServerErrorException("Cannot find student");
+    }
+    if (!student) {
+      throw new NotFoundException("Student not found");
+    }
+    return this.quizzesService.startQuiz(quizId, student.id, dto);
   }
 
   @Post("/:quizId/save-answer")
   @Roles("student")
   async saveAnswer(
-    @Req() req: any,
+    @Session() session: UserSession,
     @Param("quizId", ParseUUIDPipe) quizId: string,
     @Body() dto: SaveAnswerDto
   ) {
-    return this.quizzesService.saveAnswer(quizId, req.user.id, dto);
+    const [student, error] = await attempt(
+      db.query.students.findFirst({
+        where: eq(students.authUserId, session.user.id),
+        columns: {
+          id: true,
+        },
+      })
+    );
+    if (error) {
+      throw new InternalServerErrorException("Cannot find student");
+    }
+    if (!student) {
+      throw new NotFoundException("Student not found");
+    }
+    return this.quizzesService.saveAnswer(quizId, student.id, dto);
   }
 
   @Get("/:quizId/resume")
   @Roles("student")
   async resumeQuiz(
-    @Req() req: any,
+    @Session() session: UserSession,
     @Param("quizId", ParseUUIDPipe) quizId: string,
     @Query("enrollmentId", ParseIntPipe) enrollmentId: number
   ) {
-    return this.quizzesService.resumeQuiz(quizId, req.user.id, {
+    const [student, error] = await attempt(
+      db.query.students.findFirst({
+        where: eq(students.authUserId, session.user.id),
+        columns: {
+          id: true,
+        },
+      })
+    );
+    if (error) {
+      throw new InternalServerErrorException("Cannot find student");
+    }
+    if (!student) {
+      throw new NotFoundException("Student not found");
+    }
+    return this.quizzesService.resumeQuiz(quizId, student.id, {
       enrollmentId,
     });
   }
@@ -99,20 +148,48 @@ export class QuizzesController {
   @Post("/:quizId/submit")
   @Roles("student")
   async completeQuiz(
-    @Req() req: any,
+    @Session() session: UserSession,
     @Param("quizId", ParseUUIDPipe) quizId: string,
     @Body() dto: CompleteQuizDto
   ) {
-    return this.quizzesService.completeQuiz(quizId, req.user.id, dto);
+    const [student, error] = await attempt(
+      db.query.students.findFirst({
+        where: eq(students.authUserId, session.user.id),
+        columns: {
+          id: true,
+        },
+      })
+    );
+    if (error) {
+      throw new InternalServerErrorException("Cannot find student");
+    }
+    if (!student) {
+      throw new NotFoundException("Student not found");
+    }
+    return this.quizzesService.completeQuiz(quizId, student.id, dto);
   }
 
   @Get("/:quizId/completed")
   @Roles("student")
   async checkIfCompleted(
-    @Req() req: any,
+    @Session() session: UserSession,
     @Param('quizId', ParseUUIDPipe) quizId: string
   ) {
-    return this.quizzesService.checkIfCompleted(quizId, req.user.id);
+    const [student, error] = await attempt(
+      db.query.students.findFirst({
+        where: eq(students.authUserId, session.user.id),
+        columns: {
+          id: true,
+        },
+      })
+    );
+    if (error) {
+      throw new InternalServerErrorException("Cannot find student");
+    }
+    if (!student) {
+      throw new NotFoundException("Student not found");
+    }
+    return this.quizzesService.checkIfCompleted(quizId, student.id);
   }
 
   @Get('/:quizId/questions')
@@ -178,10 +255,24 @@ export class QuizzesController {
   @Get("/:quizId/results")
   @Roles("student")
   async getQuizResults(
-    @Req() req: any,
+    @Session() session: UserSession,
     @Param("quizId", ParseUUIDPipe) quizId: string
   ) {
-    return this.quizzesService.getQuizResults(req.user.id, quizId);
+    const [student, error] = await attempt(
+      db.query.students.findFirst({
+        where: eq(students.authUserId, session.user.id),
+        columns: {
+          id: true,
+        },
+      })
+    );
+    if (error) {
+      throw new InternalServerErrorException("Cannot find student");
+    }
+    if (!student) {
+      throw new NotFoundException("Student not found");
+    }
+    return this.quizzesService.getQuizResults(student.id, quizId);
   }
 
   @Get("/:quizId/analytics")
