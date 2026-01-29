@@ -33,7 +33,6 @@ export default function EditCoursePage() {
       const [response, error] = await attempt(
         getCourse(courseId, true, false, true)
       );
-      console.log(response)
       if (error) {
         toast.error("Error fetching course");
         return;
@@ -49,7 +48,7 @@ export default function EditCoursePage() {
       </div>
     );
 
-  // if (!data) redirect("/dashboard/courses");
+  if (!data) redirect("/dashboard/courses");
 
   return (
     <div className="container mx-auto">
