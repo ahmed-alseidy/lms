@@ -40,7 +40,7 @@ export default function CoursePage() {
     },
   });
 
-  const course = courseResponse?.data.data;
+  const course = courseResponse?.data;
 
   if (isLoading || !course) {
     return (

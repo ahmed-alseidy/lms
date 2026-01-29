@@ -65,8 +65,8 @@ export default function LessonPage() {
     },
   });
 
-  const course = courseResponse?.data.data;
-  const lesson = lessonResponse?.data.data;
+  const course = courseResponse?.data;
+  const lesson = lessonResponse?.data;
 
   const { data: isVideoCompleted, isLoading: isVideoLoading } = useQuery({
     queryKey: ["video-completed", lessonId],
@@ -84,7 +84,7 @@ export default function LessonPage() {
         toast.error(t("common.somethingWentWrong"));
         return;
       }
-      return response?.data.data;
+      return response?.data;
     },
   });
 
