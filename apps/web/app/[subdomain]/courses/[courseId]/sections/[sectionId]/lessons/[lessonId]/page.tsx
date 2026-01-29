@@ -172,7 +172,7 @@ export default function LessonPage() {
           userSelect: "none",
         }}
       >
-        <aside className="border-border/70 bg-muted sticky top-0 hidden h-full w-96 border-r border-l p-2 lg:block">
+        <aside className="border-border/70 bg-muted sticky top-0 hidden h-full w-96 border-r border-l p-2 xl:block">
           <div className="flex items-center gap-2 p-2">
             {course.imageUrl ? (
               <Image
@@ -220,7 +220,7 @@ export default function LessonPage() {
 
         <div className="flex w-full flex-1 flex-col items-center p-4 md:flex-1">
           <div className="mb-2 flex w-full max-w-6xl items-center gap-2">
-            <div className="lg:hidden">
+            <div className="xl:hidden">
               <SheetTrigger
                 className={cn(buttonVariants({ variant: "outline" }))}
               >
