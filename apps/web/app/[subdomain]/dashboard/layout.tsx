@@ -8,14 +8,19 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { getCurrentSession } from "@/lib/auth";
+import { getCurrentSession } from "@/lib/session";
 import { LowerSidebar } from "./courses/_components/lower-sidebar";
 import SidebarHeaderContent from "./sidebar-header-content";
 
 export default async function DashboardLayout({ children }: PropsWithChildren) {
   const session = await getCurrentSession();
-  console.log("session", session);
-  if (!session || !session.user || session.user.role !== "teacher") {
+  if (
+    !session ||
+    !session.user ||
+    session.user.role !== "teacher" ||
+    (session.session?.expiresAt &&
+      new Date(session.session.expiresAt) < new Date())
+  ) {
     redirect("/login-teacher");
   }
 

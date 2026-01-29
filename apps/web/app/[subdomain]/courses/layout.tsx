@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { ReactNode } from "react";
-import { getSession } from "@/lib/session";
+import { getCurrentSession } from "@/lib/session";
 import { Topbar } from "./topbar";
 
 export default async function HomeLayout({
@@ -8,8 +8,14 @@ export default async function HomeLayout({
 }: {
   children: ReactNode;
 }) {
-  const session = await getSession();
-  if (!session || !session.user || session.user.role !== "student")
+  const session = await getCurrentSession();
+  if (
+    !session ||
+    !session.user ||
+    session.user.role !== "student" ||
+    (session.session.expiresAt &&
+      new Date(session.session.expiresAt) < new Date())
+  )
     redirect("/login");
 
   return (
