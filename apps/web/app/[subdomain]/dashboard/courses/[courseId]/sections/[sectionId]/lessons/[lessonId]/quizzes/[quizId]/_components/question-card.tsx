@@ -101,7 +101,7 @@ export function QuestionCard({
             <div className="space-y-4">
               {question.answers?.map((answer) => (
                 <div
-                  className="flex items-start justify-between gap-4 rounded-lg border p-4"
+                  className="flex flex-wrap items-start justify-between gap-2 rounded-lg border p-4"
                   key={answer.id}
                 >
                   <AnswerEditForm

@@ -79,7 +79,7 @@ export function QuestionsSidebar({
   };
 
   return (
-    <Card className="w-full">
+    <Card className="min-w-0 w-full">
       <div className="border-b p-4">
         <h3 className="font-semibold">{t("quizzes.questions")}</h3>
         <p className="text-muted-foreground text-sm">

@@ -254,7 +254,7 @@ export default function QuizEditPage() {
         {/* Questions Sidebar */}
 
         {/* Questions List */}
-        <div className="lg:col-span-3 order-2 md:order-1">
+        <div className="lg:col-span-3 order-2 lg:order-1">
           {questions && questions.length > 0 ? (
             <div className="space-y-6">
               {questions.map((question, questionIndex) => (
@@ -281,7 +281,7 @@ export default function QuizEditPage() {
           )}
         </div>
 
-        <div className="lg:col-span-1 order-1 md:order-2">
+        <div className="lg:col-span-1 order-1 lg:order-2">
           <QuestionsSidebar
             isLoading={false}
             onQuestionSelect={setSelectedQuestionId}
