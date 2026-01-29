@@ -2,6 +2,7 @@
 
 import { IconDotsVertical } from "@tabler/icons-react";
 import { LogOut } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -21,6 +22,12 @@ import { logout } from "@/lib/auth";
 
 export function LowerSidebar({ user }: { user: any }) {
   const t = useTranslations("navigation");
+  const router = useRouter();
+
+  async function handleLogout() {
+    await logout();
+    router.replace("/login-teacher");
+  }
 
   return (
     <SidebarMenu className="border-t">
@@ -70,7 +77,7 @@ export function LowerSidebar({ user }: { user: any }) {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={logout}>
+            <DropdownMenuItem onClick={handleLogout}>
               <LogOut className="h-5 w-5" />
               {t("logout")}
             </DropdownMenuItem>

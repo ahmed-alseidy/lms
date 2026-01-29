@@ -100,7 +100,7 @@ export function QuizHeader({
             variant="outline"
           >
             <IconChartBar className="mr-2 h-4 w-4" />
-            Analytics
+            {t("quizzes.analytics")}
           </Button>
           <QuestionDialog
             questionLength={questionLength}
