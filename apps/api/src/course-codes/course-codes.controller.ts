@@ -1,8 +1,16 @@
-import { GenerateCodesDto, ValidateCodeDto } from "@lms-saas/shared-lib";
+import {
+  db,
+  GenerateCodesDto,
+  students,
+  teachers,
+  ValidateCodeDto,
+} from "@lms-saas/shared-lib";
 import {
   Body,
   Controller,
   Get,
+  InternalServerErrorException,
+  NotFoundException,
   Param,
   ParseIntPipe,
   Post,
@@ -10,8 +18,11 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { ApiBearerAuth } from "@nestjs/swagger";
+import { Session, UserSession } from "@thallesp/nestjs-better-auth";
+import { eq } from "drizzle-orm";
 import { Roles } from "@/auth/decorators/roles.decorator";
 import { RolesGuard } from "@/auth/guards/roles/roles.guard";
+import { attempt } from "@/utils/error-handling";
 import { CourseCodesService } from "./course-codes.service";
 
 @ApiBearerAuth()
@@ -25,12 +36,26 @@ export class CourseCodesController {
   async generateCodes(
     @Body() dto: GenerateCodesDto,
     @Param('courseId', ParseIntPipe) courseId: number,
-    @Req() req
+    @Session() session: UserSession
   ) {
+    const [teacher, error] = await attempt(
+      db.query.teachers.findFirst({
+        where: eq(teachers.authUserId, session.user.id),
+        columns: {
+          teacherId: true,
+        },
+      })
+    );
+    if (error) {
+      throw new InternalServerErrorException("Cannot find teacher");
+    }
+    if (!teacher) {
+      throw new NotFoundException("Teacher not found");
+    }
     return this.courseCodesService.generateCodes(
       courseId,
       dto.quantity,
-      req.user.id
+      teacher.teacherId
     );
   }
 
@@ -39,12 +64,27 @@ export class CourseCodesController {
   async validateCode(
     @Body() dto: ValidateCodeDto,
     @Param('courseId', ParseIntPipe) courseId: number,
-    @Req() req
+    @Session() session: UserSession
   ) {
+    const [student, error] = await attempt(
+      db.query.students.findFirst({
+        where: eq(students.authUserId, session.user.id),
+        columns: {
+          id: true,
+        },
+      })
+    );
+    if (error) {
+      throw new InternalServerErrorException("Cannot find student");
+    }
+    if (!student) {
+      throw new NotFoundException("Student not found");
+    }
+
     return this.courseCodesService.validateAndUseCode(
       dto.code,
       courseId,
-      req.user.id
+      student.id
     );
   }
 
@@ -52,8 +92,22 @@ export class CourseCodesController {
   @Roles("teacher")
   async getCourseCodes(
     @Param('courseId', ParseIntPipe) courseId: number,
-    @Req() req
+    @Session() session: UserSession
   ) {
-    return this.courseCodesService.getCourseCodes(courseId, req.user.id);
+    const [teacher, error] = await attempt(
+      db.query.teachers.findFirst({
+        where: eq(teachers.authUserId, session.user.id),
+        columns: {
+          teacherId: true,
+        },
+      })
+    );
+    if (error) {
+      throw new InternalServerErrorException("Cannot find teacher");
+    }
+    if (!teacher) {
+      throw new NotFoundException("Teacher not found");
+    }
+    return this.courseCodesService.getCourseCodes(courseId, teacher.teacherId);
   }
 }
