@@ -35,7 +35,7 @@ export default function StudentHomePage() {
         toast.error("Error fetching courses");
         return;
       }
-      return response;
+      return response ?? { courses: [], count: 0 };
     },
   });
 
@@ -51,11 +51,11 @@ export default function StudentHomePage() {
         toast.error("Error fetching enrolled courses");
         return;
       }
-      return response;
+      return response?.data || { courses: [], count: 0 };
     },
   });
 
-  if (isLoading || !data || enrolledCoursesLoading || !enrolledCourses)
+  if (isLoading || enrolledCoursesLoading || !enrolledCourses)
     return (
       <div className="flex h-[calc(100vh-200px)] items-center justify-center">
         <Loader className="text-muted-foreground h-8 w-8 animate-spin" />
@@ -67,9 +67,11 @@ export default function StudentHomePage() {
   }
 
   const courses =
-    coursesType === "all" ? data.courses : enrolledCourses.data.courses;
+    coursesType === "all"
+      ? data?.courses || []
+      : enrolledCourses?.courses || [];
   const count =
-    coursesType === "all" ? data.count : enrolledCourses.data.count || 0;
+    coursesType === "all" ? data?.count || 0 : enrolledCourses?.count || 0;
 
   const totalPages = Math.ceil(count / 8);
   const handlePageChange = (newPage: number) => {
