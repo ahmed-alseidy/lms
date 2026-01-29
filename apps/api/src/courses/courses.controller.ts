@@ -5,6 +5,7 @@ import {
   db,
   enrollments,
   students,
+  teachers,
   UpdateCourseSectionDto,
   UpdateEnrollmentProgressDto,
 } from "@lms-saas/shared-lib";
@@ -102,17 +103,46 @@ export class CoursesController {
   }
 
   @Get("/:courseId")
-  getOne(
+  async getOne(
     @Param('courseId', ParseIntPipe) courseId: number,
     @Query('with-enrollments', ParseBoolPipe) withEnrollments: boolean,
     @Query('with-sections', ParseBoolPipe) withSections: boolean,
     @Query('with-course-codes', ParseBoolPipe) withCourseCodes: boolean,
-    @Req() req
+    @Session() session: UserSession
   ) {
+    let userId: number | undefined;
     try {
+      if (session.user.role === "student") {
+        const [student, error] = await attempt(
+          db.query.students.findFirst({
+            where: eq(students.authUserId, session.user.id),
+            columns: {
+              id: true,
+            },
+          })
+        );
+        userId = student?.id;
+      } else if (session.user.role === "teacher") {
+        const [teacher, error] = await attempt(
+          db.query.teachers.findFirst({
+            where: eq(teachers.authUserId, session.user.id),
+            columns: {
+              teacherId: true,
+            },
+          })
+        );
+        if (error) {
+          throw new InternalServerErrorException("Cannot find teacher");
+        }
+        if (!teacher) {
+          throw new NotFoundException("Teacher not found");
+        }
+        userId = teacher?.teacherId;
+      }
+
       return this.coursesService.getOne(
         courseId,
-        req.user.id,
+        userId,
         withSections,
         withEnrollments,
         withCourseCodes
