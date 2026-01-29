@@ -31,7 +31,11 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
-import { CourseWithSectionsAndEnrollments, deleteCourse, updateCourse } from "@/lib/courses";
+import {
+  CourseWithSectionsAndEnrollments,
+  deleteCourse,
+  updateCourse,
+} from "@/lib/courses";
 import { attempt, cn } from "@/lib/utils";
 import { ChaptersList } from "./chapters-list";
 import { DescriptionForm } from "./description-form";
@@ -39,7 +43,11 @@ import { ImageForm } from "./image-form";
 import { PriceForm } from "./price-form";
 import { TitleForm } from "./title-form";
 
-export default function CourseEdit({ course }: { course: CourseWithSectionsAndEnrollments }) {
+export default function CourseEdit({
+  course,
+}: {
+  course: CourseWithSectionsAndEnrollments;
+}) {
   const t = useTranslations("courses");
   const tCommon = useTranslations("common");
 
@@ -184,7 +192,10 @@ export default function CourseEdit({ course }: { course: CourseWithSectionsAndEn
                 courseId={course.id}
                 initialData={{ price: course.price }}
               />
-              <ImageForm courseId={course.id} initialData={{ imageUrl: course.imageUrl || "" }} />
+              <ImageForm
+                courseId={course.id}
+                initialData={{ imageUrl: course.imageUrl || "" }}
+              />
             </div>
           </div>
         </div>

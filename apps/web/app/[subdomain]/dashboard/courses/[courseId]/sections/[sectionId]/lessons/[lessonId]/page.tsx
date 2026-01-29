@@ -67,7 +67,7 @@ export default function LessonPage() {
         toast.error(tCommon("somethingWentWrong"));
         return;
       }
-      return response.data;
+      return response;
     },
   });
 
@@ -81,7 +81,7 @@ export default function LessonPage() {
         toast.error(tCommon("somethingWentWrong"));
         return;
       }
-      return response.data;
+      return response;
     },
   });
 
@@ -101,7 +101,7 @@ export default function LessonPage() {
         return;
       }
 
-      return response.data;
+      return response;
     },
   });
 
@@ -173,7 +173,7 @@ export default function LessonPage() {
     );
   }
 
-  const lesson = lessonData.data.data;
+  const lesson = lessonData.data;
 
   return (
     <div className="container mx-auto space-y-4">
