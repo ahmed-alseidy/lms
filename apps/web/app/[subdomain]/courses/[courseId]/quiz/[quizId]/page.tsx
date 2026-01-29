@@ -210,7 +210,11 @@ export default function QuizPage() {
     queryFn: async () => {
       const [response, error] = await attempt(isQuizCompleted(quizId));
       if (error) {
-        throw new Error("Failed to check quiz completion");
+        const message =
+          (error as any)?.response?.data?.message ??
+          (error as any)?.message ??
+          "Failed to check quiz completion";
+        throw new Error(message);
       }
       return response.data;
     },
@@ -227,7 +231,14 @@ export default function QuizPage() {
 
   // Start or resume quiz on mount
   useEffect(() => {
-    if (!quiz || !enrollmentId || quizCompleted || !isStarting) return;
+    if (
+      !quiz ||
+      !enrollmentId ||
+      quizCompleted ||
+      !isStarting ||
+      quiz.questions.length === 0
+    )
+      return;
 
     const initializeQuiz = async () => {
       try {
@@ -235,8 +246,6 @@ export default function QuizPage() {
         const [resumeResponse, resumeError] = await attempt(
           resumeQuiz(quizId, enrollmentId)
         );
-
-        console.log("resumeResponse", resumeResponse?.data);
 
         if (!resumeError && resumeResponse?.data) {
           // Resume existing quiz
@@ -253,8 +262,6 @@ export default function QuizPage() {
         const [startResponse, startError] = await attempt(
           startQuiz(quizId, enrollmentId)
         );
-
-        console.log("start response", startResponse?.data);
 
         if (startError || !startResponse?.data) {
           toast.error(t("quizzes.failedToStartQuiz"));
@@ -273,7 +280,15 @@ export default function QuizPage() {
     };
 
     initializeQuiz();
-  }, [quiz, enrollmentId, quizId, quizCompleted, isStarting, t]);
+  }, [
+    quiz,
+    enrollmentId,
+    quizId,
+    quizCompleted,
+    isStarting,
+    t,
+    quiz?.questions.length,
+  ]);
 
   // Update timer from server periodically
   useEffect(() => {
@@ -323,10 +338,6 @@ export default function QuizPage() {
 
   // Client-side timer countdown
   useEffect(() => {
-    console.log("Timer effect - shouldTimerRun:", shouldTimerRun);
-    console.log("Timer effect - timeRemaining:", timeRemaining);
-    console.log("Timer effect - isStarting:", isStarting);
-
     // Clear any existing timer first
     if (timerIntervalRef.current) {
       clearInterval(timerIntervalRef.current);
@@ -335,11 +346,8 @@ export default function QuizPage() {
 
     // Don't start countdown if conditions aren't met
     if (!shouldTimerRun) {
-      console.log("Timer not ready - shouldTimerRun is false");
       return;
     }
-
-    console.log("Starting timer countdown with timeRemaining:", timeRemaining);
 
     // Timer is ready to start - timeRemaining is set and initialization is complete
     timerIntervalRef.current = setInterval(() => {
@@ -355,7 +363,6 @@ export default function QuizPage() {
     }, 1000);
 
     return () => {
-      console.log("Clearing timer on cleanup");
       if (timerIntervalRef.current) {
         clearInterval(timerIntervalRef.current);
         timerIntervalRef.current = null;
@@ -554,13 +561,7 @@ export default function QuizPage() {
     );
   }
 
-  if (
-    isQuizLoading ||
-    isQuizCompletedLoading ||
-    isCourseLoading ||
-    isStarting ||
-    !submissionId
-  ) {
+  if (isQuizLoading || isQuizCompletedLoading || isCourseLoading) {
     return <LoadingSpinner />;
   }
 
@@ -594,7 +595,7 @@ export default function QuizPage() {
     );
   }
 
-  if (quizCompleted && isTimerExpired) {
+  if (quizCompleted) {
     return (
       <ErrorState
         buttonText={t("quizzes.viewResults")}
