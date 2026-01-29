@@ -1,5 +1,5 @@
-import { courses, db, enrollments, students } from "@lms-saas/shared-lib";
-import { Injectable, InternalServerErrorException } from "@nestjs/common";
+import { courses, db, enrollments, students, teachers } from "@lms-saas/shared-lib";
+import { Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
 import * as dayjs from "dayjs";
 import { attempt } from "@/utils/error-handling";
 import "dayjs/locale/ar";
@@ -18,10 +18,20 @@ import {
 
 @Injectable()
 export class AnalyticsService {
-  async getStudents(teacherId: number, page: number = 1, limit: number = 10) {
+  async getStudents(userId: string, page: number = 1, limit: number = 10) {
+    const [teacher, teacherError] = await attempt(db.query.teachers.findFirst({
+      where: eq(teachers.authUserId, userId),
+      columns: {
+        teacherId: true,
+      },
+    }));
+    if (teacherError || !teacher) {
+      throw new InternalServerErrorException("Cannot process teacher");
+    }
+
     const [studentsResult, studentsError] = await attempt(
       db.query.students.findMany({
-        where: eq(students.teacherId, teacherId),
+        where: eq(students.teacherId, teacher.teacherId),
         orderBy: desc(students.createdAt),
         offset: (page - 1) * limit,
         limit,
@@ -33,18 +43,36 @@ export class AnalyticsService {
         },
       })
     );
+    console.log("studentsResult", studentsResult);
     if (studentsError || !studentsResult) {
       throw new InternalServerErrorException("Cannot process students");
     }
     return { students: studentsResult };
   }
+  private async getTeacher(userId: string) {
+    const [teacher, teacherError] = await attempt(db.query.teachers.findFirst({
+      where: eq(teachers.authUserId, userId),
+      columns: {
+        teacherId: true,
+      },
+    }));
+    if (teacherError) {
+      throw new InternalServerErrorException("Cannot process teacher");
+    }
+    if (!teacher) {
+      throw new NotFoundException("Teacher not found");
+    }
+    return teacher;
+  }
 
-  async getOverview(teacherId: number) {
+  async getOverview(userId: string) {
+    const teacher = await this.getTeacher(userId);
+
     let [studentCountResult, studentsError] = await attempt(
       db
         .select({ count: count(students.id) })
         .from(students)
-        .where(eq(students.teacherId, teacherId))
+        .where(eq(students.teacherId, teacher.teacherId))
     );
     if (studentsError || !studentCountResult) {
       studentCountResult = [{ count: 0 }];
@@ -54,7 +82,7 @@ export class AnalyticsService {
       db
         .select({ count: count(courses.id) })
         .from(courses)
-        .where(eq(courses.teacherId, teacherId))
+        .where(eq(courses.teacherId, teacher.teacherId))
     );
     if (coursesError || !courseCountResult) {
       courseCountResult = [{ count: 0 }];
@@ -67,7 +95,7 @@ export class AnalyticsService {
         .innerJoin(courses, eq(enrollments.courseId, courses.id))
         .where(
           and(
-            eq(courses.teacherId, teacherId),
+            eq(courses.teacherId, teacher.teacherId),
             eq(enrollments.status, "active")
           )
         )
@@ -81,7 +109,7 @@ export class AnalyticsService {
         .select({ avg: avg(enrollments.progress) })
         .from(enrollments)
         .innerJoin(courses, eq(enrollments.courseId, courses.id))
-        .where(eq(courses.teacherId, teacherId))
+        .where(eq(courses.teacherId, teacher.teacherId))
     );
     if (avgCompletionRateError || !avgCompletionRate) {
       avgCompletionRate = [{ avg: "0.00" }];
@@ -93,7 +121,7 @@ export class AnalyticsService {
         .from(students)
         .where(
           and(
-            eq(students.teacherId, teacherId),
+            eq(students.teacherId, teacher.teacherId),
             lt(students.createdAt, dayjs().subtract(1, "month").toDate())
           )
         )
@@ -113,7 +141,7 @@ export class AnalyticsService {
         .innerJoin(courses, eq(enrollments.courseId, courses.id))
         .where(
           and(
-            eq(courses.teacherId, teacherId),
+            eq(courses.teacherId, teacher.teacherId),
             gte(
               enrollments.enrolledAt,
               dayjs().subtract(1, "month").endOf("month").toDate()
@@ -129,7 +157,7 @@ export class AnalyticsService {
         .innerJoin(courses, eq(enrollments.courseId, courses.id))
         .where(
           and(
-            eq(courses.teacherId, teacherId),
+            eq(courses.teacherId, teacher.teacherId),
             eq(enrollments.status, "active"),
             gte(enrollments.enrolledAt, dayjs().startOf("month").toDate()),
             lt(enrollments.enrolledAt, dayjs().endOf("month").toDate())
@@ -150,7 +178,7 @@ export class AnalyticsService {
         .from(courses)
         .where(
           and(
-            eq(courses.teacherId, teacherId),
+            eq(courses.teacherId, teacher.teacherId),
             gte(
               courses.createdAt,
               dayjs().subtract(1, "month").startOf("month").toDate()
@@ -176,7 +204,7 @@ export class AnalyticsService {
           .innerJoin(courses, eq(enrollments.courseId, courses.id))
           .where(
             and(
-              eq(courses.teacherId, teacherId),
+              eq(courses.teacherId, teacher.teacherId),
               gte(
                 enrollments.completedAt,
                 dayjs().subtract(1, "month").toDate()
@@ -209,7 +237,8 @@ export class AnalyticsService {
     };
   }
 
-  async getMonthlyData(teacherId: number, period: number = 6) {
+  async getMonthlyData(userId: string, period: number = 6) {
+    const teacher = await this.getTeacher(userId);
     let startDate = dayjs().startOf("month");
     let endDate = dayjs().endOf("month");
     let data: {
@@ -229,7 +258,7 @@ export class AnalyticsService {
             and(
               gte(students.createdAt, startDate.toDate()),
               lt(students.createdAt, endDate.toDate()),
-              eq(students.teacherId, teacherId)
+              eq(students.teacherId, teacher.teacherId)
             )
           )
       );
@@ -244,7 +273,7 @@ export class AnalyticsService {
           .innerJoin(courses, eq(courses.id, enrollments.courseId))
           .where(
             and(
-              eq(courses.teacherId, teacherId),
+              eq(courses.teacherId, teacher.teacherId),
               gte(enrollments.enrolledAt, startDate.toDate()),
               lt(enrollments.enrolledAt, endDate.toDate())
             )
@@ -279,7 +308,7 @@ export class AnalyticsService {
           .innerJoin(courses, eq(courses.id, enrollments.courseId))
           .where(
             and(
-              eq(courses.teacherId, teacherId),
+              eq(courses.teacherId, teacher.teacherId),
               gte(enrollments.enrolledAt, startDate.toDate()),
               lt(enrollments.enrolledAt, endDate.toDate())
             )
@@ -296,7 +325,7 @@ export class AnalyticsService {
           .innerJoin(courses, eq(courses.id, enrollments.courseId))
           .where(
             and(
-              eq(courses.teacherId, teacherId),
+              eq(courses.teacherId, teacher.teacherId),
               gte(enrollments.enrolledAt, startDate.toDate()),
               lt(enrollments.enrolledAt, endDate.toDate()),
               eq(enrollments.status, "active")
@@ -325,7 +354,8 @@ export class AnalyticsService {
     return { monthlyData: data };
   }
 
-  async getTopCourses(teacherId: number, limit: number = 5) {
+  async getTopCourses(userId: string, limit: number = 5) {
+    const teacher = await this.getTeacher(userId);
     const [topCourses, topCoursesError] = await attempt(
       db
         .select({
@@ -340,7 +370,7 @@ export class AnalyticsService {
         })
         .from(enrollments)
         .innerJoin(courses, eq(enrollments.courseId, courses.id))
-        .where(eq(courses.teacherId, teacherId))
+        .where(eq(courses.teacherId, teacher.teacherId))
         .groupBy(courses.id)
         .orderBy(desc(count(enrollments.id)), desc(courses.createdAt))
         .limit(limit)
@@ -351,7 +381,8 @@ export class AnalyticsService {
     return { topCourses };
   }
 
-  async getRecentActivities(teacherId: number, limit: number = 5) {
+  async getRecentActivities(userId: string, limit: number = 5) {
+    const teacher = await this.getTeacher(userId);
     const [recentEnrollments, recentEnrollmentsError] = await attempt(
       db
         .select({
@@ -371,7 +402,7 @@ export class AnalyticsService {
         .innerJoin(students, eq(enrollments.studentId, students.id))
         .where(
           and(
-            eq(courses.teacherId, teacherId),
+            eq(courses.teacherId, teacher.teacherId),
             eq(enrollments.status, "active")
           )
         )
@@ -398,7 +429,7 @@ export class AnalyticsService {
         .innerJoin(students, eq(enrollments.studentId, students.id))
         .where(
           and(
-            eq(courses.teacherId, teacherId),
+            eq(courses.teacherId, teacher.teacherId),
             eq(enrollments.progress, 1),
             isNotNull(enrollments.completedAt)
           )
@@ -467,7 +498,8 @@ export class AnalyticsService {
     return `${diffInMonths} month${diffInMonths > 1 ? "s" : ""} ago`;
   }
 
-  async getRevenueBreakdown(teacherId: number, months: number = 6) {
+  async getRevenueBreakdown(userId: string, months: number = 6) {
+    const teacher = await this.getTeacher(userId);
     const [courseSales, courseSalesError] = await attempt(
       db
         .select({
@@ -475,7 +507,7 @@ export class AnalyticsService {
         })
         .from(enrollments)
         .innerJoin(courses, eq(enrollments.courseId, courses.id))
-        .where(eq(courses.teacherId, teacherId))
+        .where(eq(courses.teacherId, teacher.teacherId))
     );
     if (courseSalesError || !courseSales) {
       throw new InternalServerErrorException("Cannot process course sales");
@@ -500,7 +532,7 @@ export class AnalyticsService {
           .innerJoin(courses, eq(enrollments.courseId, courses.id))
           .where(
             and(
-              eq(courses.teacherId, teacherId),
+              eq(courses.teacherId, teacher.teacherId),
               gte(enrollments.enrolledAt, start),
               lt(enrollments.enrolledAt, end),
               eq(enrollments.status, "active")
