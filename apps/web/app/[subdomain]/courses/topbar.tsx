@@ -1,7 +1,7 @@
 "use client";
 
 import { LogOut, User } from "lucide-react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import LanguageSwitcher from "@/components/language-switcher";
@@ -16,17 +16,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { logout } from "@/lib/auth";
-import { getSession } from "@/lib/session";
+import { getCurrentSessionClient, logout } from "@/lib/auth";
 
 export function Topbar() {
   const params = useParams();
   const [user, setUser] = useState<{ name: string } | null>(null);
   const t = useTranslations();
+  const router = useRouter();
 
   useEffect(() => {
     const fetchUser = async () => {
-      const session = await getSession();
+      const session = await getCurrentSessionClient();
       if (session?.user) {
         setUser(session.user);
       }
@@ -36,6 +36,7 @@ export function Topbar() {
 
   const handleLogout = async () => {
     await logout();
+    router.replace("/login");
   };
 
   return (
