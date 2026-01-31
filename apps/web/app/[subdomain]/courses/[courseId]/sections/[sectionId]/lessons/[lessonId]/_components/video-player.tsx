@@ -38,7 +38,7 @@ export const VideoPlayer = ({ lesson }: { lesson: Lesson }) => {
     <div className="flex w-full items-center justify-center bg-black">
       <VideoJsPlayer
         className="w-full"
-        src={videoResponse?.data.data.manifestUrl || ""}
+        src={videoResponse?.data.manifestUrl || ""}
       />
     </div>
   );

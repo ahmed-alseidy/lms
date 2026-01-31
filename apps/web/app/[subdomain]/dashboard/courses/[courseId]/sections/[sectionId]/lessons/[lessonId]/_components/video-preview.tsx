@@ -48,7 +48,7 @@ export const VideoPreview = ({
   if (isError) return <div>{tCommon("somethingWentWrong")}</div>;
   if (!videoData) return <div>{tCommon("somethingWentWrong")}</div>;
 
-  const video = videoData.data.data;
+  const video = videoData.data;
 
   return (
     <div className="space-y-4">
