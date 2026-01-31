@@ -23,22 +23,34 @@ export class AnalyticsController {
   }
 
   @Get("monthly")
-  async getMonthlyData(@Session() session: UserSession, @Query('period') period: number) {
+  async getMonthlyData(
+    @Session() session: UserSession,
+    @Query('period') period: number
+  ) {
     return this.analyticsService.getMonthlyData(session.user.id, period);
   }
 
   @Get("top-courses")
-  async getTopCourses(@Session() session: UserSession, @Query('limit') limit: number) {
+  async getTopCourses(
+    @Session() session: UserSession,
+    @Query('limit') limit: number
+  ) {
     return this.analyticsService.getTopCourses(session.user.id, limit);
   }
 
   @Get("activity")
-  async getRecentActivities(@Session() session: UserSession, @Query('limit') limit: number) {
+  async getRecentActivities(
+    @Session() session: UserSession,
+    @Query('limit') limit: number
+  ) {
     return this.analyticsService.getRecentActivities(session.user.id, limit);
   }
 
   @Get("revenue/breakdown")
-  async getRevenueBreakdown(@Session() session: UserSession, @Query('month') month: number) {
+  async getRevenueBreakdown(
+    @Session() session: UserSession,
+    @Query('month') month: number
+  ) {
     return this.analyticsService.getRevenueBreakdown(session.user.id, month);
   }
 }

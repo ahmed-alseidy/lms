@@ -1,5 +1,15 @@
-import { courses, db, enrollments, students, teachers } from "@lms-saas/shared-lib";
-import { Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
+import {
+  courses,
+  db,
+  enrollments,
+  students,
+  teachers,
+} from "@lms-saas/shared-lib";
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from "@nestjs/common";
 import * as dayjs from "dayjs";
 import { attempt } from "@/utils/error-handling";
 import "dayjs/locale/ar";
@@ -19,12 +29,14 @@ import {
 @Injectable()
 export class AnalyticsService {
   async getStudents(userId: string, page: number = 1, limit: number = 10) {
-    const [teacher, teacherError] = await attempt(db.query.teachers.findFirst({
-      where: eq(teachers.authUserId, userId),
-      columns: {
-        teacherId: true,
-      },
-    }));
+    const [teacher, teacherError] = await attempt(
+      db.query.teachers.findFirst({
+        where: eq(teachers.authUserId, userId),
+        columns: {
+          teacherId: true,
+        },
+      })
+    );
     if (teacherError || !teacher) {
       throw new InternalServerErrorException("Cannot process teacher");
     }
@@ -50,12 +62,14 @@ export class AnalyticsService {
     return { students: studentsResult };
   }
   private async getTeacher(userId: string) {
-    const [teacher, teacherError] = await attempt(db.query.teachers.findFirst({
-      where: eq(teachers.authUserId, userId),
-      columns: {
-        teacherId: true,
-      },
-    }));
+    const [teacher, teacherError] = await attempt(
+      db.query.teachers.findFirst({
+        where: eq(teachers.authUserId, userId),
+        columns: {
+          teacherId: true,
+        },
+      })
+    );
     if (teacherError) {
       throw new InternalServerErrorException("Cannot process teacher");
     }
