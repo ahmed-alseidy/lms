@@ -168,7 +168,10 @@
     "yourProgress": "تقدمك",
     "sections": "الفصول",
     "lesson": "الدرس",
-    "complete": "مكتمل"
+    "complete": "مكتمل",
+    "previousSectionNotCompleted": "الفصل السابق غير مكتمل",
+    "previousSectionNotCompletedDescription": "أكمل جميع الدروس في الفصل السابق للوصول إلى هذا المحتوى.",
+    "goToPreviousSection": "الانتقال إلى الفصل السابق"
   },
   "lessons": {
     "title": "الدروس",

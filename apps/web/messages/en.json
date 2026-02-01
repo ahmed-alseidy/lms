@@ -172,7 +172,10 @@
     "yourProgress": "Your Progress",
     "sections": "Sections",
     "lesson": "lesson",
-    "complete": "complete"
+    "complete": "complete",
+    "previousSectionNotCompleted": "Previous section not completed",
+    "previousSectionNotCompletedDescription": "Complete all lessons in the previous section before you can access this content.",
+    "goToPreviousSection": "Go to previous section"
   },
   "lessons": {
     "title": "Lessons",

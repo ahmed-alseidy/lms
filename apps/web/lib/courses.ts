@@ -271,3 +271,27 @@ export async function checkIfLessonCompleted(
     { method: "GET" }
   );
 }
+
+export async function checkPreviousSectionCompleted(
+  courseId: number,
+  sectionId: number,
+  enrollmentId: number
+) {
+  return authFetch<{ completed: boolean }>(
+    `${baseUrl}/${courseId}/sections/${sectionId}/previous-completed?enrollmentId=${enrollmentId}`,
+    { method: "GET" }
+  );
+}
+
+
+export async function checkPreviousLessonCompleted(
+  courseId: number,
+  sectionId: number,
+  lessonId: number,
+  enrollmentId: number
+) {
+  return authFetch<{ completed: boolean }>(
+    `${baseUrl}/${courseId}/sections/${sectionId}/lessons/${lessonId}/previous-completed?enrollmentId=${enrollmentId}`,
+    { method: "GET" }
+  );
+}

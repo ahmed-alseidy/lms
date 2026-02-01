@@ -79,4 +79,16 @@ export class LessonsController {
   ) {
     return await this.lessonsService.checkIfCompleted(lessonId, enrollmentId);
   }
+
+  @Get("/:lessonId/previous-completed")
+  @Roles("student")
+  async getPreviousCompleted(
+    @Param('lessonId', ParseIntPipe) lessonId: number,
+    @Query('enrollmentId', ParseIntPipe) enrollmentId: number
+  ) {
+    return await this.lessonsService.checkPreviousLessonCompleted(
+      lessonId,
+      enrollmentId
+    );
+  }
 }

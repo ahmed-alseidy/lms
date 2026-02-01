@@ -18,7 +18,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from "@nestjs/common";
-import { and, count, desc, eq, inArray } from "drizzle-orm";
+import { and, count, desc, eq, inArray, lt } from "drizzle-orm";
 import { Role } from "@/auth/types/roles";
 import { attempt } from "@/utils/error-handling";
 
@@ -548,5 +548,79 @@ export class CoursesService {
       .where(eq(enrollments.id, enrollmentId));
 
     return { progress };
+  }
+
+  async checkPreviousSectionCompleted(sectionId: number, enrollmentId: number) {
+    const [currentSection, currentSectionError] = await attempt(
+      db.query.courseSections.findFirst({
+        where: eq(courseSections.id, sectionId),
+        columns: { id: true, orderIndex: true },
+      })
+    );
+    if (currentSectionError) {
+      throw currentSectionError;
+    }
+    if (!currentSection) {
+      throw new NotFoundException("Section not found");
+    }
+
+    const [previousSection, previousSectionError] = await attempt(
+      db.query.courseSections.findFirst({
+        where: lt(courseSections.orderIndex, currentSection.orderIndex),
+        orderBy: [desc(courseSections.orderIndex)],
+        columns: { id: true, orderIndex: true },
+      })
+    );
+    if (previousSectionError) {
+      throw previousSectionError;
+    }
+    console.log("previousSection", previousSection);
+
+    if (!previousSection) {
+      return { completed: true };
+    }
+
+    // Get all lessons for this section that are before the current section
+    const [previousLessons, previousLessonsError] = await attempt(
+      db.query.lessons.findMany({
+        where: and(eq(lessons.sectionId, previousSection.id)),
+        columns: { id: true },
+      })
+    );
+
+    if (previousLessonsError) {
+      throw new InternalServerErrorException("Error fetching previous lessons");
+    }
+
+    // Get all completed lessons for this enrollment
+    // If the number of completed lessons is equal to the number of lessons, return true
+    // Otherwise, return false
+    const [completedLessons, completedLessonsError] = await attempt(
+      db.query.studentLessonCompletions.findMany({
+        where: and(
+          eq(studentLessonCompletions.enrollmentId, enrollmentId),
+          inArray(
+            studentLessonCompletions.lessonId,
+            previousLessons.map((l) => l.id)
+          )
+        ),
+        columns: { id: true, lessonId: true },
+      })
+    );
+
+    console.log("completedLessons", completedLessons);
+    console.log("previousLessons", previousLessons);
+
+    if (completedLessonsError) {
+      throw new InternalServerErrorException(
+        "Error fetching completed lessons"
+      );
+    }
+
+    if (completedLessons.length === previousLessons.length) {
+      return { completed: true };
+    }
+
+    return { completed: false };
   }
 }

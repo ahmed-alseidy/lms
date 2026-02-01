@@ -18,7 +18,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from "@nestjs/common";
-import { and, count, eq, sql } from "drizzle-orm";
+import { and, asc, count, eq, sql } from "drizzle-orm";
 import { attempt } from "@/utils/error-handling";
 
 @Injectable()
@@ -268,6 +268,70 @@ export class LessonsService {
 
     return {
       completed: !!result,
+    };
+  }
+
+  async checkPreviousLessonCompleted(lessonId: number, enrollmentId: number) {
+    const [currentLesson, currentLessonError] = await attempt(
+      db.query.lessons.findFirst({
+        where: eq(lessons.id, lessonId),
+        columns: { id: true, sectionId: true, orderIndex: true },
+      })
+    );
+
+    if (currentLessonError) {
+      throw currentLessonError;
+    }
+
+    if (!currentLesson) {
+      throw new NotFoundException("Lesson not found");
+    }
+
+    const [lessonsList, lessonsListError] = await attempt(
+      db.query.lessons.findMany({
+        where: eq(lessons.sectionId, currentLesson.sectionId),
+        orderBy: [asc(lessons.orderIndex)],
+        columns: { id: true, orderIndex: true },
+      })
+    );
+    console.log("lessonsList", lessonsList);
+
+    if (lessonsListError) {
+      throw lessonsListError;
+    }
+
+    const previousLesson = lessonsList.find(
+      (l) => l.orderIndex === currentLesson.orderIndex - 1
+    );
+
+    if (!previousLesson) {
+      return { completed: true };
+    }
+
+    const [previousLessonCompletion, previousLessonCompletionError] =
+      await attempt(
+        db.query.studentLessonCompletions.findFirst({
+          where: and(
+            eq(studentLessonCompletions.lessonId, previousLesson.id),
+            eq(studentLessonCompletions.enrollmentId, enrollmentId)
+          ),
+          columns: { id: true },
+        })
+      );
+    console.log("previousLessonCompletion", previousLessonCompletion);
+
+    if (previousLessonCompletionError) {
+      throw new InternalServerErrorException(
+        "Error checking previous lesson completion"
+      );
+    }
+
+    if (!previousLessonCompletion) {
+      return { completed: false };
+    }
+
+    return {
+      completed: !!previousLessonCompletion,
     };
   }
 }

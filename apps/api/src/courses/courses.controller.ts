@@ -321,4 +321,16 @@ export class CoursesController {
   updateProgress(@Body() dto: UpdateEnrollmentProgressDto) {
     return this.coursesService.updateEnrollmentProgress(dto.enrollmentId);
   }
+
+  @Get("/:courseId/sections/:sectionId/previous-completed")
+  @Roles("student")
+  async checkPreviousSectionCompleted(
+    @Param('sectionId', ParseIntPipe) sectionId: number,
+    @Query('enrollmentId', ParseIntPipe) enrollmentId: number
+  ) {
+    return await this.coursesService.checkPreviousSectionCompleted(
+      sectionId,
+      enrollmentId
+    );
+  }
 }
