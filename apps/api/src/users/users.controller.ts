@@ -36,7 +36,6 @@ export class UsersController {
   async getCurrentSession(
     @Session() session: UserSession,
   ) {
-    console.log("session", session);
     return session;
   }
 

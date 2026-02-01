@@ -85,7 +85,6 @@ export async function getCoursesByTeacherId(
 }
 
 export async function createCourse(input: CreateCourseDto) {
-  console.log("input", input);
   await authFetch<void>(baseUrl, { method: "POST", data: input });
 }
 

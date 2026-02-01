@@ -279,8 +279,6 @@ function SectionAccordion({
   const [locale] = useAtom(localeAtom);
   const t = useTranslations();
 
-  console.log(section);
-
   return (
     <Card
       className={cn(

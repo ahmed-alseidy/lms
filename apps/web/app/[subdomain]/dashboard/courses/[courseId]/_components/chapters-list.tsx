@@ -52,7 +52,7 @@ export const ChaptersList = ({ course }: { course: any }) => {
       createCourseSection(course.id, newSection)
     );
     if (error) {
-      console.log(error);
+      toast.error(tCommon("somethingWentWrong"));
     } else {
       setSections([...sections, res.data[0]!]);
       queryClient.invalidateQueries({

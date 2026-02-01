@@ -112,7 +112,6 @@ export class QuizzesService {
 
   // Question operations
   async createQuestion(quizId: string, dto: CreateQuizQuestionDto) {
-    console.log("dto", dto);
     const [question] = await db.transaction(async (tx) => {
       // Create question
       const [newQuestion] = await tx
@@ -142,7 +141,6 @@ export class QuizzesService {
             answerText: quizAnswers.answerText,
             isCorrect: quizAnswers.isCorrect,
           });
-        console.log("answers", answers);
       }
       newQuestion["answers"] = answers;
 
@@ -869,9 +867,6 @@ export class QuizzesService {
         submittedAnswer: submittedAnswer?.answer,
       };
     });
-    console.log(response?.id);
-    console.log(questionsResult);
-    console.log(submittedQuestionAnswers);
 
     if (error) {
       throw error;

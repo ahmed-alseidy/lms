@@ -75,7 +75,6 @@ export default function ResultsPage() {
   const results = quizResultsData!;
   const percentage = Number(results.score) * 100;
   const questionsCount = results.questions.length;
-  console.log(results.questions);
 
   return (
     <div className="mx-auto mt-10 max-w-2xl rounded-lg p-6 border border-border">

@@ -55,7 +55,6 @@ export class AnalyticsService {
         },
       })
     );
-    console.log("studentsResult", studentsResult);
     if (studentsError || !studentsResult) {
       throw new InternalServerErrorException("Cannot process students");
     }

@@ -53,7 +53,6 @@ export class S3Service {
     expiresIn: number = 60 * 60 * 1000
   ) {
     const isSegment = key.endsWith(".ts");
-    console.log("isSegment", isSegment);
     const actualContentType = isSegment ? "video/mp2t" : contentType;
 
     return createPresignedPost(this.s3Client, {

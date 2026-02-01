@@ -71,7 +71,6 @@ export const QuestionDialog = ({
   const { isSubmitting, isValid } = form.formState;
 
   const onSubmit = async (data: CreateQuizQuestionDto) => {
-    console.log(data);
     try {
       const [response, error] = await attempt(createQuestion(quizId, data));
       if (error) {

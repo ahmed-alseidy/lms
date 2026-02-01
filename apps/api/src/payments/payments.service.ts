@@ -16,7 +16,6 @@ export class PaymentsService {
   ) {}
 
   async getPaymentMethods() {
-    console.log(this._paymentsConfig.fawaterak.apiToken);
     const url = `${this._paymentsConfig.fawaterak.baseUrl}/getPaymentmethods`;
     const [response, error] = await attempt(
       axios.get(url, {

@@ -27,7 +27,6 @@ export async function signupTeacher(input: CreateTeacherDto) {
 export async function loginUser(input: LoginUserDto) {
   try {
     const res = await axios.post(`${BACKEND_URL}/users/login`, input);
-    console.log(res.data);
     const cookies = res.data.cookies;
 
     await setBetterAuthCookieToken(cookies);

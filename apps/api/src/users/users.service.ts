@@ -117,11 +117,9 @@ export class UsersService {
   }
 
   async getCurrentSession(req: Request) {
-    console.log("headers", req.headers);
     const res = await auth.api.getSession({
       headers: req.headers,
     });
-    console.log("res", res);
     return res;
   }
 

@@ -99,7 +99,6 @@ export default function QuizEditPage() {
       if (error) {
         toast.error(t("quizzes.errorFetchingQuiz"));
       }
-      console.log(response?.data);
       setQuestions(response?.data?.questions || []);
       return response?.data;
     },

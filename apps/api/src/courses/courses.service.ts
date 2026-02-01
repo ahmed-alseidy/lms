@@ -76,13 +76,6 @@ export class CoursesService {
     published: boolean = false,
     withEnrollments?: boolean
   ) {
-    console.log("userId", userId);
-    console.log("role", role);
-    console.log("offset", offset);
-    console.log("limit", limit);
-    console.log("withTeacher", withTeacher);
-    console.log("published", published);
-    console.log("withEnrollments", withEnrollments);
     const [userRes, userError] = await attempt(
       db
         .select()
@@ -122,7 +115,6 @@ export class CoursesService {
     // If the user is a student, use the teacherId from the user.student object.
     const teacherId =
       role === "teacher" ? user.teachers?.teacherId : user.students?.teacherId;
-    console.log("teacherId", teacherId);
     if (!teacherId) throw new NotFoundException("User not found");
     let res;
     if (!offset && !limit)
@@ -156,7 +148,6 @@ export class CoursesService {
       });
     }
 
-    console.log("courses", res);
     let myEnrollment: {
       id: number;
       progress: number;
@@ -494,7 +485,6 @@ export class CoursesService {
       .select({ count: count(enrollments.id) })
       .from(enrollments)
       .where(eq(enrollments.studentId, studentId));
-    console.log("res", res);
 
     return { courses, count: coursesCount[0].count };
   }
@@ -574,7 +564,6 @@ export class CoursesService {
     if (previousSectionError) {
       throw previousSectionError;
     }
-    console.log("previousSection", previousSection);
 
     if (!previousSection) {
       return { completed: true };
@@ -607,9 +596,6 @@ export class CoursesService {
         columns: { id: true, lessonId: true },
       })
     );
-
-    console.log("completedLessons", completedLessons);
-    console.log("previousLessons", previousLessons);
 
     if (completedLessonsError) {
       throw new InternalServerErrorException(

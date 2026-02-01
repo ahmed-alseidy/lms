@@ -228,13 +228,9 @@ export class LessonsService {
           .from(studentLessonCompletions)
           .where(eq(studentLessonCompletions.enrollmentId, enrollmentId));
 
-        console.log(completedLessons[0].count);
-        console.log(totalLessons.lessonsCount);
-
         const progress = Math.round(
           ((completedLessons[0].count || 0) / totalLessons.lessonsCount) * 100
         );
-        console.log(progress);
 
         await tx
           .update(enrollments)
@@ -294,7 +290,6 @@ export class LessonsService {
         columns: { id: true, orderIndex: true },
       })
     );
-    console.log("lessonsList", lessonsList);
 
     if (lessonsListError) {
       throw lessonsListError;
@@ -318,7 +313,6 @@ export class LessonsService {
           columns: { id: true },
         })
       );
-    console.log("previousLessonCompletion", previousLessonCompletion);
 
     if (previousLessonCompletionError) {
       throw new InternalServerErrorException(

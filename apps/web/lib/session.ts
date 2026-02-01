@@ -68,7 +68,6 @@ export async function getCurrentSession() {
   try {
     const headersList = await getHeaders();
     const cookieHeader = headersList.get("cookie") || "";
-    console.log("cookieHeader", cookieHeader);
     const res = await axios.get<{
       session: {
         expiresAt: string;

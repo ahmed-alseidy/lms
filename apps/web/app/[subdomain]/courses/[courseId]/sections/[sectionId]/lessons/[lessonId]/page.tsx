@@ -134,7 +134,6 @@ export default function LessonPage() {
           course?.enrollments?.[0]?.id!
         )
       );
-      console.log("response", response?.data);
       if (error) {
         toast.error(t("common.somethingWentWrong"));
         return;
@@ -375,9 +374,7 @@ export default function LessonPage() {
               isPreviousLessonCompleted?.completed &&
               isPreviousSectionCompleted?.completed && (
                 <Button
-                  disabled={
-                    isVideoCompleted?.completed
-                  }
+                  disabled={isVideoCompleted?.completed}
                   onClick={handleCompleteVideo}
                 >
                   {isVideoCompleted?.completed ? (
