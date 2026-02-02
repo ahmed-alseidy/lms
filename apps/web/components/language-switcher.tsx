@@ -28,8 +28,8 @@ export default function LanguageSwitcher() {
   console.log("locale", locale);
 
   const languages = [
-    { code: "en", name: "E", flag: "🇺🇸" },
-    { code: "ar", name: "ع", flag: "🇸🇦" },
+    { code: "ar", name: "عربي", flag: "🇪🇬" },
+    { code: "en", name: "Eng", flag: "🇺🇸" },
   ];
 
   const handleLanguageChange = (newLocale: string) => {
