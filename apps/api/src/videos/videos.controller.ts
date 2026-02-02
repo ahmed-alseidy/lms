@@ -1,8 +1,4 @@
-import {
-  CompleteVideoDto,
-  CreateVideoDto,
-  UploadDto,
-} from "@lms-saas/shared-lib";
+import { CompleteVideoDto, CreateVideoDto } from "@lms-saas/shared-lib";
 import {
   Body,
   Controller,

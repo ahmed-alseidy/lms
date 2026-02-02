@@ -1,4 +1,5 @@
 import {
+  courses,
   db,
   enrollments,
   lessons,
@@ -13,7 +14,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from "@nestjs/common";
-import { and, eq } from "drizzle-orm";
+import { and, count, eq } from "drizzle-orm";
 import { attempt } from "@/utils/error-handling";
 
 @Injectable()
@@ -131,18 +132,50 @@ export class VideosService {
           ),
         });
 
-        if (!completion) {
-          await tx.insert(studentLessonCompletions).values({
-            enrollmentId,
-            lessonId,
-          });
+        if (completion) {
+          return;
         }
+        await tx.insert(studentLessonCompletions).values({
+          enrollmentId,
+          lessonId,
+        });
+
+        const totalLessons = await tx.query.courses.findFirst({
+          where: eq(courses.id, enrollment.courseId),
+          columns: {
+            lessonsCount: true,
+          },
+        });
+
+        if (!totalLessons) {
+          throw new NotFoundException("Course not found");
+        }
+
+        const completedLessons = await tx
+          .select({
+            count: count(studentLessonCompletions.lessonId),
+          })
+          .from(studentLessonCompletions)
+          .where(eq(studentLessonCompletions.enrollmentId, enrollmentId));
+
+        const progress = Math.round(
+          ((completedLessons[0].count || 0) / totalLessons.lessonsCount) * 100
+        );
+        console.log(completedLessons[0].count, totalLessons.lessonsCount);
+        console.log(progress);
+
+        await tx
+          .update(enrollments)
+          .set({ progress })
+          .where(eq(enrollments.id, enrollmentId));
       })
     );
 
     if (error) {
       throw error;
     }
+
+    return { message: "Video completed" };
   }
 
   async checkIfCompleted(videoId: string, enrollmentId: number) {

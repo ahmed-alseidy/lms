@@ -282,7 +282,6 @@ export async function checkPreviousSectionCompleted(
   );
 }
 
-
 export async function checkPreviousLessonCompleted(
   courseId: number,
   sectionId: number,

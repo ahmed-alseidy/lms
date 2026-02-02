@@ -115,8 +115,11 @@ export const completeVideo = (
   videoId: string,
   enrollmentId: number
 ) => {
-  return authFetch(`${baseUrl}/${lessonId}/videos/${videoId}/complete`, {
-    method: "POST",
-    data: { enrollmentId },
-  });
+  return authFetch<{ message: string }>(
+    `${baseUrl}/${lessonId}/videos/${videoId}/complete`,
+    {
+      method: "POST",
+      data: { enrollmentId },
+    }
+  );
 };

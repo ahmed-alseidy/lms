@@ -35,6 +35,7 @@ import {
 import { lexicalToHtml } from "@/lib/lexical-to-html";
 import { attempt, cn } from "@/lib/utils";
 import { checkIfVideoCompleted, completeVideo } from "@/lib/videos";
+import CompleteButton from "./_components/complete-button";
 import { MobileSidebar } from "./_components/mobile-sidebar";
 import { SidebarContent } from "./_components/sidebar-content";
 import { VideoPlayer } from "./_components/video-player";
@@ -168,30 +169,6 @@ export default function LessonPage() {
     };
   }, []);
 
-  const handleCompleteVideo = async () => {
-    const enrollmentId = course?.enrollments?.[0]?.id;
-    if (!enrollmentId) return;
-
-    const [, error] = await attempt(
-      completeVideo(lessonId, lesson?.videos?.[0]?.id!, enrollmentId)
-    );
-
-    if (error) {
-      toast.error(t("common.somethingWentWrong"));
-      return;
-    }
-
-    queryClient.invalidateQueries({
-      queryKey: ["video-completed", lessonId],
-    });
-
-    queryClient.invalidateQueries({
-      queryKey: ["lesson-completed", lessonId],
-    });
-
-    toast.success(t("lessons.videoCompleted"));
-  };
-
   const nav = useMemo(() => {
     if (!course) return { prev: null, next: null };
     let prev = null,
@@ -261,7 +238,10 @@ export default function LessonPage() {
           </div>
           <div className="space-y-2 p-2">
             <div className="text-muted-foreground flex items-center justify-between text-sm">
-              <p>{t("courses.yourProgress")}</p>
+              <p>
+                {course.enrollments?.[0]?.progress.toFixed(0) || "0"}%{" "}
+                {t("courses.yourProgress")}
+              </p>
               <div className="flex items-center gap-2">
                 {course.enrollments?.[0]?.studentLessonCompletions.length}/
                 {course.lessonsCount} {t("courses.lessons")}
@@ -269,11 +249,11 @@ export default function LessonPage() {
             </div>
             <div className="flex items-center gap-2">
               <div className="flex w-full flex-col gap-2">
-                <Progress value={course.enrollments?.[0]?.progress || 0} />
-                <p className="text-muted-foreground text-sm">
-                  {course.enrollments?.[0]?.progress.toFixed(2) || "0.00"}%{" "}
-                  {t("courses.complete")}
-                </p>
+                <Progress
+                  value={
+                    Number(course.enrollments?.[0]?.progress.toFixed(0)) || 0
+                  }
+                />
               </div>
             </div>
           </div>
@@ -373,19 +353,12 @@ export default function LessonPage() {
             {lesson.videos?.[0] &&
               isPreviousLessonCompleted?.completed &&
               isPreviousSectionCompleted?.completed && (
-                <Button
-                  disabled={isVideoCompleted?.completed}
-                  onClick={handleCompleteVideo}
-                >
-                  {isVideoCompleted?.completed ? (
-                    <CheckCircle className="text-primary-foreground h-3 w-3" />
-                  ) : (
-                    <Video className="h-3 w-3" />
-                  )}
-                  {isVideoCompleted?.completed
-                    ? t("lessons.completed")
-                    : t("lessons.markCompleted")}
-                </Button>
+                <CompleteButton
+                  enrollmentId={course?.enrollments?.[0]?.id!}
+                  isVideoCompleted={isVideoCompleted?.completed || false}
+                  lessonId={lessonId}
+                  videoId={lesson?.videos?.[0]?.id!}
+                />
               )}
             {nav.prev && (
               <Link
