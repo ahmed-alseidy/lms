@@ -170,7 +170,7 @@ export class LessonsService {
       }
     }
 
-    if (lesson.quizzes.length < 0) {
+    if (lesson.quizzes.length > 0) {
       const quiz = lesson.quizzes[0];
       if (quiz.quizSubmissions.length === 0) {
         throw new BadRequestException("Quiz lesson not completed");
