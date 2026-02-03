@@ -2,7 +2,7 @@
 
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import { IconGripVertical, IconPencil, IconTrash } from "@tabler/icons-react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Dispatch, SetStateAction } from "react";
@@ -14,6 +14,7 @@ import {
   deleteLesson,
   updateCourseSection,
 } from "@/lib/courses";
+import { getLessonResources } from "@/lib/resources";
 import { attempt } from "@/lib/utils";
 
 type LessonsListProps = {
@@ -131,6 +132,7 @@ export const LessonsList = ({
       setIsLoading(false);
     }
   }
+
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
       <Droppable droppableId="lessons" type="lesson">

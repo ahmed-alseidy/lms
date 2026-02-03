@@ -1,4 +1,5 @@
 import {
+  DeleteObjectCommand,
   DeleteObjectsCommand,
   GetObjectCommand,
   ListObjectsV2Command,
@@ -50,10 +51,30 @@ export class S3Service {
   async generateUploadUrl(
     key: string,
     contentType: string,
-    expiresIn: number = 60 * 60 * 1000
+    expiresIn: number = 60 * 60 * 1000,
+    allowedFileTypes?: string[],
+    maxFileSize?: number
   ) {
     const isSegment = key.endsWith(".ts");
     const actualContentType = isSegment ? "video/mp2t" : contentType;
+
+    // Validate file type if allowedFileTypes is provided
+    if (allowedFileTypes && allowedFileTypes.length > 0) {
+      const isValidType = allowedFileTypes.some(
+        (type) =>
+          contentType === type ||
+          contentType.startsWith(type + "/") ||
+          contentType.match(new RegExp(`^${type.replace("*", ".*")}$`))
+      );
+
+      if (!isValidType) {
+        throw new Error(
+          `File type ${contentType} is not allowed. Allowed types: ${allowedFileTypes.join(", ")}`
+        );
+      }
+    }
+
+    const maxSize = maxFileSize || 500 * 1024 * 1024; // Default 500MB
 
     return createPresignedPost(this.s3Client, {
       Bucket: this._s3Config.bucket!,
@@ -64,7 +85,7 @@ export class S3Service {
       },
       Conditions: [
         ["eq", "$Content-Type", actualContentType],
-        ["content-length-range", 0, 500 * 1024 * 1024], // 500MB max
+        ["content-length-range", 0, maxSize],
       ],
       Expires: expiresIn,
     });
@@ -76,5 +97,41 @@ export class S3Service {
       Key: key,
     });
     return getSignedUrl(this.s3Client, command, { expiresIn });
+  }
+
+  // Helper method for resource uploads with file type validation
+  async generateResourceUploadUrl(
+    key: string,
+    contentType: string,
+    allowedFileTypes: string[] = [
+      "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "application/vnd.ms-excel",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "application/vnd.ms-powerpoint",
+      "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+      "text/plain",
+      "text/csv",
+      "image/*",
+    ],
+    maxFileSize: number = 50 * 1024 * 1024, // Default 50MB for resources
+    expiresIn: number = 60 * 60 * 1000
+  ) {
+    return this.generateUploadUrl(
+      key,
+      contentType,
+      expiresIn,
+      allowedFileTypes,
+      maxFileSize
+    );
+  }
+
+  async deleteFile(key: string) {
+    const deleteCommand = new DeleteObjectCommand({
+      Bucket: this._s3Config.bucket!,
+      Key: key,
+    });
+    await this.s3Client.send(deleteCommand);
   }
 }

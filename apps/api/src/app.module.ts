@@ -11,6 +11,7 @@ import { CoursesModule } from "./courses/courses.module";
 import { LessonsModule } from "./lessons/lessons.module";
 import { PaymentsModule } from "./payments/payments.module";
 import { QuizzesModule } from "./quizzes/quizzes.module";
+import { ResourcesModule } from "./resources/resources.module";
 import { S3Module } from "./s3/s3.module";
 import { UsersModule } from "./users/users.module";
 import { VideosModule } from "./videos/videos.module";
@@ -28,6 +29,7 @@ import { VideosModule } from "./videos/videos.module";
     VideosModule,
     LessonsModule,
     QuizzesModule,
+    ResourcesModule,
     CourseCodesModule,
     AnalyticsModule,
     PaymentsModule,

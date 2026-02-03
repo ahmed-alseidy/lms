@@ -3,6 +3,8 @@
     "platformName": "تعلم"
   },
   "common": {
+    "resources": "الموارد",
+    "download": "تحميل",
     "analytics": "تحليلات",
     "disabled": "معطل",
     "enabled": "مفعل",

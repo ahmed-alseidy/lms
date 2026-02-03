@@ -1,10 +1,11 @@
 import {
+  IconFile,
   IconFileInfo,
   IconLoader,
   IconTrash,
   IconVideo,
 } from "@tabler/icons-react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
@@ -13,9 +14,12 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Lesson } from "@/lib/courses";
 import { deleteQuiz, findQuiz, Quiz } from "@/lib/quizzes";
+import { getLessonResources, LessonResource } from "@/lib/resources";
 import { attempt } from "@/lib/utils";
 import { deleteVideo, Video as VideoInterface } from "@/lib/videos";
 import { CreateQuizDialog } from "./create-quiz-dialog";
+import { LessonResourceUploader } from "./lesson-resource-uploader";
+import { ResourceItem } from "./resource-item";
 import { VideoPreview } from "./video-preview";
 import { VideoUploader } from "./video-uploader";
 
@@ -31,6 +35,24 @@ export const LessonTabs = ({ lesson }: LessonTabsProps) => {
 
   const t = useTranslations("lessons");
   const tCommon = useTranslations("common");
+
+  const queryClient = useQueryClient();
+
+  const {
+    data: resourcesData,
+    isLoading: isResourcesLoading,
+    isError: isResourcesError,
+  } = useQuery({
+    queryKey: ["lesson-resources", lesson.id],
+    queryFn: async () => {
+      const [response, error] = await attempt(getLessonResources(lesson.id));
+      if (error) {
+        toast.error(tCommon("somethingWentWrong"));
+        return [];
+      }
+      return response.data;
+    },
+  });
 
   const {
     data: quizData,
@@ -84,13 +106,22 @@ export const LessonTabs = ({ lesson }: LessonTabsProps) => {
     toast.success(tCommon("createdSuccessfully"));
   };
 
-  if (isQuizLoading)
+  const handleResourceUploadComplete = (_resource: LessonResource) => {
+    // React Query will refetch; nothing else needed here
+    queryClient.invalidateQueries({
+      queryKey: ["lesson-resources", lesson.id],
+    });
+  };
+
+  if (isQuizLoading || isResourcesLoading)
     return (
       <div className="flex h-full items-center justify-center">
         <IconLoader className="text-muted-foreground h-8 w-8 animate-spin" />
       </div>
     );
-  if (isQuizError) return <div>{tCommon("somethingWentWrong")}</div>;
+
+  if (isQuizError || isResourcesError)
+    return <div>{tCommon("somethingWentWrong")}</div>;
 
   return (
     <Tabs className="w-full" defaultValue="videos">
@@ -99,6 +130,12 @@ export const LessonTabs = ({ lesson }: LessonTabsProps) => {
           <IconVideo className="h-4 w-4" />
           {t("videos")}
         </TabsTrigger>
+
+        <TabsTrigger className="gap-2" value="resources">
+          <IconFile className="h-4 w-4" />
+          {tCommon("resources", { default: "Resources" })}
+        </TabsTrigger>
+
         <TabsTrigger className="gap-2" value="quizzes">
           <IconFileInfo className="h-4 w-4" />
           {t("quizzes")}
@@ -123,6 +160,35 @@ export const LessonTabs = ({ lesson }: LessonTabsProps) => {
               onUploadComplete={handleVideoUploadComplete}
             />
           )}
+        </div>
+      </TabsContent>
+
+      <TabsContent value="resources">
+        <div className="space-y-4">
+          {isResourcesLoading && (
+            <div className="flex h-full items-center justify-center">
+              <IconLoader className="text-muted-foreground h-6 w-6 animate-spin" />
+            </div>
+          )}
+
+          {isResourcesError && (
+            <p className="text-destructive text-sm">
+              {tCommon("somethingWentWrong")}
+            </p>
+          )}
+
+          {!isResourcesLoading &&
+            resourcesData?.map((resource) => (
+              <ResourceItem
+                key={resource.id}
+                resource={resource}
+              />
+            ))}
+
+          <LessonResourceUploader
+            lessonId={lesson.id}
+            onUploadComplete={handleResourceUploadComplete}
+          />
         </div>
       </TabsContent>
 

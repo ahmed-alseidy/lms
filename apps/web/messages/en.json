@@ -4,6 +4,8 @@
   },
   "common": {
     "disabled": "Disabled",
+    "resources": "Resources",
+    "download": "Download",
     "enabled": "Enabled",
     "loading": "Loading...",
     "error": "An error occurred",

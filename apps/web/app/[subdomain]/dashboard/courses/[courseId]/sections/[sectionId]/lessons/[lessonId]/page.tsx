@@ -291,7 +291,7 @@ export default function LessonPage() {
               </div>
             </CardHeader>
             <CardContent className="pt-6">
-              <LessonTabs lesson={lesson} />
+              <LessonTabs  lesson={lesson} />
             </CardContent>
           </Card>
         </div>
