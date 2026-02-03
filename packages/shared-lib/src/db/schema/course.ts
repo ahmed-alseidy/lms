@@ -12,6 +12,11 @@ import {
 } from "drizzle-orm/pg-core";
 import { courseCodes } from "./course-code";
 import { quizSubmissions, quizzes } from "./quiz";
+import {
+  courseResources,
+  lessonResources,
+  resourceDownloads,
+} from "./resources";
 import { students, teachers } from "./user";
 import { studentVideoCompletions, videos } from "./video";
 
@@ -84,6 +89,7 @@ export const coursesRelations = relations(courses, ({ one, many }) => ({
   courseSections: many(courseSections),
   enrollments: many(enrollments),
   courseCodes: many(courseCodes),
+  courseResources: many(courseResources),
 }));
 
 export const courseSectionsRelations = relations(
@@ -107,6 +113,7 @@ export const lessonsRelations = relations(lessons, ({ one, many }) => ({
 
   videos: many(videos),
   quizzes: many(quizzes),
+  lessonResources: many(lessonResources),
 }));
 
 export const enrollmentsRelations = relations(enrollments, ({ one, many }) => ({
@@ -121,6 +128,7 @@ export const enrollmentsRelations = relations(enrollments, ({ one, many }) => ({
   studentLessonCompletions: many(studentLessonCompletions),
   studentVideoCompletions: many(studentVideoCompletions),
   quizSubmissions: many(quizSubmissions),
+  resourceDownloads: many(resourceDownloads),
 }));
 
 export const studentLessonCompletions = pgTable(
