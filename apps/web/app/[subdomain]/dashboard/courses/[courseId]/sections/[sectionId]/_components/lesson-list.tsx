@@ -14,7 +14,6 @@ import {
   deleteLesson,
   updateCourseSection,
 } from "@/lib/courses";
-import { getLessonResources } from "@/lib/resources";
 import { attempt } from "@/lib/utils";
 
 type LessonsListProps = {
