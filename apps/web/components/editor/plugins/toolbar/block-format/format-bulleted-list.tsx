@@ -33,7 +33,11 @@ export function FormatBulletedList() {
   };
 
   return (
-    <SelectItem onPointerDown={formatBulletedList} value={BLOCK_FORMAT_VALUE}>
+    <SelectItem
+      key={BLOCK_FORMAT_VALUE}
+      onPointerDown={formatBulletedList}
+      value={BLOCK_FORMAT_VALUE}
+    >
       <div className="flex items-center gap-1 font-normal">
         {blockTypeToBlockName[BLOCK_FORMAT_VALUE].icon}
         {blockTypeToBlockName[BLOCK_FORMAT_VALUE].label}

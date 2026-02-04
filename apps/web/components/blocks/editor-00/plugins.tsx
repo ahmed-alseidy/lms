@@ -3,6 +3,7 @@ import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { useState } from "react";
 import { ContentEditable } from "@/components/editor/editor-ui/content-editable";
+import { AlignmentToolbarPlugin } from "@/components/editor/plugins/toolbar/alignment-toolbar-plugin";
 import { FormatBulletedList } from "@/components/editor/plugins/toolbar/block-format/format-bulleted-list";
 import { FormatCheckList } from "@/components/editor/plugins/toolbar/block-format/format-check-list";
 import { FormatHeading } from "@/components/editor/plugins/toolbar/block-format/format-heading";
@@ -29,13 +30,13 @@ export function Plugins() {
       {/* toolbar plugins */}
 
       <ToolbarPlugin>
-        {({ blockType }) => (
+        {() => (
           <div className="vertical-align-middle bg-background sticky top-0 z-10 flex gap-2 overflow-auto rounded-t-lg border-b p-1">
             <HistoryToolbarPlugin />
 
             <BlockFormatDropDown>
               <FormatParagraph />
-              <FormatHeading levels={["h2", "h3", "h4", "h5", "h6"]} />
+              <FormatHeading levels={["h3", "h4"]} />
               <FormatNumberedList />
               <FormatBulletedList />
               <FormatCheckList />
@@ -46,6 +47,7 @@ export function Plugins() {
             <FontFormatToolbarPlugin format="italic" />
             <FontFormatToolbarPlugin format="underline" />
             <FontFormatToolbarPlugin format="strikethrough" />
+            <AlignmentToolbarPlugin />
           </div>
         )}
       </ToolbarPlugin>
