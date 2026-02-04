@@ -7,6 +7,7 @@ import {
   ArrowLeft,
   ArrowRight,
   CheckCircle,
+  File as FileIcon,
   Loader,
   Lock,
   Menu,
@@ -33,6 +34,11 @@ import {
   getCourse,
 } from "@/lib/courses";
 import { lexicalToHtml } from "@/lib/lexical-to-html";
+import {
+  getLessonResource,
+  getLessonResources,
+  LessonResource,
+} from "@/lib/resources";
 import { attempt, cn } from "@/lib/utils";
 import { checkIfVideoCompleted, completeVideo } from "@/lib/videos";
 import CompleteButton from "./_components/complete-button";
@@ -78,6 +84,25 @@ export default function LessonPage() {
 
   const course = courseResponse?.data;
   const lesson = lessonResponse?.data;
+
+  const {
+    data: lessonResourcesData,
+    isLoading: lessonResourcesLoading,
+    isError: lessonResourcesError,
+  } = useQuery({
+    queryKey: ["lesson-resources", lessonId],
+    queryFn: async () => {
+      const [response, error] = await attempt(getLessonResources(lessonId));
+      if (error) {
+        toast.error(t("common.somethingWentWrong"));
+        return [];
+      }
+      return response?.data ?? [];
+    },
+    enabled: !!lessonId,
+  });
+
+  const lessonResources: LessonResource[] = lessonResourcesData ?? [];
 
   const { data: isVideoCompleted, isLoading: isVideoLoading } = useQuery({
     queryKey: ["video-completed", lessonId],
@@ -143,6 +168,31 @@ export default function LessonPage() {
     },
     enabled: !!course?.enrollments?.[0]?.id,
   });
+
+  const handleDownloadResource = async (resourceId: string) => {
+    if (!course?.enrollments?.[0]?.id) {
+      toast.error(t("common.somethingWentWrong"));
+      return;
+    }
+
+    const enrollmentId = course.enrollments[0].id;
+
+    const [response, error] = await attempt(
+      getLessonResource(lessonId, resourceId, enrollmentId)
+    );
+
+    if (error || !response) {
+      toast.error(t("common.somethingWentWrong"));
+      return;
+    }
+
+    const url = response.data.downloadUrl;
+    if (url) {
+      window.open(url, "_blank");
+    } else {
+      toast.error(t("common.somethingWentWrong"));
+    }
+  };
 
   useEffect(() => {
     const handleContextMenu = (e: MouseEvent) => {
@@ -346,6 +396,57 @@ export default function LessonPage() {
                   </>
                 )}
               </div>
+
+              {lessonResources.length > 0 && (
+                <div className="border-border mb-8 w-full max-w-6xl rounded-lg border p-4">
+                  <h2 className="text-xl font-semibold mb-3">
+                    {t("common.resources")}
+                  </h2>
+                  {lessonResourcesLoading && (
+                    <div className="flex h-16 items-center justify-center">
+                      <Loader className="text-muted-foreground h-5 w-5 animate-spin" />
+                    </div>
+                  )}
+                  {lessonResourcesError && !lessonResourcesLoading && (
+                    <p className="text-destructive text-sm">
+                      {t("common.somethingWentWrong")}
+                    </p>
+                  )}
+                  {!lessonResourcesLoading && !lessonResourcesError && (
+                    <ul className="space-y-2">
+                      {lessonResources.map((resource) => (
+                        <li
+                          className="flex items-center justify-between rounded-md border px-3 py-2"
+                          key={resource.id}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="bg-primary/10 flex h-9 w-9 items-center justify-center rounded-full">
+                              <FileIcon className="text-primary h-4 w-4" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium">
+                                {resource.title || resource.fileName}
+                              </p>
+                              <p className="text-muted-foreground text-xs">
+                                {resource.fileName} •{" "}
+                                {(resource.fileSize / 1024 / 1024).toFixed(2)}{" "}
+                                MB
+                              </p>
+                            </div>
+                          </div>
+                          <Button
+                            onClick={() => handleDownloadResource(resource.id)}
+                            size="sm"
+                            variant="outline"
+                          >
+                            {t("common.download", { default: "Download" })}
+                          </Button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
             </>
           )}
 

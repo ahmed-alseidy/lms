@@ -197,7 +197,7 @@ export const LessonResourceUploader = ({
             </div>
           ) : (
             <Button className="w-full" onClick={handleUpload}>
-              {tCommon("upload")} {t("resource", { default: "Resource" })}
+              {tCommon("upload")}
             </Button>
           )}
         </div>
