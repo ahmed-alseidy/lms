@@ -111,6 +111,20 @@
     "totalCourses": "Total Courses",
     "totalLessons": "Total Lessons"
   },
+  "settings": {
+    "title": "Settings",
+    "profile": "Profile",
+    "profileDescription": "Your account information and how you appear on the platform.",
+    "platform": "Platform",
+    "platformDescription": "Your teaching space and how students access your courses.",
+    "account": "Account",
+    "accountDescription": "Password and security.",
+    "subdomain": "Subdomain",
+    "subdomainDescription": "Students visit your courses at this address.",
+    "yourSubdomain": "Your subdomain",
+    "changePassword": "Change password",
+    "comingSoon": "Coming soon"
+  },
   "courses": {
     "title": "Courses",
     "createCourse": "Create Course",

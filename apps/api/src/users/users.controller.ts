@@ -3,12 +3,22 @@ import {
   CreateTeacherDto,
   LoginUserDto,
 } from "@lms-saas/shared-lib";
-import { Body, Controller, Get, HttpCode, Post, Req } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Post,
+  Req,
+  UseGuards,
+} from "@nestjs/common";
 import {
   AllowAnonymous,
   Session,
   UserSession,
 } from "@thallesp/nestjs-better-auth";
+import { Roles } from "@/auth/decorators/roles.decorator";
+import { RolesGuard } from "@/auth/guards/roles/roles.guard";
 import { UsersService } from "./users.service";
 
 @Controller("users")
@@ -18,6 +28,13 @@ export class UsersController {
   @Get('/current-user')
   findCurrentUser(@Req() req) {
     return this.usersService.findUser(req.user.id, req.user.role);
+  }
+
+  @UseGuards(RolesGuard)
+  @Roles("teacher")
+  @Get("teacher-profile")
+  async getTeacherProfile(@Session() session: UserSession) {
+    return this.usersService.getTeacherProfile(session.user.id);
   }
 
   @AllowAnonymous()

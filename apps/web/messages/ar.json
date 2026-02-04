@@ -112,6 +112,20 @@
     "totalCourses": "إجمالي الدورات",
     "totalLessons": "إجمالي الدروس"
   },
+  "settings": {
+    "title": "الإعدادات",
+    "profile": "الملف الشخصي",
+    "profileDescription": "معلومات حسابك وكيف تظهر على المنصة.",
+    "platform": "المنصة",
+    "platformDescription": "مساحة التدريس وكيف يصل الطلاب إلى دوراتك.",
+    "account": "الحساب",
+    "accountDescription": "كلمة المرور والأمان.",
+    "subdomain": "النطاق الفرعي",
+    "subdomainDescription": "يزور الطلاب دوراتك على هذا العنوان.",
+    "yourSubdomain": "نطاقك الفرعي",
+    "changePassword": "تغيير كلمة المرور",
+    "comingSoon": "قريباً"
+  },
   "courses": {
     "title": "الدورات",
     "createCourse": "إنشاء دورة",

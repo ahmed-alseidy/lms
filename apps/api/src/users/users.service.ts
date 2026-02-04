@@ -116,6 +116,22 @@ export class UsersService {
     return user;
   }
 
+  async getTeacherProfile(authUserId: string) {
+    const [teacher] = await attempt(
+      db.query.teachers.findFirst({
+        where: eq(teachers.authUserId, authUserId),
+        columns: {
+          subdomain: true,
+          name: true,
+          email: true,
+          profilePictureUrl: true,
+          contactInfo: true,
+        },
+      })
+    );
+    return teacher ?? null;
+  }
+
   async getCurrentSession(req: Request) {
     const res = await auth.api.getSession({
       headers: req.headers,
