@@ -1,8 +1,9 @@
 "use client";
 
-import { IconFile, IconLoader } from "@tabler/icons-react";
+import { IconArrowLeft, IconFile, IconLoader } from "@tabler/icons-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { notFound, redirect, useParams } from "next/navigation";
+import Link from "next/link";
+import { notFound, redirect, useParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import {
@@ -13,6 +14,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getCourse } from "@/lib/courses";
 import { type CourseResource, getCourseResources } from "@/lib/resources";
@@ -73,8 +75,10 @@ export default function CourseResourcesPage() {
     );
   }
 
+  const router = useRouter();
+
   return (
-    <div className="container mx-auto py-6">
+    <div className="container mx-auto">
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
@@ -96,13 +100,20 @@ export default function CourseResourcesPage() {
       </Breadcrumb>
 
       <div className="mt-6 space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            {t("resourceLibrary")}
-          </h1>
-          <p className="text-muted-foreground mt-1 text-sm">
-            {t("resourceLibraryDescription")}
-          </p>
+        <div className="flex items-center gap-4">
+          <Link href={`/dashboard/courses/${params.courseId}`}>
+            <Button size="icon" variant="ghost">
+              <IconArrowLeft className="rotate-rtl h-4 w-4" />
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">
+              {t("resourceLibrary")}
+            </h1>
+            <p className="text-muted-foreground mt-1 text-sm">
+              {t("resourceLibraryDescription")}
+            </p>
+          </div>
         </div>
 
         <Card>

@@ -124,7 +124,6 @@ export const deleteLessonResource = (lessonId: number, id: string) => {
   });
 };
 
-
 export const getCourseResources = (courseId: number) => {
   return authFetch<CourseResource[]>(
     `${BACKEND_URL}/courses/${courseId}/resources`,

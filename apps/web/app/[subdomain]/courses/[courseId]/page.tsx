@@ -5,6 +5,7 @@ import {
   ArrowLeft,
   BookOpen,
   ChevronRight,
+  File,
   List,
   Loader,
   Star,
@@ -198,6 +199,26 @@ export default function CoursePage() {
             </Card>
           ))}
         </div>
+
+        <Separator />
+
+        <Link
+          className="hover:bg-muted/50 flex items-center justify-between rounded-lg border p-4 transition-colors"
+          href={`/courses/${courseId}/resources`}
+        >
+          <div className="flex items-center gap-3">
+            <div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-full">
+              <File className="text-primary h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="font-semibold">{t("courses.resourceLibrary")}</h2>
+              <p className="text-muted-foreground text-sm">
+                {t("courses.resourceLibraryDescription")}
+              </p>
+            </div>
+          </div>
+          <ChevronRight className="text-muted-foreground rotate-rtl h-5 w-5" />
+        </Link>
       </div>
     </div>
   );
