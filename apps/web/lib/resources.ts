@@ -168,3 +168,24 @@ export const deleteCourseResource = (courseId: number, id: string) => {
     method: "DELETE",
   });
 };
+
+// ---- Download stats (teacher) ----
+
+export interface ResourceDownloadRecord {
+  id: number;
+  enrollmentId: number;
+  resourceType: string;
+  lessonResourceId: string | null;
+  courseResourceId: string | null;
+  downloadedAt: string;
+}
+
+export const getResourceDownloadStats = (
+  resourceId: string,
+  resourceType: "lesson" | "course"
+) => {
+  return authFetch<ResourceDownloadRecord[]>(
+    `${BACKEND_URL}/resources/${resourceId}/downloads?type=${resourceType}`,
+    { method: "GET" }
+  );
+};

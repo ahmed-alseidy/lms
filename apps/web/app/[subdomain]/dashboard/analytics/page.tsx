@@ -15,7 +15,6 @@ import {
   IconTrendingUp,
   IconUsers,
 } from "@tabler/icons-react";
-import { RefreshCw } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import {

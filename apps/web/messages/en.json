@@ -158,6 +158,7 @@
     "manageResourceLibrary": "Manage resource library",
     "resourceLibraryFiles": "Files",
     "noCourseResources": "No resources yet. Upload files above.",
+    "downloadStats": "{count, plural, one {# download} other {# downloads}} ({students, plural, one {# student} other {# students}})",
     "courseContent": "Course Content",
     "courseContentDescription": "Manage your course chapters and lessons",
     "chapters": "Chapters",

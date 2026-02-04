@@ -75,8 +75,6 @@ export default function CourseResourcesPage() {
     );
   }
 
-  const router = useRouter();
-
   return (
     <div className="container mx-auto">
       <Breadcrumb>

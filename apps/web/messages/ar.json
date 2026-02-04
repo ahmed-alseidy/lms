@@ -154,6 +154,7 @@
     "manageResourceLibrary": "إدارة مكتبة الموارد",
     "resourceLibraryFiles": "الملفات",
     "noCourseResources": "لا توجد موارد بعد. ارفع الملفات أعلاه.",
+    "downloadStats": "{count} تحميلات ({students} طلاب)",
     "courseContent": "محتوى الدورة",
     "courseContentDescription": "إدارة الدروس والفصول المتاحة في الدورة",
     "chapters": "فصول",
