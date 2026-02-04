@@ -789,7 +789,7 @@ export class QuizzesService {
     }
 
     return {
-      completed: !!result,
+      completed: result?.completed,
     };
   }
 

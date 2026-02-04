@@ -1,11 +1,12 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { CheckCircle, Clock, Loader, Loader2 } from "lucide-react";
+import { Loader, Loader2 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import { LoadingSpinner } from "@/components/loading-spinner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -20,12 +21,8 @@ import {
   submitQuiz,
 } from "@/lib/quizzes";
 import { attempt } from "@/lib/utils";
-
-const LoadingSpinner = () => (
-  <div className="flex min-h-[calc(100vh-200px)] items-center justify-center">
-    <Loader className="text-muted-foreground h-10 w-10 animate-spin" />
-  </div>
-);
+import { QuestionPagination } from "./question-pagination";
+import { TimerDisplay } from "./timer-display";
 
 const ErrorState = ({
   title,
@@ -43,109 +40,6 @@ const ErrorState = ({
     </div>
   </div>
 );
-
-const TimerDisplay = ({
-  timeRemaining,
-  isTimerExpired,
-}: {
-  timeRemaining: number | null;
-  isTimerExpired: boolean;
-}) => {
-  const t = useTranslations();
-  const formatTime = useCallback((seconds: number) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes.toString().padStart(2, "0")}:${remainingSeconds.toString().padStart(2, "0")}`;
-  }, []);
-
-  const getTimeColor = useCallback((seconds: number) => {
-    if (seconds <= 300) return "text-red-500"; // Last 5 minutes
-    if (seconds <= 600) return "text-yellow-500"; // Last 10 minutes
-    return "text-green-500";
-  }, []);
-
-  if (timeRemaining === null) {
-    return null;
-  }
-
-  return (
-    <div className="mb-4 flex items-center justify-between">
-      <div className="flex items-center gap-2">
-        <Clock className="h-5 w-5" />
-        <span className="text-sm font-medium">
-          {t("quizzes.timeRemaining")} :
-        </span>
-        <span className={`text-lg font-bold ${getTimeColor(timeRemaining)}`}>
-          {formatTime(timeRemaining)}
-        </span>
-      </div>
-      {isTimerExpired && (
-        <div className="text-sm font-medium text-red-500">
-          {t("quizzes.timeIsUpSubmittingQuizAutomatically")}
-        </div>
-      )}
-    </div>
-  );
-};
-
-const QuestionPagination = ({
-  questions,
-  currentQuestionIndex,
-  selectedAnswers,
-  onQuestionSelect,
-  isTimerExpired,
-}: {
-  questions: any[];
-  currentQuestionIndex: number;
-  selectedAnswers: Record<string, string>;
-  onQuestionSelect: (index: number) => void;
-  isTimerExpired: boolean;
-}) => {
-  const t = useTranslations();
-  const answeredCount = Object.keys(selectedAnswers).length;
-  const totalQuestions = questions.length;
-
-  return (
-    <div className="mb-6">
-      <div className="mb-2 flex items-center justify-between">
-        <span className="text-muted-foreground text-sm font-medium">
-          {t("quizzes.navigateToQuestion")}
-        </span>
-        <span className="text-muted-foreground text-xs">
-          {t("quizzes.of")} {answeredCount} {t("quizzes.of")} {totalQuestions}{" "}
-          {t("quizzes.answered")}
-        </span>
-      </div>
-      <div className="flex flex-wrap gap-2">
-        {questions.map((question, index) => {
-          const isAnswered = selectedAnswers[question.id];
-          const isCurrent = index === currentQuestionIndex;
-
-          return (
-            <button
-              className={`relative flex h-10 w-10 items-center justify-center rounded-lg border-2 text-sm font-medium transition-all duration-200 ${
-                isCurrent
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : isAnswered
-                    ? "border-green-500 bg-green-50 text-green-700 hover:border-green-600 hover:bg-green-100"
-                    : "border-muted-foreground/30 bg-background text-muted-foreground hover:border-primary hover:bg-muted"
-              } ${isTimerExpired ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
-              disabled={isTimerExpired}
-              key={question.id}
-              onClick={() => onQuestionSelect(index)}
-              title={`Question ${index + 1}${isAnswered ? " (Answered)" : " (Not answered)"}`}
-            >
-              {index + 1}
-              {isAnswered && (
-                <CheckCircle className="absolute -top-1 -right-1 h-4 w-4" />
-              )}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-};
 
 export default function QuizPage() {
   const params = useParams();
@@ -222,7 +116,8 @@ export default function QuizPage() {
     enabled: !!quizId,
   });
 
-  const quizCompleted = quizCompletedResponse?.completed || false;
+  const quizCompleted =
+    !!quiz && !quiz.allowMultipleAttempts && !!quizCompletedResponse?.completed;
 
   // Track when timer should be active (memoized to prevent unnecessary re-renders)
   const shouldTimerRun = useMemo(() => {

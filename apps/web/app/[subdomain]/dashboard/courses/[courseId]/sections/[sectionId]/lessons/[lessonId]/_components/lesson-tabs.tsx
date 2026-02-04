@@ -179,10 +179,7 @@ export const LessonTabs = ({ lesson }: LessonTabsProps) => {
 
           {!isResourcesLoading &&
             resourcesData?.map((resource) => (
-              <ResourceItem
-                key={resource.id}
-                resource={resource}
-              />
+              <ResourceItem key={resource.id} resource={resource} />
             ))}
 
           <LessonResourceUploader
