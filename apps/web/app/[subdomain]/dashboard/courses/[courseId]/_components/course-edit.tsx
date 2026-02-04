@@ -4,6 +4,7 @@ import {
   IconArrowLeft,
   IconEye,
   IconEyeOff,
+  IconFile,
   IconLayoutDashboard,
   IconList,
   IconLoader,
@@ -225,6 +226,34 @@ export default function CourseEdit({
               >
                 <IconSettings2 className="mr-1 h-4 w-4" />
                 {t("courseCodesGenerate")}
+              </Link>
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            <div className="space-y-1">
+              <div className="flex items-center gap-3">
+                <div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-full">
+                  <IconFile className="text-primary" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold">
+                    {t("resourceLibrary")}
+                  </h2>
+                  <p className="text-muted-foreground text-sm">
+                    {t("resourceLibraryDescription")}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-primary/5 flex w-full items-center justify-between rounded-lg border p-4">
+              <p className="text-sm">{t("resourceLibraryCardSummary")}</p>
+              <Link
+                className={buttonVariants({ variant: "outline" })}
+                href={`/dashboard/courses/${course.id}/resources`}
+              >
+                <IconSettings2 className="mr-1 h-4 w-4" />
+                {t("manageResourceLibrary")}
               </Link>
             </div>
           </div>

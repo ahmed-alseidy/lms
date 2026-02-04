@@ -54,8 +54,9 @@ export default function StudentHomePage() {
       return response?.data || { courses: [], count: 0 };
     },
   });
+  console.log(enrolledCourses);
 
-  if (isLoading || enrolledCoursesLoading || !enrolledCourses)
+  if (isLoading || enrolledCoursesLoading)
     return (
       <div className="flex h-[calc(100vh-200px)] items-center justify-center">
         <Loader className="text-muted-foreground h-8 w-8 animate-spin" />

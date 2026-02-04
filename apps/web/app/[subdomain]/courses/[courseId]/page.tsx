@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +25,7 @@ import { attempt } from "@/lib/utils";
 export default function CoursePage() {
   const params = useParams();
   const courseId = Number(params.courseId);
+  const router = useRouter();
 
   const t = useTranslations();
 
@@ -42,12 +43,17 @@ export default function CoursePage() {
 
   const course = courseResponse?.data;
 
-  if (isLoading || !course) {
+  if (isLoading) {
     return (
       <div className="flex h-[calc(100vh-200px)] items-center justify-center">
         <Loader className="text-muted-foreground h-8 w-8 animate-spin" />
       </div>
     );
+  }
+
+  if (!course) {
+    router.replace("/courses");
+    return null;
   }
 
   if (!course.enrollments?.[0]) {

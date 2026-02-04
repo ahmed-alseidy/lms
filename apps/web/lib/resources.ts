@@ -124,11 +124,22 @@ export const deleteLessonResource = (lessonId: number, id: string) => {
   });
 };
 
-// ---- (Optional) Course resources – for later course-level UI ----
 
 export const getCourseResources = (courseId: number) => {
   return authFetch<CourseResource[]>(
     `${BACKEND_URL}/courses/${courseId}/resources`,
+    { method: "GET" }
+  );
+};
+
+export const getCourseResource = (
+  courseId: number,
+  id: string,
+  enrollmentId?: number
+) => {
+  const query = enrollmentId != null ? `?enrollmentId=${enrollmentId}` : "";
+  return authFetch<CourseResource & { downloadUrl: string }>(
+    `${BACKEND_URL}/courses/${courseId}/resources/${id}${query}`,
     { method: "GET" }
   );
 };
