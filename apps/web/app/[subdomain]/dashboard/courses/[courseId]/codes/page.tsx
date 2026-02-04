@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAtom } from "jotai";
 import { Loader } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useState } from "react";
@@ -15,6 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { localeAtom } from "@/lib/atoms";
 import { generateCourseCodes, getCourseCodes } from "@/lib/course-codes";
 import { attempt } from "@/lib/utils";
 
@@ -23,6 +25,7 @@ export default function CourseCodesPage() {
   const queryClient = useQueryClient();
   const params = useParams();
   const courseId = Number(params.courseId);
+  const [locale] = useAtom(localeAtom);
 
   const { data: codes, isLoading } = useQuery({
     queryKey: ["course-codes", courseId],
@@ -84,10 +87,26 @@ export default function CourseCodesPage() {
       <Table className="rounded-lg border">
         <TableHeader>
           <TableRow className="bg-primary/5">
-            <TableHead>Code</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Used By</TableHead>
-            <TableHead>Used At</TableHead>
+            <TableHead
+              className={`${locale === "ar" ? "text-right" : "text-left"}`}
+            >
+              Code
+            </TableHead>
+            <TableHead
+              className={`${locale === "ar" ? "text-right" : "text-left"}`}
+            >
+              Status
+            </TableHead>
+            <TableHead
+              className={`${locale === "ar" ? "text-right" : "text-left"}`}
+            >
+              Used By
+            </TableHead>
+            <TableHead
+              className={`${locale === "ar" ? "text-right" : "text-left"}`}
+            >
+              Used At
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -97,7 +116,9 @@ export default function CourseCodesPage() {
               <TableCell>{code.isUsed ? "Used" : "Available"}</TableCell>
               <TableCell>{code.student?.name || "-"}</TableCell>
               <TableCell>
-                {code.usedAt ? new Date(code.usedAt).toLocaleDateString() : "-"}
+                {code.usedAt
+                  ? new Date(code.usedAt).toLocaleString(locale)
+                  : "-"}
               </TableCell>
             </TableRow>
           ))}

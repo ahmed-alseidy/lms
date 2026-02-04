@@ -311,8 +311,8 @@ export default function LessonPage() {
           <SidebarContent course={course} lessonId={lessonId} />
         </aside>
 
-        <div className="flex w-full flex-1 flex-col items-center p-4 md:flex-1 space-y-4">
-          <div className="mb-2 flex w-full max-w-6xl items-center gap-2">
+        <div className="flex w-full max-w-6xl mx-auto flex-1 flex-col items-center p-4 md:flex-1 space-y-4">
+          <div className="mb-2 flex w-full items-center gap-2">
             <div className="xl:hidden">
               <SheetTrigger
                 className={cn(buttonVariants({ variant: "outline" }))}
@@ -332,7 +332,7 @@ export default function LessonPage() {
 
           {!isPreviousSectionCompleted?.completed ||
           !isPreviousLessonCompleted?.completed ? (
-            <div className="w-full max-w-6xl">
+            <div className="w-full">
               <Alert
                 className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
                 variant="destructive"
@@ -367,7 +367,7 @@ export default function LessonPage() {
           ) : (
             <>
               <div
-                className="bg-muted relative mb-8 w-full max-w-6xl overflow-hidden rounded-lg border min-h-[240px]"
+                className="bg-muted relative mb-8 w-full overflow-hidden rounded-lg border min-h-[240px]"
                 style={{
                   filter: blur ? "blur(10px)" : "none",
                 }}
@@ -380,11 +380,12 @@ export default function LessonPage() {
                   </div>
                 )}
               </div>
-              <div className="border-border mb-8 w-full max-w-6xl rounded-lg border p-4">
+              <div className="w-full">
                 <h1 className="text-3xl font-bold">{lesson?.title}</h1>
-                {(lesson.description || "").trim().length !== 0 && (
+              </div>
+              <div className=" mb-8 w-full">
+                {(lesson.description || "").trim().length !== 0 ? (
                   <>
-                    <Separator className="my-4" />
                     <p
                       className="text-lg text-balance break-all whitespace-normal"
                       dangerouslySetInnerHTML={{
@@ -394,11 +395,15 @@ export default function LessonPage() {
                       }}
                     />
                   </>
+                ) : (
+                  <p className="text-muted-foreground text-sm">
+                    {t("common.noDescriptionAvailable")}
+                  </p>
                 )}
               </div>
 
               {lessonResources.length > 0 && (
-                <div className="border-border mb-8 w-full max-w-6xl rounded-lg border p-4">
+                <div className="border-border mb-8 w-full rounded-lg border p-4">
                   <h2 className="text-xl font-semibold mb-3">
                     {t("common.resources")}
                   </h2>
@@ -450,7 +455,7 @@ export default function LessonPage() {
             </>
           )}
 
-          <div className="flex w-full max-w-6xl justify-end gap-4">
+          <div className="flex w-full justify-end gap-4">
             {lesson.videos?.[0] &&
               isPreviousLessonCompleted?.completed &&
               isPreviousSectionCompleted?.completed && (

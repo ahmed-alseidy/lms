@@ -27,7 +27,7 @@ export function AlignmentToolbarPlugin() {
       }
     >
       <SelectTrigger className="h-8 w-min gap-1">
-        <SelectValue placeholder="Align"/>
+        <SelectValue placeholder="Align" />
       </SelectTrigger>
       <SelectContent>
         <SelectGroup>
