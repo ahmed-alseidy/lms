@@ -14,6 +14,7 @@ import {
   users,
 } from "@lms-saas/shared-lib";
 import {
+  ForbiddenException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -115,6 +116,7 @@ export class CoursesService {
     // If the user is a student, use the teacherId from the user.student object.
     const teacherId =
       role === "teacher" ? user.teachers?.teacherId : user.students?.teacherId;
+
     if (!teacherId) throw new NotFoundException("User not found");
     let res;
     if (!offset && !limit)
@@ -285,6 +287,12 @@ export class CoursesService {
       },
     });
 
+    if (studentId && !data?.published) {
+      throw new ForbiddenException(
+        "You are not authorized to access this course"
+      );
+    }
+
     const [studentsCount, error] = await attempt(
       db
         .select({ count: count(enrollments.id) })
@@ -395,8 +403,23 @@ export class CoursesService {
 
   async getEnrolledCourses(offset: number, limit: number, studentId: number) {
     let res;
+    const r = await db
+      .select()
+      .from(enrollments)
+      .where(
+        and(
+          eq(enrollments.studentId, studentId),
+          eq(enrollments.status, "active")
+        )
+      )
+      .orderBy(desc(enrollments.enrolledAt))
+      .limit(limit)
+      .offset(offset)
+      .innerJoin(courses, eq(enrollments.courseId, courses.id));
+
+    console.log("r", r);
     if (!offset && !limit) {
-      res = await db.query.enrollments.findMany({
+      const raw = await db.query.enrollments.findMany({
         where: and(
           eq(enrollments.studentId, studentId),
           eq(enrollments.status, "active")
@@ -429,8 +452,9 @@ export class CoursesService {
           enrolledAt: true,
         },
       });
+      res = raw.filter((en) => en.course?.published === true);
     } else {
-      res = await db.query.enrollments.findMany({
+      const raw = await db.query.enrollments.findMany({
         where: and(
           eq(enrollments.studentId, studentId),
           eq(enrollments.status, "active")
@@ -465,9 +489,10 @@ export class CoursesService {
           enrolledAt: true,
         },
       });
+      res = raw.filter((en) => en.course?.published === true);
     }
 
-    const courses = res.map((en) => {
+    const coursesRes = res.map((en) => {
       return {
         ...en.course,
         studentsCount: en.course.enrollments.length,
@@ -486,7 +511,7 @@ export class CoursesService {
       .from(enrollments)
       .where(eq(enrollments.studentId, studentId));
 
-    return { courses, count: coursesCount[0].count };
+    return { courses: coursesRes, count: coursesCount[0].count };
   }
 
   async updateEnrollmentProgress(enrollmentId: number) {

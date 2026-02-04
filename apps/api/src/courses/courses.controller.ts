@@ -121,6 +121,12 @@ export class CoursesController {
             },
           })
         );
+        if (error) {
+          throw new InternalServerErrorException("Cannot find teacher");
+        }
+        if (!student) {
+          throw new NotFoundException("Student not found");
+        }
         userId = student?.id;
       } else if (session.user.role === "teacher") {
         const [teacher, error] = await attempt(
@@ -142,7 +148,7 @@ export class CoursesController {
 
       return this.coursesService.getOne(
         courseId,
-        userId,
+        session.user.role === "student" ? userId : undefined,
         withSections,
         withEnrollments,
         withCourseCodes
