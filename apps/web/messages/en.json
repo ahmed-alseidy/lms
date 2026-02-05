@@ -5,7 +5,11 @@
   "common": {
     "disabled": "Disabled",
     "resources": "Resources",
+    "attempts": "Attempts",
     "download": "Download",
+    "analytics": "Analytics",
+    "statistics": "Statistics",
+    "statisticsDescription": "Track your platform performance and student engagement",
     "enabled": "Enabled",
     "loading": "Loading...",
     "error": "An error occurred",
@@ -232,6 +236,7 @@
   },
   "quizzes": {
     "title": "Quizzes",
+    "statistics": "Statistics",
     "createQuiz": "Create Quiz",
     "editQuiz": "Edit Quiz",
     "deleteQuiz": "Delete Quiz",
@@ -309,7 +314,31 @@
     "deleteQuestion": "Delete question",
     "deleteQuestionConfirmation": "Are you sure you want to delete this question? This action cannot be undone",
     "questions": "Questions",
-    "dragToReorder": "Drag to reorder questions"
+    "dragToReorder": "Drag to reorder questions",
+    "analyticsPage": {
+      "failedToFetchCourse": "Failed to fetch course",
+      "failedToFetchQuizAnalytics": "Failed to fetch quiz analytics",
+      "failedToLoadAnalytics": "Failed to load analytics",
+      "noSubmissionsTitle": "No Submissions Yet",
+      "noSubmissionsDescription": "Analytics will appear here once students start taking this quiz.",
+      "totalSubmissions": "Total Submissions",
+      "uniqueStudents": "{count} unique students",
+      "averageScore": "Average Score",
+      "completionRate": "Completion Rate",
+      "studentsWhoCompleted": "Students who completed",
+      "averageTimeSpent": "Average Time Spent",
+      "outOfMinutesAllowed": "Out of {minutes} minutes allowed",
+      "questionDifficultyTitle": "Question Difficulty Analysis",
+      "questionLabel": "Question {index}:",
+      "correctAnswers": "{correct} / {total} correct answers",
+      "correctRate": "correct rate",
+      "timeSpentDistributionTitle": "Time Spent Distribution",
+      "minimum": "Minimum",
+      "median": "Median",
+      "maximum": "Maximum",
+      "attemptsPerStudentTitle": "Attempts Per Student",
+      "unknownStudent": "Unknown"
+    }
   },
   "analytics": {
     "title": "Analytics Dashboard",

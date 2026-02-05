@@ -6,12 +6,14 @@ import {
   IconClock,
   IconLoader,
   IconTrendingUp,
+  IconUser,
   IconUsers,
 } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -39,6 +41,7 @@ interface QuizAnalytics {
   completionRate: number;
   attemptsPerStudent: Array<{
     studentId: number;
+    name: string;
     attempts: number;
   }>;
   questionDifficulty: Array<{
@@ -75,7 +78,7 @@ export default function QuizAnalyticsPage() {
         getCourse(Number(params.courseId))
       );
       if (error) {
-        toast.error("Failed to fetch course");
+        toast.error(t("quizzes.analyticsPage.failedToFetchCourse"));
         return null;
       }
       return response?.data;
@@ -98,7 +101,7 @@ export default function QuizAnalyticsPage() {
         )
       );
       if (error) {
-        toast.error("Failed to fetch quiz analytics");
+        toast.error(t("quizzes.analyticsPage.failedToFetchQuizAnalytics"));
         throw error;
       }
       return response?.data;
@@ -116,8 +119,10 @@ export default function QuizAnalyticsPage() {
   if (error || !analytics) {
     return (
       <div className="flex h-[calc(100vh-200px)] flex-col items-center justify-center gap-4">
-        <p className="text-muted-foreground">Failed to load analytics</p>
-        <Button onClick={() => router.back()}>Go Back</Button>
+        <p className="text-muted-foreground">
+          {t("quizzes.analyticsPage.failedToLoadAnalytics")}
+        </p>
+        <Button onClick={() => router.back()}>{t("common.back")}</Button>
       </div>
     );
   }
@@ -156,7 +161,7 @@ export default function QuizAnalyticsPage() {
           </Button>
           <div>
             <h1 className="text-3xl font-bold">{analytics.quiz.title}</h1>
-            <p className="text-muted-foreground">Quiz Analytics Dashboard</p>
+            <p className="text-muted-foreground">{t("quizzes.statistics")}</p>
           </div>
         </div>
       </div>
@@ -165,9 +170,11 @@ export default function QuizAnalyticsPage() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <IconChartBar className="text-muted-foreground mb-4 h-12 w-12" />
-            <h3 className="mb-2 text-lg font-semibold">No Submissions Yet</h3>
+            <h3 className="mb-2 text-lg font-semibold">
+              {t("quizzes.analyticsPage.noSubmissionsTitle")}
+            </h3>
             <p className="text-muted-foreground text-center">
-              Analytics will appear here once students start taking this quiz.
+              {t("quizzes.analyticsPage.noSubmissionsDescription")}
             </p>
           </CardContent>
         </Card>
@@ -178,7 +185,7 @@ export default function QuizAnalyticsPage() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Total Submissions
+                  {t("quizzes.analyticsPage.totalSubmissions")}
                 </CardTitle>
                 <IconUsers className="text-muted-foreground h-4 w-4" />
               </CardHeader>
@@ -187,7 +194,9 @@ export default function QuizAnalyticsPage() {
                   {analytics.totalSubmissions}
                 </div>
                 <p className="text-muted-foreground text-xs">
-                  {analytics.attemptsPerStudent.length} unique students
+                  {t("quizzes.analyticsPage.uniqueStudents", {
+                    count: analytics.attemptsPerStudent.length,
+                  })}
                 </p>
               </CardContent>
             </Card>
@@ -195,7 +204,7 @@ export default function QuizAnalyticsPage() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Average Score
+                  {t("quizzes.analyticsPage.averageScore")}
                 </CardTitle>
                 <IconTrendingUp className="text-muted-foreground h-4 w-4" />
               </CardHeader>
@@ -213,7 +222,7 @@ export default function QuizAnalyticsPage() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Completion Rate
+                  {t("quizzes.analyticsPage.completionRate")}
                 </CardTitle>
                 <IconChartBar className="text-muted-foreground h-4 w-4" />
               </CardHeader>
@@ -222,7 +231,7 @@ export default function QuizAnalyticsPage() {
                   {Math.round(analytics.completionRate)}%
                 </div>
                 <p className="text-muted-foreground text-xs">
-                  Students who completed
+                  {t("quizzes.analyticsPage.studentsWhoCompleted")}
                 </p>
               </CardContent>
             </Card>
@@ -230,7 +239,7 @@ export default function QuizAnalyticsPage() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Average Time Spent
+                  {t("quizzes.analyticsPage.averageTimeSpent")}
                 </CardTitle>
                 <IconClock className="text-muted-foreground h-4 w-4" />
               </CardHeader>
@@ -239,7 +248,9 @@ export default function QuizAnalyticsPage() {
                   {formatTime(analytics.averageTimeSpent)}
                 </div>
                 <p className="text-muted-foreground text-xs">
-                  Out of {analytics.quiz.duration} minutes allowed
+                  {t("quizzes.analyticsPage.outOfMinutesAllowed", {
+                    minutes: analytics.quiz.duration,
+                  })}
                 </p>
               </CardContent>
             </Card>
@@ -248,7 +259,9 @@ export default function QuizAnalyticsPage() {
           {/* Question Difficulty Analysis */}
           <Card>
             <CardHeader>
-              <CardTitle>Question Difficulty Analysis</CardTitle>
+              <CardTitle>
+                {t("quizzes.analyticsPage.questionDifficultyTitle")}
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -257,12 +270,16 @@ export default function QuizAnalyticsPage() {
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <p className="font-medium">
-                          Question {question.orderIndex + 1}:{" "}
+                          {t("quizzes.analyticsPage.questionLabel", {
+                            index: question.orderIndex + 1,
+                          })}{" "}
                           {question.questionText}
                         </p>
                         <p className="text-muted-foreground text-sm">
-                          {question.correctAnswers} / {question.totalAnswers}{" "}
-                          correct answers
+                          {t("quizzes.analyticsPage.correctAnswers", {
+                            correct: question.correctAnswers,
+                            total: question.totalAnswers,
+                          })}
                         </p>
                       </div>
                       <div className="text-right">
@@ -270,7 +287,7 @@ export default function QuizAnalyticsPage() {
                           {Math.round(question.correctPercentage)}%
                         </p>
                         <p className="text-muted-foreground text-xs">
-                          correct rate
+                          {t("quizzes.analyticsPage.correctRate")}
                         </p>
                       </div>
                     </div>
@@ -284,24 +301,32 @@ export default function QuizAnalyticsPage() {
           {/* Time Distribution */}
           <Card>
             <CardHeader>
-              <CardTitle>Time Spent Distribution</CardTitle>
+              <CardTitle>
+                {t("quizzes.analyticsPage.timeSpentDistributionTitle")}
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 md:grid-cols-3">
                 <div>
-                  <p className="text-muted-foreground text-sm">Minimum</p>
+                  <p className="text-muted-foreground text-sm">
+                    {t("quizzes.analyticsPage.minimum")}
+                  </p>
                   <p className="text-2xl font-bold">
                     {formatTime(analytics.timeSpentDistribution.min)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground text-sm">Median</p>
+                  <p className="text-muted-foreground text-sm">
+                    {t("quizzes.analyticsPage.median")}
+                  </p>
                   <p className="text-2xl font-bold">
                     {formatTime(analytics.timeSpentDistribution.median)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground text-sm">Maximum</p>
+                  <p className="text-muted-foreground text-sm">
+                    {t("quizzes.analyticsPage.maximum")}
+                  </p>
                   <p className="text-2xl font-bold">
                     {formatTime(analytics.timeSpentDistribution.max)}
                   </p>
@@ -314,7 +339,9 @@ export default function QuizAnalyticsPage() {
           {analytics.attemptsPerStudent.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>Attempts Per Student</CardTitle>
+                <CardTitle>
+                  {t("quizzes.analyticsPage.attemptsPerStudentTitle")}
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
@@ -323,11 +350,22 @@ export default function QuizAnalyticsPage() {
                       className="flex items-center justify-between rounded-lg border p-3"
                       key={item.studentId}
                     >
-                      <span className="text-sm">
-                        Student ID: {item.studentId}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <Avatar>
+                          <AvatarFallback>
+                            {item.name
+                              .split(" ")
+                              .map((n: string) => n[0])
+                              .join("")}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="text-sm">
+                          {item.name ||
+                            t("quizzes.analyticsPage.unknownStudent")}
+                        </span>
+                      </div>
                       <span className="font-medium">
-                        {item.attempts} attempts
+                        {item.attempts} {t("common.attempts")}
                       </span>
                     </div>
                   ))}

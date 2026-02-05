@@ -3,9 +3,12 @@
     "platformName": "تعلم"
   },
   "common": {
+    "attempts": "محاولات",
     "resources": "الموارد",
     "download": "تحميل",
     "analytics": "تحليلات",
+    "statistics": "الإحصائيات",
+    "statisticsDescription": "تتبع أداء منصتك ومشاركة الطلاب",
     "disabled": "معطل",
     "enabled": "مفعل",
     "loading": "جاري التحميل...",
@@ -228,6 +231,7 @@
   },
   "quizzes": {
     "title": "الاختبارات",
+    "statistics": "الإحصائيات",
     "createQuiz": "إنشاء اختبار",
     "editQuiz": "تعديل الاختبار",
     "deleteQuiz": "حذف الاختبار",
@@ -312,7 +316,31 @@
     "deleteQuestion": "حذف السؤال",
     "deleteQuestionConfirmation": "حذف السؤال؟ هذا الإجراء غير قابل للتراجع",
     "questions": "الأسئلة",
-    "dragToReorder": "اسحب لإعادة ترتيب الأسئلة"
+    "dragToReorder": "اسحب لإعادة ترتيب الأسئلة",
+    "analyticsPage": {
+      "failedToFetchCourse": "فشل في جلب بيانات الدورة",
+      "failedToFetchQuizAnalytics": "فشل في جلب تحليلات الاختبار",
+      "failedToLoadAnalytics": "فشل في تحميل التحليلات",
+      "noSubmissionsTitle": "لا توجد محاولات بعد",
+      "noSubmissionsDescription": "ستظهر التحليلات هنا عندما يبدأ الطلاب في حل هذا الاختبار.",
+      "totalSubmissions": "إجمالي المحاولات",
+      "uniqueStudents": "{count} طلاب فريدون",
+      "averageScore": "متوسط الدرجة",
+      "completionRate": "معدل الإكمال",
+      "studentsWhoCompleted": "الطلاب الذين أكملوا",
+      "averageTimeSpent": "متوسط الوقت المستغرق",
+      "outOfMinutesAllowed": "من أصل {minutes} دقيقة مسموحة",
+      "questionDifficultyTitle": "تحليل صعوبة الأسئلة",
+      "questionLabel": "السؤال {index}:",
+      "correctAnswers": "{correct} / {total} إجابات صحيحة",
+      "correctRate": "نسبة الإجابات الصحيحة",
+      "timeSpentDistributionTitle": "توزيع الوقت المستغرق",
+      "minimum": "الحد الأدنى",
+      "median": "الوسيط",
+      "maximum": "الحد الأقصى",
+      "attemptsPerStudentTitle": "المحاولات لكل طالب",
+      "unknownStudent": "طالب غير معروف"
+    }
   },
   "analytics": {
     "title": "لوحة التحليلات",

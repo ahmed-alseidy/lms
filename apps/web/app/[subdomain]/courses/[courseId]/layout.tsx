@@ -35,6 +35,6 @@ export default function CourseLayout({ children }: { children: ReactNode }) {
       </div>
     );
   }
-  
+
   return <div>{children}</div>;
 }
