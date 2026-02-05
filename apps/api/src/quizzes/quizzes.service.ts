@@ -3,6 +3,7 @@ import {
   CreateQuizAnswerDto,
   CreateQuizDto,
   CreateQuizQuestionDto,
+  courses,
   db,
   enrollments,
   lessons,
@@ -760,12 +761,44 @@ export class QuizzesService {
           ),
         });
 
-        if (!completion) {
-          await tx.insert(studentLessonCompletions).values({
-            enrollmentId: dto.enrollmentId,
-            lessonId,
-          });
+        if (completion) {
+          return;
         }
+
+        await tx.insert(studentLessonCompletions).values({
+          enrollmentId: dto.enrollmentId,
+          lessonId,
+        });
+
+        // Update enrollment progress
+        const totalLessons = await tx.query.courses.findFirst({
+          where: eq(courses.id, dto.enrollmentId),
+          columns: {
+            lessonsCount: true,
+          },
+        });
+
+        if (!totalLessons) {
+          throw new NotFoundException("Course not found");
+        }
+
+        const completedLessons = await tx
+          .select({
+            count: count(studentLessonCompletions.lessonId),
+          })
+          .from(studentLessonCompletions)
+          .where(eq(studentLessonCompletions.enrollmentId, dto.enrollmentId));
+
+        const progress = Math.round(
+          ((completedLessons[0].count || 0) / totalLessons.lessonsCount) * 100
+        );
+        console.log(completedLessons[0].count, totalLessons.lessonsCount);
+        console.log(progress);
+
+        await tx
+          .update(enrollments)
+          .set({ progress })
+          .where(eq(enrollments.id, dto.enrollmentId));
       })
     );
 
