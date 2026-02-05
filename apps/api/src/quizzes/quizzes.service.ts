@@ -792,8 +792,6 @@ export class QuizzesService {
         const progress = Math.round(
           ((completedLessons[0].count || 0) / totalLessons.lessonsCount) * 100
         );
-        console.log(completedLessons[0].count, totalLessons.lessonsCount);
-        console.log(progress);
 
         await tx
           .update(enrollments)
@@ -921,34 +919,47 @@ export class QuizzesService {
    * Returns average score, attempts per student, question difficulty, completion rate, time spent
    */
   async getQuizAnalytics(quizId: string) {
-    const quiz = await db.query.quizzes.findFirst({
-      where: eq(quizzes.id, quizId),
-      columns: {
-        id: true,
-        title: true,
-        duration: true,
-      },
-      with: {
-        questions: {
-          columns: {
-            id: true,
-            questionText: true,
-            orderIndex: true,
+    const [quiz, error] = await attempt(
+      db.query.quizzes.findFirst({
+        where: eq(quizzes.id, quizId),
+        columns: {
+          id: true,
+          title: true,
+          duration: true,
+        },
+        with: {
+          questions: {
+            columns: {
+              id: true,
+              questionText: true,
+              orderIndex: true,
+            },
+          },
+          quizSubmissions: {
+            where: eq(quizSubmissions.completed, true),
+            columns: {
+              id: true,
+              score: true,
+              attempt: true,
+              startedAt: true,
+              completedAt: true,
+              studentId: true,
+            },
+            with: {
+              student: {
+                columns: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
           },
         },
-        quizSubmissions: {
-          where: eq(quizSubmissions.completed, true),
-          columns: {
-            id: true,
-            score: true,
-            attempt: true,
-            startedAt: true,
-            completedAt: true,
-            studentId: true,
-          },
-        },
-      },
-    });
+      })
+    );
+    if (error) {
+      throw new InternalServerErrorException("Error fetching quiz analytics");
+    }
 
     if (!quiz) {
       throw new NotFoundException("Quiz not found");
@@ -979,15 +990,25 @@ export class QuizzesService {
     const averageScore = totalScore / totalSubmissions;
 
     // Calculate attempts per student
-    const attemptsByStudent = new Map<number, number>();
+    const attemptsByStudent = new Map<
+      number,
+      { attempts: number; name: string }
+    >();
     for (const submission of submissions) {
-      const current = attemptsByStudent.get(submission.studentId) || 0;
-      attemptsByStudent.set(submission.studentId, current + 1);
+      const current = attemptsByStudent.get(submission.studentId) || {
+        attempts: 0,
+        name: "",
+      };
+      attemptsByStudent.set(submission.studentId, {
+        attempts: current.attempts + 1,
+        name: submission.student.name || "",
+      });
     }
 
     const attemptsPerStudent = Array.from(attemptsByStudent.entries()).map(
-      ([studentId, attempts]) => ({
+      ([studentId, { attempts, name }]) => ({
         studentId,
+        name,
         attempts,
       })
     );
@@ -1030,8 +1051,8 @@ export class QuizzesService {
             )
           );
 
-        const correctCount = correctSubmissions[0]?.count || 0;
-        const totalCount = totalAnswers[0]?.count || 0;
+        const correctCount = correctSubmissions?.count || 0;
+        const totalCount = totalAnswers?.count || 0;
         const difficulty =
           totalCount > 0 ? (correctCount / totalCount) * 100 : 0;
 
