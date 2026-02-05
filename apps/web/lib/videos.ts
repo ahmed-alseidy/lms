@@ -102,8 +102,9 @@ export const checkIfVideoCompleted = async (
   videoId: string,
   enrollmentId: number
 ) => {
+  const query = enrollmentId ? `?enrollmentId=${enrollmentId}` : "";
   return authFetch<{ completed: boolean }>(
-    `${baseUrl}/${lessonId}/videos/${videoId}/completed?enrollmentId=${enrollmentId}`,
+    `${baseUrl}/${lessonId}/videos/${videoId}/completed${query}`,
     {
       method: "GET",
     }

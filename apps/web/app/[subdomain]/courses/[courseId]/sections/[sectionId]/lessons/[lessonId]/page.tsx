@@ -122,6 +122,8 @@ export default function LessonPage() {
       }
       return response?.data;
     },
+
+    enabled: !!lesson?.videos?.[0]?.id && !!course?.enrollments?.[0]?.id,
   });
 
   const {
@@ -300,6 +302,7 @@ export default function LessonPage() {
             <div className="flex items-center gap-2">
               <div className="flex w-full flex-col gap-2">
                 <Progress
+                  className="bg-background/50"
                   value={
                     Number(course.enrollments?.[0]?.progress.toFixed(0)) || 0
                   }

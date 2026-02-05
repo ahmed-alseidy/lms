@@ -120,8 +120,9 @@ export const checkIfQuizCompleted = async (
   quizId: string,
   enrollmentId: number
 ) => {
+  const query = enrollmentId ? `?enrollmentId=${enrollmentId}` : "";
   return authFetch<{ completed: boolean }>(
-    `${baseUrl}/1/quizzes/${quizId}/completed?enrollmentId=${enrollmentId}`,
+    `${baseUrl}/1/quizzes/${quizId}/completed${query}`,
     {
       method: "GET",
     }

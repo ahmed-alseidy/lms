@@ -80,13 +80,11 @@ function LessonResources({
   lesson,
   courseId,
   enrollmentId,
-  sectionId,
   lessonId,
 }: {
   lesson: Omit<Lesson, "description">;
   courseId: number;
   enrollmentId: number;
-  sectionId: number;
   lessonId: number;
 }) {
   const t = useTranslations();
@@ -256,7 +254,6 @@ function LessonItem({
             enrollmentId={enrollmentId}
             lesson={lesson}
             lessonId={Number(lessonId)}
-            sectionId={sectionId}
           />
         </div>
       )}

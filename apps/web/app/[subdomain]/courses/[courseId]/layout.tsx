@@ -35,11 +35,6 @@ export default function CourseLayout({ children }: { children: ReactNode }) {
       </div>
     );
   }
-
-  if (!courseResponse?.data) {
-    router.replace("/courses");
-    return null;
-  }
-
+  
   return <div>{children}</div>;
 }
