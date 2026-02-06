@@ -51,7 +51,8 @@ export const CreateQuizDialog = ({
     },
   });
 
-  const t = useTranslations("lessons");
+  const tLessons = useTranslations("lessons");
+  const tQuizzes = useTranslations("quizzes");
   const tCommon = useTranslations("common");
 
   const handleSubmit = async (data: CreateQuizDto) => {
@@ -75,16 +76,16 @@ export const CreateQuizDialog = ({
       <DialogTrigger asChild hidden={quizzesNumber >= 1}>
         <Button className="gap-2" hidden={quizzesNumber >= 1}>
           <IconPlus className="h-4 w-4" />
-          {tCommon("create")} {t("quiz")}
+          {tCommon("create")} {tLessons("quiz")}
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {tCommon("create")} {t("quiz")}
+            {tCommon("create")} {tLessons("quiz")}
           </DialogTitle>
           <DialogDescription>
-            {t("addNewQuizToTestYourStudentsKnowledge")}
+            {tLessons("addNewQuizToTestYourStudentsKnowledge")}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -142,10 +143,10 @@ export const CreateQuizDialog = ({
                   </FormControl>
                   <div className="space-y-1 leading-none">
                     <FormLabel>
-                      {t("allowMultipleAttempts") || "Allow Multiple Attempts"}
+                      {tQuizzes("allowMultipleAttempts") || "Allow Multiple Attempts"}
                     </FormLabel>
                     <p className="text-muted-foreground text-sm">
-                      {t("allowStudentsToRetakeQuiz") ||
+                      {tQuizzes("allowStudentsToRetakeQuiz") ||
                         "Allow students to retake this quiz multiple times"}
                     </p>
                   </div>

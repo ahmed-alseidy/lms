@@ -35,10 +35,13 @@ import { attempt } from "@/utils/error-handling";
 @Injectable()
 export class QuizzesService {
   async create(lessonId: number, dto: CreateQuizDto) {
+    const { allowMultipleAttempts, duration, title } = dto;
     const [quiz] = await db
       .insert(quizzes)
       .values({
-        ...dto,
+        title,
+        duration,
+        allowMultipleAttempts,
         lessonId,
       })
       .returning({
@@ -125,6 +128,21 @@ export class QuizzesService {
         })
         .returning();
 
+      // Validate answers base on question type
+      if (dto.questionType === "essay") {
+        if (dto.answers && dto.answers.length > 0) {
+          throw new BadRequestException(
+            "Essay questions cannot have predefined answers"
+          );
+        }
+      } else {
+        if (!dto.answers || dto.answers.length === 0) {
+          throw new BadRequestException(
+            "Choice-based questions must have at least one answer"
+          );
+        }
+      }
+
       // Create answers
       let answers;
       if (dto.answers && dto.answers.length > 0) {
@@ -178,6 +196,14 @@ export class QuizzesService {
   }
 
   async updateQuestion(id: number, dto: UpdateQuizQuestionDto) {
+    if (dto.questionType === "essay") {
+      if (dto.answers && dto.answers.length > 0) {
+        throw new BadRequestException(
+          "Essay questions cannot have predefined answers"
+        );
+      }
+    }
+
     const [question] = await db.transaction(async (tx) => {
       const [updatedQuestion] = await tx
         .update(quizQuestions)
@@ -556,7 +582,9 @@ export class QuizzesService {
     // Convert responses to map for easy lookup
     const savedAnswers: Record<number, number> = {};
     for (const response of submission.quizResponses) {
-      savedAnswers[response.questionId] = response.answerId;
+      if (response.answerId) {
+        savedAnswers[response.questionId] = response.answerId;
+      }
     }
 
     return {
@@ -645,6 +673,22 @@ export class QuizzesService {
           throw new BadRequestException("Quiz time has expired");
         }
 
+        // Load question types for this quiz
+        const quizQuestionsList = await tx.query.quizQuestions.findMany({
+          where: eq(quizQuestions.quizId, quizId),
+          columns: {
+            id: true,
+            questionType: true,
+          },
+        });
+
+        const essayQuestionIds = new Set(
+          quizQuestionsList
+            .filter((q) => q.questionType === "essay")
+            .map((q) => q.id)
+        );
+        const hasEssayQuestions = essayQuestionIds.size > 0;
+
         // Use saved responses from quiz_responses, or fall back to dto.answers
         const answersToGrade =
           submission.quizResponses.length > 0
@@ -654,52 +698,72 @@ export class QuizzesService {
               }))
             : dto.answers;
 
-        // Calculate score based on correct answers
-        const questionsIds = answersToGrade.map((a) => a.questionId);
-        const answersIds = answersToGrade.map((a) => a.answerId);
+        // Calculate auto-graded score for mcq/true_false questions
+        const autoGradableQuestionIds = new Set(
+          quizQuestionsList
+            .filter((q) => q.questionType !== "essay")
+            .map((q) => q.id)
+        );
 
-        const submittedAnswers = await tx.query.quizAnswers.findMany({
-          where: and(
-            inArray(quizAnswers.questionId, questionsIds),
-            inArray(quizAnswers.id, answersIds)
-          ),
-          columns: {
-            questionId: true,
-            isCorrect: true,
-          },
-        });
+        // Filter answers to only include auto-graded questions
+        const autoGradableAnswers = answersToGrade?.filter((a) =>
+          autoGradableQuestionIds.has(a.questionId)
+        );
 
-        // Count correct answers per question
-        const correctAnswersByQuestion = new Map<number, boolean>();
-        for (const answer of submittedAnswers) {
-          const existing = correctAnswersByQuestion.get(answer.questionId);
-          // For MCQ/TrueFalse, only one answer per question, so this is correct
-          correctAnswersByQuestion.set(answer.questionId, answer.isCorrect);
+        let autoScore: number | null = null;
+
+        if (autoGradableAnswers.length > 0) {
+          const questionsIds = autoGradableAnswers.map((a) => a.questionId);
+          const answersIds = autoGradableAnswers
+            .map((a) => a.answerId!)
+            .filter((a) => a !== null);
+
+          const submittedAnswers = await tx.query.quizAnswers.findMany({
+            where: and(
+              inArray(quizAnswers.questionId, questionsIds),
+              inArray(quizAnswers.id, answersIds)
+            ),
+            columns: {
+              questionId: true,
+              isCorrect: true,
+            },
+          });
+
+          // Count correct answers per question
+          const correctAnswersByQuestion = new Map<number, boolean>();
+          for (const answer of submittedAnswers) {
+            correctAnswersByQuestion.set(answer.questionId, answer.isCorrect);
+          }
+
+          let correctCount = 0;
+          for (const [, isCorrect] of correctAnswersByQuestion) {
+            if (isCorrect) correctCount++;
+          }
+
+          const totalQuestionsCount = autoGradableQuestionIds.size;
+
+          autoScore =
+            totalQuestionsCount > 0 ? correctCount / totalQuestionsCount : 0;
         }
 
-        let correctCount = 0;
-        for (const [questionId, isCorrect] of correctAnswersByQuestion) {
-          if (isCorrect) correctCount++;
+        let status: "pending" | "auto_graded" | "graded" = "pending";
+        let finalScore: number | null = null;
+
+        if (hasEssayQuestions) {
+          status = "pending";
+        } else {
+          status = "auto_graded";
+          finalScore = autoScore ?? 0;
         }
-
-        const [totalQuestionsCount] = await tx
-          .select({
-            count: count(quizQuestions.id),
-          })
-          .from(quizQuestions)
-          .where(eq(quizQuestions.quizId, quizId));
-
-        const score =
-          totalQuestionsCount.count > 0
-            ? correctCount / totalQuestionsCount.count
-            : 0;
 
         // Update submission to mark as completed
         await tx
           .update(quizSubmissions)
           .set({
             completed: true,
-            score: score.toString(),
+            status,
+            autoScore: autoScore ? autoScore.toString() : null,
+            score: finalScore ? finalScore.toString() : null,
             completedAt: sql`CURRENT_TIMESTAMP`,
           })
           .where(eq(quizSubmissions.id, submission.id));
@@ -835,6 +899,8 @@ export class QuizzesService {
           completedAt: true,
           score: true,
           id: true,
+          status: true,
+          autoScore: true,
         },
         with: {
           quiz: {
@@ -906,6 +972,8 @@ export class QuizzesService {
     return {
       id: response?.id,
       score: response?.score,
+      status: response?.status,
+      autoScore: response?.autoScore,
       quiz: {
         id: response?.quiz.id,
         title: response?.quiz.title,

@@ -62,6 +62,8 @@ export type QuizAnswer = SelectQuizAnswer;
 export interface QuizResults {
   id: number;
   score: string;
+  status: "pending" | "auto_graded" | "graded";
+  autoScore: string;
   quiz: {
     id: string;
     title: string;
