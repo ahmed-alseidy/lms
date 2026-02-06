@@ -6,6 +6,7 @@ import {
   IsBoolean,
   IsIn,
   IsNumber,
+  IsOptional,
   IsString,
   Min,
   MinLength,
@@ -30,15 +31,16 @@ export class CreateQuizQuestionDto {
   // disallow any "short_answer" style type in order to keep the quiz module
   // fully auto-gradable.
   @IsString()
-  @IsIn(["mcq", "true_false"])
-  questionType: "mcq" | "true_false";
+  @IsIn(["mcq", "true_false", "essay"])
+  questionType: "mcq" | "true_false" | "essay";
 
   @IsNumber()
   @Min(0)
   orderIndex: number;
 
   @IsArray()
+  @IsOptional()
   @ValidateNested({ each: true })
   @Type(() => CreateQuizAnswerDto)
-  answers: CreateQuizAnswerDto[];
+  answers?: CreateQuizAnswerDto[];
 }

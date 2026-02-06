@@ -32,8 +32,8 @@ export class UpdateQuizQuestionDto {
   // "short_answer" style questions in this module.
   @IsString()
   @IsOptional()
-  @IsIn(["mcq", "true_false"])
-  questionType?: "mcq" | "true_false";
+  @IsIn(["mcq", "true_false", "essay"])
+  questionType?: "mcq" | "true_false" | "essay";
 
   @IsNumber()
   @IsOptional()

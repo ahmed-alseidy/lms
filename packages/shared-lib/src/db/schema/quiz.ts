@@ -18,7 +18,11 @@ import { students } from "./user";
 // NOTE: We explicitly restrict quiz question types to multiple choice (mcq)
 // and true/false (true_false). Short answer style questions are intentionally
 // not supported in this schema to keep grading fully automatic.
-export const questionTypeEnum = pgEnum("question_type", ["mcq", "true_false"]);
+export const questionTypeEnum = pgEnum("question_type", [
+  "mcq",
+  "true_false",
+  "essay",
+]);
 
 export const quizzes = pgTable("quizzes", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -86,12 +90,11 @@ export const quizResponses = pgTable(
         onUpdate: "cascade",
       })
       .notNull(),
-    answerId: integer("answer_id")
-      .references(() => quizAnswers.id, {
-        onDelete: "cascade",
-        onUpdate: "cascade",
-      })
-      .notNull(),
+    answerId: integer("answer_id").references(() => quizAnswers.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+    textAnswer: text("text_answer"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
@@ -114,12 +117,11 @@ export const submittedQuestionAnswers = pgTable(
         onUpdate: "cascade",
       })
       .notNull(),
-    answerId: integer("answer_id")
-      .references(() => quizAnswers.id, {
-        onDelete: "cascade",
-        onUpdate: "cascade",
-      })
-      .notNull(),
+    answerId: integer("answer_id").references(() => quizAnswers.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+    textAnswer: text("text_answer"),
     submissionId: integer("submission_id")
       .references(() => quizSubmissions.id, {
         onDelete: "cascade",
@@ -140,6 +142,10 @@ export const quizSubmissions = pgTable(
   "quiz_submissions",
   {
     id: serial("id").primaryKey(),
+    status: varchar("status", { enum: ["pending", "auto_graded", "graded"] })
+      .notNull()
+      .default("pending"),
+    autoScore: numeric("auto_score", { precision: 10, scale: 2 }),
     enrollmentId: integer("enrollment_id")
       .references(() => enrollments.id, {
         onUpdate: "cascade",
