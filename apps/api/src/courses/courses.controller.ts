@@ -35,6 +35,7 @@ import { FileInterceptor } from "@nestjs/platform-express";
 import { ApiBearerAuth, ApiBody, ApiConsumes } from "@nestjs/swagger";
 import { Session, UserSession } from "@thallesp/nestjs-better-auth";
 import { eq } from "drizzle-orm";
+import { memoryStorage } from "multer";
 import { Roles } from "@/auth/decorators/roles.decorator";
 import { Role } from "@/auth/types/roles";
 import { CloudinaryService } from "@/cloudinary/cloudinary.service";
@@ -207,7 +208,11 @@ export class CoursesController {
   })
   @Put("/:courseId/upload-cover-image")
   @Roles("teacher")
-  @UseInterceptors(FileInterceptor("coverImage"))
+  @UseInterceptors(
+    FileInterceptor("coverImage", {
+      storage: memoryStorage(),
+    })
+  )
   async uploadCoverImage(
     @Param('courseId', ParseIntPipe) courseId: number,
     @UploadedFile(
