@@ -35,7 +35,7 @@ function RadioGroupItem({
         className="group-aria-invalid/radio-group-item:text-destructive flex size-4 items-center justify-center text-white"
         data-slot="radio-group-indicator"
       >
-        <IconCircle className="absolute top-1/2 left-1/2 size-2 -translate-x-1/2 -translate-y-1/2 fill-current" />
+        <IconCircle className="absolute top-1/2 start-1/2 size-2 -translate-x-1/2 rtl:translate-x-1/2 -translate-y-1/2 fill-current" />
       </RadioGroupPrimitive.Indicator>
     </RadioGroupPrimitive.Item>
   );
