@@ -143,7 +143,8 @@ export const CreateQuizDialog = ({
                   </FormControl>
                   <div className="space-y-1 leading-none">
                     <FormLabel>
-                      {tQuizzes("allowMultipleAttempts") || "Allow Multiple Attempts"}
+                      {tQuizzes("allowMultipleAttempts") ||
+                        "Allow Multiple Attempts"}
                     </FormLabel>
                     <p className="text-muted-foreground text-sm">
                       {tQuizzes("allowStudentsToRetakeQuiz") ||

@@ -182,7 +182,7 @@ export default function SectionPage() {
   }
 
   return (
-    <div className="container mx-auto space-y-4">
+    <div className="space-y-4">
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>

@@ -90,7 +90,7 @@ export default function CourseEdit({
         <div className="flex items-center gap-2 space-y-1">
           <Link
             className={cn(buttonVariants({ variant: "ghost", size: "icon" }))}
-            href={`/dashboard/courses/${course.id}/analytics`}
+            href={`/dashboard/courses`}
           >
             <IconArrowLeft className="rotate-rtl h-4 w-4" />
           </Link>

@@ -69,7 +69,7 @@ export default function CoursesPage() {
 
   return (
     <Dialog onOpenChange={setOpen} open={open}>
-      <div className="container mx-auto mt-2">
+      <div className="container mt-2">
         <div className="flex w-full flex-col justify-between md:flex-row">
           <h2 className="text-3xl font-bold">{t("title")}</h2>
           <DialogTrigger asChild className="place-self-end">

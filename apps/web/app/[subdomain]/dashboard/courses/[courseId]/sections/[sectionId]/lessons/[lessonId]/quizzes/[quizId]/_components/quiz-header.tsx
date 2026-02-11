@@ -1,6 +1,6 @@
 "use client";
 
-import { IconArrowLeft, IconChartBar } from "@tabler/icons-react";
+import { IconArrowLeft, IconChartBar, IconFileText } from "@tabler/icons-react";
 import { useParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
@@ -91,6 +91,17 @@ export function QuizHeader({
           </div>
         </div>
         <div className="mt-4 flex items-center gap-2">
+          <Button
+            onClick={() =>
+              router.push(
+                `/dashboard/courses/${params.courseId}/sections/${params.sectionId}/lessons/${params.lessonId}/quizzes/${params.quizId}/submissions`
+              )
+            }
+            variant="outline"
+          >
+            <IconFileText className="mr-2 h-4 w-4" />
+            {t("quizzes.submissions")}
+          </Button>
           <Button
             onClick={() =>
               router.push(

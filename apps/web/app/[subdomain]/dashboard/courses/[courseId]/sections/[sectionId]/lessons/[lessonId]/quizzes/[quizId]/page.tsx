@@ -225,7 +225,7 @@ export default function QuizEditPage() {
   if (isQuizError || isLessonError) return <div>Error</div>;
 
   return (
-    <div className="container mx-auto space-y-4">
+    <div className="space-y-4">
       <QuizHeader
         courseTitle={course?.data?.title}
         lessonTitle={lessonData?.data?.title}

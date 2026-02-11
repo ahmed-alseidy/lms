@@ -51,7 +51,7 @@ export default function EditCoursePage() {
   if (!data) redirect("/dashboard/courses");
 
   return (
-    <div className="container mx-auto">
+    <div>
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
