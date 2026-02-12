@@ -1,0 +1,1 @@
+ALTER TABLE "submitted_question_answers" ADD COLUMN "is_correct" boolean;

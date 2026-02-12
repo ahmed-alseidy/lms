@@ -1,6 +1,7 @@
 export * from "./complete-quiz.dto";
 export * from "./create-quiz.dto";
 export * from "./create-quiz-question.dto";
+export * from "./manual-grading.dto";
 export * from "./resume-quiz.dto";
 export * from "./save-answer.dto";
 export * from "./start-quiz.dto";

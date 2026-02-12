@@ -4,7 +4,9 @@ import {
   IsArray,
   IsNotEmpty,
   IsNumber,
+  IsOptional,
   IsPositive,
+  IsString,
   ValidateNested,
 } from "class-validator";
 
@@ -14,10 +16,14 @@ export class SubmittedAnswer {
   @IsNumber()
   questionId: number;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsPositive()
   @IsNumber()
-  answerId: number;
+  answerId?: number;
+
+  @IsOptional()
+  @IsString()
+  textAnswer?: string;
 }
 
 export class CompleteQuizDto {

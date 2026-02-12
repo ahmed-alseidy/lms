@@ -122,6 +122,7 @@ export const submittedQuestionAnswers = pgTable(
       onUpdate: "cascade",
     }),
     textAnswer: text("text_answer"),
+    isCorrect: boolean("is_correct"),
     submissionId: integer("submission_id")
       .references(() => quizSubmissions.id, {
         onDelete: "cascade",
