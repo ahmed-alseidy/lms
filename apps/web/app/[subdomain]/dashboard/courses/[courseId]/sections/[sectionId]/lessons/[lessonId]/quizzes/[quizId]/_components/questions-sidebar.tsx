@@ -132,10 +132,18 @@ export function QuestionsSidebar({
                               {question.questionText}
                             </p>
                           </div>
-                          <p className="text-muted-foreground mt-1 text-xs">
-                            {question.answers?.length || 0}{" "}
-                            {t("quizzes.answers")}
-                          </p>
+                          <div className="text-muted-foreground mt-1 flex items-center gap-2 text-xs">
+                            {question.questionType === "essay" ? (
+                              <span className="text-primary font-medium">
+                                {t("quizzes.essay")}
+                              </span>
+                            ) : (
+                              <span>
+                                {question.answers?.length || 0}{" "}
+                                {t("quizzes.answers")}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     )}

@@ -7,17 +7,21 @@ export const QuestionPagination = ({
   questions,
   currentQuestionIndex,
   selectedAnswers,
+  essayAnswers,
   onQuestionSelect,
   isTimerExpired,
 }: {
   questions: any[];
   currentQuestionIndex: number;
   selectedAnswers: Record<string, string>;
+  essayAnswers?: Record<number, string>;
   onQuestionSelect: (index: number) => void;
   isTimerExpired: boolean;
 }) => {
   const t = useTranslations();
-  const answeredCount = Object.keys(selectedAnswers).length;
+  const answeredCount =
+    Object.keys(selectedAnswers).length +
+    (essayAnswers ? Object.keys(essayAnswers).length : 0);
   const totalQuestions = questions.length;
 
   return (
@@ -33,7 +37,11 @@ export const QuestionPagination = ({
       </div>
       <div className="flex flex-wrap gap-2">
         {questions.map((question, index) => {
-          const isAnswered = selectedAnswers[question.id];
+          const isAnswered =
+            selectedAnswers[question.id] ||
+            (essayAnswers &&
+              essayAnswers[question.id] &&
+              essayAnswers[question.id]?.trim().length > 0);
           const isCurrent = index === currentQuestionIndex;
 
           return (

@@ -83,61 +83,85 @@ export function QuestionCard({
               questionId={question.id}
             />
           </div>
-          <Separator />
-          <div>
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-sm font-medium">{t("quizzes.answers")}</h3>
-              <Button
-                className="gap-2"
-                onClick={() => onAddAnswer(question.id)}
-                size="sm"
-                variant="outline"
-              >
-                <IconPlus className="h-4 w-4" />
-                {t("quizzes.addAnswer")}
-              </Button>
-            </div>
 
-            <div className="space-y-4">
-              {question.answers?.map((answer) => (
-                <div
-                  className="flex flex-wrap items-start justify-between gap-2 rounded-lg border p-4"
-                  key={answer.id}
-                >
-                  <AnswerEditForm
-                    answerId={answer.id}
-                    initialData={{
-                      answerText: answer.answerText,
-                    }}
-                  />
-                  <div className="flex items-center gap-2 pt-8">
-                    <div className="flex items-center gap-2">
-                      <Checkbox
-                        checked={answer.isCorrect}
-                        id={`correct-${answer.id}`}
-                        onCheckedChange={(checked) =>
-                          onUpdateAnswer(question.id, answer.id, {
-                            isCorrect: checked === true,
-                          })
-                        }
-                      />
-                      <Label htmlFor={`correct-${answer.id}`}>
-                        {t("quizzes.correct")}
-                      </Label>
-                    </div>
-                    <Button
-                      className="hover:bg-destructive/10 hover:text-destructive"
-                      onClick={() => onDeleteAnswer(question.id, answer.id)}
-                      size="icon"
-                      variant="ghost"
-                    >
-                      <IconTrash className="h-4 w-4" />
-                    </Button>
-                  </div>
+          {question.questionType === "essay" ? (
+            <>
+              <Separator />
+              <div className="bg-muted rounded-lg p-4">
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="font-medium">
+                    {t("quizzes.questionType")}:
+                  </span>
+                  <span className="text-muted-foreground">
+                    {t("quizzes.essay")}
+                  </span>
                 </div>
-              ))}
-            </div>
-          </div>
+                <p className="text-muted-foreground mt-2 text-sm">
+                  {t("quizzes.essayQuestionInfo")}
+                </p>
+              </div>
+            </>
+          ) : (
+            <>
+              <Separator />
+              <div>
+                <div className="mb-4 flex items-center justify-between">
+                  <h3 className="text-sm font-medium">
+                    {t("quizzes.answers")}
+                  </h3>
+                  <Button
+                    className="gap-2"
+                    onClick={() => onAddAnswer(question.id)}
+                    size="sm"
+                    variant="outline"
+                  >
+                    <IconPlus className="h-4 w-4" />
+                    {t("quizzes.addAnswer")}
+                  </Button>
+                </div>
+
+                <div className="space-y-4">
+                  {question.answers?.map((answer) => (
+                    <div
+                      className="flex flex-wrap items-start justify-between gap-2 rounded-lg border p-4"
+                      key={answer.id}
+                    >
+                      <AnswerEditForm
+                        answerId={answer.id}
+                        initialData={{
+                          answerText: answer.answerText,
+                        }}
+                      />
+                      <div className="flex items-center gap-2 pt-8">
+                        <div className="flex items-center gap-2">
+                          <Checkbox
+                            checked={answer.isCorrect}
+                            id={`correct-${answer.id}`}
+                            onCheckedChange={(checked) =>
+                              onUpdateAnswer(question.id, answer.id, {
+                                isCorrect: checked === true,
+                              })
+                            }
+                          />
+                          <Label htmlFor={`correct-${answer.id}`}>
+                            {t("quizzes.correct")}
+                          </Label>
+                        </div>
+                        <Button
+                          className="hover:bg-destructive/10 hover:text-destructive"
+                          onClick={() => onDeleteAnswer(question.id, answer.id)}
+                          size="icon"
+                          variant="ghost"
+                        >
+                          <IconTrash className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </CardContent>
     </Card>

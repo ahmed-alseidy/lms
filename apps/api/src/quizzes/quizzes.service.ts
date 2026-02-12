@@ -7,6 +7,7 @@ import {
   db,
   enrollments,
   lessons,
+  ManualGradingDto,
   quizAnswers,
   quizQuestions,
   quizResponses,
@@ -390,6 +391,22 @@ export class QuizzesService {
       };
     }
 
+    // Block new attempt if a completed submission is pending manual grading
+    const pendingGradingSubmission = await db.query.quizSubmissions.findFirst({
+      where: and(
+        eq(quizSubmissions.quizId, quizId),
+        eq(quizSubmissions.enrollmentId, dto.enrollmentId),
+        eq(quizSubmissions.completed, true),
+        eq(quizSubmissions.status, "pending")
+      ),
+      columns: { id: true },
+    });
+    if (pendingGradingSubmission) {
+      throw new ConflictException(
+        "A previous attempt is awaiting manual grading. You cannot start a new attempt until it is graded."
+      );
+    }
+
     // Get the next attempt number
     const [maxAttempt] = await db
       .select({ maxAttempt: max(quizSubmissions.attempt) })
@@ -612,7 +629,7 @@ export class QuizzesService {
     return Math.max(0, totalSeconds - elapsedSeconds);
   }
 
-  async completeQuiz(quizId: string, studentId: number, dto: CompleteQuizDto) {
+  async submitQuiz(quizId: string, studentId: number, dto: CompleteQuizDto) {
     // Check if quiz exists
     const [quiz, quizError] = await attempt(
       db.query.quizzes.findFirst({
@@ -689,14 +706,20 @@ export class QuizzesService {
         );
         const hasEssayQuestions = essayQuestionIds.size > 0;
 
+        console.log("submission.quizResponses", submission.quizResponses);
         // Use saved responses from quiz_responses, or fall back to dto.answers
-        const answersToGrade =
+        const tempAnswersToGrade =
           submission.quizResponses.length > 0
             ? submission.quizResponses.map((r) => ({
                 questionId: r.questionId,
                 answerId: r.answerId,
               }))
             : dto.answers;
+
+        const answersToGrade = [
+          ...tempAnswersToGrade,
+          ...dto.answers.filter((a) => !!a.textAnswer),
+        ];
 
         // Calculate auto-graded score for mcq/true_false questions
         const autoGradableQuestionIds = new Set(
@@ -768,6 +791,8 @@ export class QuizzesService {
           })
           .where(eq(quizSubmissions.id, submission.id));
 
+        console.log(answersToGrade);
+        console.log("answers dto", dto.answers);
         // Copy responses from quiz_responses to submitted_question_answers (final locked answers)
         if (answersToGrade.length > 0) {
           await tx.insert(submittedQuestionAnswers).values(
@@ -775,6 +800,7 @@ export class QuizzesService {
               submissionId: submission.id,
               questionId: a.questionId,
               answerId: a.answerId,
+              textAnswer: "textAnswer" in a ? a.textAnswer : null,
             }))
           );
         }
@@ -876,6 +902,10 @@ export class QuizzesService {
           eq(quizSubmissions.quizId, quizId),
           eq(quizSubmissions.studentId, studentId)
         ),
+        columns: {
+          completed: true,
+          status: true,
+        },
       })
     );
 
@@ -884,7 +914,8 @@ export class QuizzesService {
     }
 
     return {
-      completed: result?.completed,
+      completed: !!result?.completed,
+      status: result?.status,
     };
   }
 
@@ -912,6 +943,7 @@ export class QuizzesService {
               questions: {
                 columns: {
                   id: true,
+                  questionType: true,
                   questionText: true,
                 },
                 with: {
@@ -929,6 +961,8 @@ export class QuizzesService {
           submittedQuestionAnswers: {
             columns: {
               id: true,
+              textAnswer: true,
+              isCorrect: true,
             },
             with: {
               question: {
@@ -962,6 +996,8 @@ export class QuizzesService {
         ...rest,
         correctAnswer: answers[0],
         submittedAnswer: submittedAnswer?.answer,
+        textAnswer: submittedAnswer?.textAnswer,
+        isCorrect: submittedAnswer?.isCorrect ?? undefined,
       };
     });
 
@@ -1179,5 +1215,292 @@ export class QuizzesService {
             : 0,
       },
     };
+  }
+
+  /**
+   * List completed submissions for a quiz (teacher only) with pagination.
+   * Used for the submissions grading page.
+   */
+  async getQuizSubmissions(quizId: string, page: number, pageSize: number) {
+    const quiz = await db.query.quizzes.findFirst({
+      where: eq(quizzes.id, quizId),
+      columns: { id: true, title: true },
+    });
+
+    if (!quiz) {
+      throw new NotFoundException("Quiz not found");
+    }
+
+    const [{ total }] = await db
+      .select({ total: count() })
+      .from(quizSubmissions)
+      .where(
+        and(
+          eq(quizSubmissions.quizId, quizId),
+          eq(quizSubmissions.completed, true)
+        )
+      );
+
+    const totalSubmissions = Number(total || 0);
+    const totalPages =
+      totalSubmissions === 0 ? 1 : Math.ceil(totalSubmissions / pageSize);
+    const currentPage = Math.min(page, totalPages);
+    const offset = (currentPage - 1) * pageSize;
+
+    const submissions = await db.query.quizSubmissions.findMany({
+      where: and(
+        eq(quizSubmissions.quizId, quizId),
+        eq(quizSubmissions.completed, true)
+      ),
+      columns: {
+        id: true,
+        studentId: true,
+        status: true,
+        score: true,
+        autoScore: true,
+        attempt: true,
+        completedAt: true,
+      },
+      with: {
+        student: {
+          columns: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+      orderBy: [desc(quizSubmissions.completedAt)],
+      limit: pageSize,
+      offset,
+    });
+
+    return {
+      quiz: { id: quiz.id, title: quiz.title },
+      submissions,
+      pagination: {
+        page: currentPage,
+        pageSize,
+        total: totalSubmissions,
+        totalPages,
+      },
+    };
+  }
+
+  /**
+   * Get a single submission with full question/answer detail (teacher only).
+   * Includes essay textAnswer and choice answers for grading.
+   */
+  async getQuizSubmissionDetail(quizId: string, submissionId: number) {
+    const submission = await db.query.quizSubmissions.findFirst({
+      where: and(
+        eq(quizSubmissions.id, submissionId),
+        eq(quizSubmissions.quizId, quizId),
+        eq(quizSubmissions.completed, true)
+      ),
+      columns: {
+        id: true,
+        studentId: true,
+        status: true,
+        score: true,
+        autoScore: true,
+        attempt: true,
+        completedAt: true,
+      },
+      with: {
+        student: {
+          columns: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        quiz: {
+          columns: { id: true, title: true },
+        },
+        submittedQuestionAnswers: {
+          columns: {
+            id: true,
+            questionId: true,
+            answerId: true,
+            textAnswer: true,
+            isCorrect: true,
+          },
+          with: {
+            question: {
+              columns: {
+                id: true,
+                questionText: true,
+                questionType: true,
+                orderIndex: true,
+              },
+            },
+            answer: {
+              columns: {
+                id: true,
+                answerText: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!submission) {
+      throw new NotFoundException(
+        "Completed submission not found for this quiz"
+      );
+    }
+
+    // Build questions in order with submitted answer (choice or essay)
+    const questions = await db.query.quizQuestions.findMany({
+      where: eq(quizQuestions.quizId, quizId),
+      columns: {
+        id: true,
+        questionText: true,
+        questionType: true,
+        orderIndex: true,
+      },
+      orderBy: [asc(quizQuestions.orderIndex)],
+    });
+
+    const submittedByQuestion = new Map(
+      submission.submittedQuestionAnswers.map((sqa) => [sqa.questionId, sqa])
+    );
+
+    const questionsWithAnswers = questions.map((q) => {
+      const sqa = submittedByQuestion.get(q.id);
+      return {
+        id: q.id,
+        questionText: q.questionText,
+        questionType: q.questionType,
+        orderIndex: q.orderIndex,
+        isCorrect: sqa?.isCorrect ?? undefined,
+        submittedAnswer: sqa
+          ? sqa.textAnswer != null
+            ? {
+                type: "essay" as const,
+                textAnswer: sqa.textAnswer,
+                isCorrect: sqa.isCorrect ?? undefined,
+              }
+            : sqa.answer
+              ? {
+                  type: "choice" as const,
+                  answerId: sqa.answer.id,
+                  answerText: sqa.answer.answerText,
+                }
+              : null
+          : null,
+      };
+    });
+
+    return {
+      id: submission.id,
+      status: submission.status,
+      score: submission.score,
+      autoScore: submission.autoScore,
+      attempt: submission.attempt,
+      completedAt: submission.completedAt,
+      student: submission.student,
+      quiz: submission.quiz,
+      questions: questionsWithAnswers,
+    };
+  }
+
+  /**
+   * Teacher manually grades a completed submission by marking each essay answer as correct or incorrect.
+   * Final score is computed from auto-graded (MCQ/true-false) correctness + essay grades.
+   */
+  async gradeSubmission(
+    quizId: string,
+    submissionId: number,
+    dto: ManualGradingDto
+  ) {
+    const submission = await db.query.quizSubmissions.findFirst({
+      where: and(
+        eq(quizSubmissions.id, submissionId),
+        eq(quizSubmissions.quizId, quizId),
+        eq(quizSubmissions.completed, true)
+      ),
+      columns: { id: true },
+      with: {
+        submittedQuestionAnswers: {
+          columns: {
+            id: true,
+            questionId: true,
+            answerId: true,
+            textAnswer: true,
+            isCorrect: true,
+          },
+          with: {
+            question: {
+              columns: { id: true, questionType: true },
+            },
+            answer: {
+              columns: { id: true, isCorrect: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (!submission) {
+      throw new NotFoundException(
+        "Completed submission not found for this quiz"
+      );
+    }
+
+    const essayGradesByQuestionId = new Map(
+      dto.essayGrades.map((g) => [g.questionId, g.isCorrect])
+    );
+
+    await db.transaction(async (tx) => {
+      // Update is_correct for each essay answer
+      for (const g of dto.essayGrades) {
+        await tx
+          .update(submittedQuestionAnswers)
+          .set({ isCorrect: g.isCorrect })
+          .where(
+            and(
+              eq(submittedQuestionAnswers.submissionId, submissionId),
+              eq(submittedQuestionAnswers.questionId, g.questionId)
+            )
+          );
+      }
+
+      // Compute correct count: MCQ/true_false from answer.isCorrect, essay from graded is_correct
+      let correctCount = 0;
+      const totalQuestions = submission.submittedQuestionAnswers.length;
+      for (const sqa of submission.submittedQuestionAnswers) {
+        const questionType = sqa.question?.questionType;
+        if (questionType === "essay") {
+          const graded = essayGradesByQuestionId.get(sqa.questionId);
+          if (graded === true) correctCount++;
+        } else {
+          if (sqa.answer?.isCorrect === true) correctCount++;
+        }
+      }
+
+      const score = totalQuestions > 0 ? correctCount / totalQuestions : 0;
+
+      await tx
+        .update(quizSubmissions)
+        .set({
+          status: "graded",
+          score: score.toString(),
+        })
+        .where(eq(quizSubmissions.id, submissionId));
+    });
+
+    const [updated] = await db
+      .select({
+        id: quizSubmissions.id,
+        status: quizSubmissions.status,
+        score: quizSubmissions.score,
+      })
+      .from(quizSubmissions)
+      .where(eq(quizSubmissions.id, submissionId));
+
+    return updated!;
   }
 }

@@ -16,7 +16,7 @@ import {
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -37,11 +37,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { getCourse } from "@/lib/courses";
 import {
+  type EssayGradeItem,
   getQuizSubmissionDetail,
   gradeQuizSubmission,
   type QuizSubmissionQuestionAnswer,
@@ -59,12 +59,19 @@ const formatDate = (dateStr: string | null, locale: string) => {
 function QuestionAnswer({
   q,
   index,
+  essayGrade,
+  onEssayGradeChange,
+  readOnly,
 }: {
   q: QuizSubmissionQuestionAnswer;
   index: number;
+  essayGrade?: boolean;
+  onEssayGradeChange?: (isCorrect: boolean) => void;
+  readOnly?: boolean;
 }) {
   const t = useTranslations("quizzes");
   const td = useTranslations("quizzes.submissionDetail");
+  const isEssay = q.questionType === "essay";
 
   const getQuestionTypeBadge = () => {
     const typeMap = {
@@ -118,17 +125,54 @@ function QuestionAnswer({
               <AlertDescription>{td("noAnswerSubmitted")}</AlertDescription>
             </Alert>
           ) : q.submittedAnswer.type === "essay" ? (
-            <div className="rounded-lg border bg-card p-4">
-              <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                {q.submittedAnswer.textAnswer ? (
-                  q.submittedAnswer.textAnswer
-                ) : (
-                  <span className="italic text-muted-foreground">
-                    ({td("noTextProvided")})
-                  </span>
-                )}
+            <>
+              <div className="rounded-lg border bg-card p-4">
+                <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                  {q.submittedAnswer.textAnswer ? (
+                    q.submittedAnswer.textAnswer
+                  ) : (
+                    <span className="italic text-muted-foreground">
+                      ({td("noTextProvided")})
+                    </span>
+                  )}
+                </div>
               </div>
-            </div>
+              {!readOnly && onEssayGradeChange && (
+                <div className="mt-3 flex items-center gap-2">
+                  <Label className="text-xs font-medium text-muted-foreground">
+                    {td("markAs")}:
+                  </Label>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => onEssayGradeChange(true)}
+                      size="sm"
+                      type="button"
+                      variant={essayGrade === true ? "default" : "outline"}
+                    >
+                      <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" />
+                      {t("correct")}
+                    </Button>
+                    <Button
+                      onClick={() => onEssayGradeChange(false)}
+                      size="sm"
+                      type="button"
+                      variant={essayGrade === false ? "destructive" : "outline"}
+                    >
+                      <AlertCircle className="mr-1.5 h-3.5 w-3.5" />
+                      {t("incorrect")}
+                    </Button>
+                  </div>
+                </div>
+              )}
+              {readOnly && essayGrade !== undefined && (
+                <Badge
+                  className="mt-2"
+                  variant={essayGrade ? "default" : "destructive"}
+                >
+                  {essayGrade ? t("correct") : t("incorrect")}
+                </Badge>
+              )}
+            </>
           ) : (
             <div className="rounded-lg border bg-card p-3">
               <p className="text-sm font-medium">
@@ -152,8 +196,7 @@ export default function QuizSubmissionDetailPage() {
   const lessonId = Number(params.lessonId);
   const quizId = params.quizId as string;
   const submissionId = Number(params.submissionId);
-  const [scoreInput, setScoreInput] = useState("");
-  const [isEditingGrade, setIsEditingGrade] = useState(false);
+  const [essayGrades, setEssayGrades] = useState<Record<number, boolean>>({});
   const locale = useLocale();
 
   const { data: course } = useQuery({
@@ -184,9 +227,9 @@ export default function QuizSubmissionDetailPage() {
   });
 
   const gradeMutation = useMutation({
-    mutationFn: async (score: number) => {
+    mutationFn: async (grades: EssayGradeItem[]) => {
       const [res, err] = await attempt(
-        gradeQuizSubmission(lessonId, quizId, submissionId, score)
+        gradeQuizSubmission(lessonId, quizId, submissionId, grades)
       );
       if (err) throw err;
       return res?.data;
@@ -197,34 +240,50 @@ export default function QuizSubmissionDetailPage() {
       });
       queryClient.invalidateQueries({ queryKey: ["quiz-submissions", quizId] });
       toast.success(t("gradeSaved"));
-      setIsEditingGrade(false);
-      setScoreInput("");
     },
     onError: () => {
       toast.error(t("failedToSubmitGrade"));
     },
   });
 
-  const handleSubmitGrade = (e: React.FormEvent) => {
-    e.preventDefault();
-    const num = Number(scoreInput);
-    if (Number.isNaN(num) || num < 0 || num > 100) {
-      toast.error("Enter a score between 0 and 100");
+  // Initialize essay grades from submission when it loads
+  useEffect(() => {
+    if (!submission?.questions) return;
+    const initial: Record<number, boolean> = {};
+    for (const q of submission.questions) {
+      if (q.questionType === "essay" && q.submittedAnswer?.type === "essay") {
+        if (q.submittedAnswer.isCorrect !== undefined) {
+          initial[q.id] = q.submittedAnswer.isCorrect;
+        }
+      }
+    }
+    setEssayGrades((prev) =>
+      Object.keys(initial).length > 0 ? initial : prev
+    );
+  }, [submission?.id, submission?.questions]);
+
+  const essayQuestionIds =
+    submission?.questions
+      .filter((q) => q.questionType === "essay")
+      .map((q) => q.id) ?? [];
+  const allEssayGradesSet =
+    essayQuestionIds.length === 0 ||
+    essayQuestionIds.every((id) => essayGrades[id] !== undefined);
+  const canSaveGrades =
+    submission?.status !== "graded" &&
+    (essayQuestionIds.length === 0 || allEssayGradesSet);
+
+  const handleSaveGrades = () => {
+    if (!submission) return;
+    if (essayQuestionIds.length > 0 && !allEssayGradesSet) {
+      toast.error(td("markAllEssays"));
       return;
     }
-    gradeMutation.mutate(num / 100);
-  };
-
-  const handleEditGrade = () => {
-    if (submission?.score != null) {
-      setScoreInput(String(Math.round(Number(submission.score) * 100)));
-    }
-    setIsEditingGrade(true);
-  };
-
-  const handleCancelEdit = () => {
-    setIsEditingGrade(false);
-    setScoreInput("");
+    const grades: EssayGradeItem[] = essayQuestionIds.map((id) => ({
+      questionId: id,
+      isCorrect: essayGrades[id] ?? false,
+    }));
+    gradeMutation.mutate(grades);
   };
 
   if (isLoading) {
@@ -339,13 +398,13 @@ export default function QuizSubmissionDetailPage() {
           <IconArrowLeft className="h-5 w-5 rotate-rtl" />
         </Button>
 
-        <Card className="flex-1 border-border/50 bg-gradient-to-br from-card to-muted/20">
+        <Card className="flex-1 border-border/50 bg-linear-to-br from-card to-muted/20">
           <CardContent className="p-6">
             <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
               {/* Student Info */}
               <div className="flex items-start gap-4">
                 <Avatar className="h-16 w-16 border-2 border-primary/20">
-                  <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-lg font-semibold text-primary">
+                  <AvatarFallback className="bg-linear-to-br from-primary/20 to-primary/10 text-lg font-semibold text-primary">
                     {getInitials(submission.student.name)}
                   </AvatarFallback>
                 </Avatar>
@@ -438,7 +497,29 @@ export default function QuizSubmissionDetailPage() {
 
             <div className="space-y-4">
               {submission.questions.map((q, idx) => (
-                <QuestionAnswer index={idx} key={q.id} q={q} />
+                <QuestionAnswer
+                  essayGrade={
+                    q.questionType === "essay"
+                      ? (essayGrades[q.id] ??
+                        (q.submittedAnswer?.type === "essay"
+                          ? q.submittedAnswer.isCorrect
+                          : undefined))
+                      : undefined
+                  }
+                  index={idx}
+                  key={q.id}
+                  onEssayGradeChange={
+                    q.questionType === "essay" && submission.status !== "graded"
+                      ? (isCorrect) =>
+                          setEssayGrades((prev) => ({
+                            ...prev,
+                            [q.id]: isCorrect,
+                          }))
+                      : undefined
+                  }
+                  q={q}
+                  readOnly={submission.status === "graded"}
+                />
               ))}
             </div>
           </div>
@@ -455,11 +536,13 @@ export default function QuizSubmissionDetailPage() {
               <CardDescription>
                 {submission.status === "graded"
                   ? td("submissionHasBeenGraded")
-                  : td("enterScoreToGrade")}
+                  : essayQuestionIds.length > 0
+                    ? td("markEssayCorrectOrIncorrect")
+                    : td("noEssaysMarkAsGraded")}
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {submission.status === "graded" && !isEditingGrade ? (
+              {submission.status === "graded" ? (
                 <div className="space-y-4">
                   <div className="rounded-lg bg-green-500/10 p-4 text-center">
                     <div className="flex items-center justify-center gap-2 text-2xl font-bold text-green-700 dark:text-green-400">
@@ -470,92 +553,41 @@ export default function QuizSubmissionDetailPage() {
                       {td("gradedScore")}
                     </p>
                   </div>
-                  <Button
-                    className="w-full"
-                    onClick={handleEditGrade}
-                    size="lg"
-                    variant="outline"
-                  >
-                    <Pencil className="mr-2 h-4 w-4" />
-                    {td("editGrade")}
-                  </Button>
                 </div>
               ) : (
-                <form className="space-y-4" onSubmit={handleSubmitGrade}>
-                  <div className="space-y-2">
-                    <Label
-                      className="flex items-center gap-2 text-sm font-semibold"
-                      htmlFor="score"
-                    >
-                      <Award className="h-4 w-4" />
-                      {t("setScore")}
-                    </Label>
-                    <div className="relative">
-                      <Input
-                        className="text-lg font-semibold"
-                        dir={locale === "ar" ? "rtl" : "ltr"}
-                        id="score"
-                        max={100}
-                        min={0}
-                        onChange={(e) => setScoreInput(e.target.value)}
-                        placeholder={td("enterScorePlaceholder")}
-                        type="number"
-                        value={scoreInput}
-                      />
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {td("enterValueBetween")}
-                    </p>
-                  </div>
-
-                  {submission.autoScore != null && !isEditingGrade && (
+                <div className="space-y-4">
+                  {submission.autoScore != null && (
                     <Alert className="border-blue-500/20 bg-blue-500/5">
                       <AlertDescription className="text-xs">
-                        💡{" "}
                         <span className="font-semibold">
-                          {td("suggestionLabel")}:
+                          {td("autoScore")}:
                         </span>{" "}
-                        {td("autoCalculatedScore")}{" "}
                         {Math.round(Number(submission.autoScore) * 100)}% (
-                        {td("basedOnMcqTf")})
+                        {td("mcqTfOnly")})
                       </AlertDescription>
                     </Alert>
                   )}
-
-                  <div className="flex gap-2">
-                    {isEditingGrade && (
-                      <Button
-                        className="flex-1"
-                        onClick={handleCancelEdit}
-                        size="lg"
-                        type="button"
-                        variant="outline"
-                      >
-                        {tc("cancel")}
-                      </Button>
+                  <Button
+                    className="w-full"
+                    disabled={!canSaveGrades || gradeMutation.isPending}
+                    onClick={handleSaveGrades}
+                    size="lg"
+                  >
+                    {gradeMutation.isPending ? (
+                      <>
+                        <IconLoader className="mr-2 h-4 w-4 animate-spin" />
+                        {td("savingGrade")}
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="mr-2 h-4 w-4" />
+                        {essayQuestionIds.length > 0
+                          ? t("submitGrade")
+                          : td("markAsGraded")}
+                      </>
                     )}
-                    <Button
-                      className={cn(isEditingGrade ? "flex-1" : "w-full")}
-                      disabled={gradeMutation.isPending}
-                      size="lg"
-                      type="submit"
-                    >
-                      {gradeMutation.isPending ? (
-                        <>
-                          <IconLoader className="mr-2 h-4 w-4 animate-spin" />
-                          {td("savingGrade")}
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle2 className="mr-2 h-4 w-4" />
-                          {isEditingGrade
-                            ? td("updateGrade")
-                            : t("submitGrade")}
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </form>
+                  </Button>
+                </div>
               )}
             </CardContent>
           </Card>

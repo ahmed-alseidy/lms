@@ -4,6 +4,7 @@ import {
   CreateQuizDto,
   CreateQuizQuestionDto,
   db,
+  ManualGradingDto,
   SaveAnswerDto,
   StartQuizDto,
   students,
@@ -21,10 +22,10 @@ import {
   Param,
   ParseIntPipe,
   ParseUUIDPipe,
+  Patch,
   Post,
   Put,
   Query,
-  Req,
   UseGuards,
 } from "@nestjs/common";
 import { ApiBearerAuth } from "@nestjs/swagger";
@@ -147,7 +148,7 @@ export class QuizzesController {
 
   @Post("/:quizId/submit")
   @Roles("student")
-  async completeQuiz(
+  async submitQuiz(
     @Session() session: UserSession,
     @Param("quizId", ParseUUIDPipe) quizId: string,
     @Body() dto: CompleteQuizDto
@@ -166,7 +167,7 @@ export class QuizzesController {
     if (!student) {
       throw new NotFoundException("Student not found");
     }
-    return this.quizzesService.completeQuiz(quizId, student.id, dto);
+    return this.quizzesService.submitQuiz(quizId, student.id, dto);
   }
 
   @Get("/:quizId/completed")
@@ -281,5 +282,37 @@ export class QuizzesController {
     @Param("quizId", ParseUUIDPipe) quizId: string
   ) {
     return this.quizzesService.getQuizAnalytics(quizId);
+  }
+
+  @Get("/:quizId/submissions")
+  @Roles("teacher")
+  async getQuizSubmissions(
+    @Param("quizId", ParseUUIDPipe) quizId: string,
+    @Query("page", ParseIntPipe) pageParam: number = 1,
+    @Query("pageSize", ParseIntPipe) pageSizeParam: number = 10
+  ) {
+    const page = Math.max(1, pageParam);
+    const pageSize = Math.max(1, Math.min(100, pageSizeParam));
+
+    return this.quizzesService.getQuizSubmissions(quizId, page, pageSize);
+  }
+
+  @Get("/:quizId/submissions/:submissionId")
+  @Roles("teacher")
+  async getQuizSubmissionDetail(
+    @Param("quizId", ParseUUIDPipe) quizId: string,
+    @Param("submissionId", ParseIntPipe) submissionId: number
+  ) {
+    return this.quizzesService.getQuizSubmissionDetail(quizId, submissionId);
+  }
+
+  @Patch("/:quizId/submissions/:submissionId/grade")
+  @Roles("teacher")
+  async gradeSubmission(
+    @Param("quizId", ParseUUIDPipe) quizId: string,
+    @Param("submissionId", ParseIntPipe) submissionId: number,
+    @Body() dto: ManualGradingDto
+  ) {
+    return this.quizzesService.gradeSubmission(quizId, submissionId, dto);
   }
 }

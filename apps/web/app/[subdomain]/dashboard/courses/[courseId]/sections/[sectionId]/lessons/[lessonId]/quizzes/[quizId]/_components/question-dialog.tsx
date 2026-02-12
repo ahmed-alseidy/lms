@@ -26,6 +26,13 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { createQuestion, QuizQuestion } from "@/lib/quizzes";
 import { attempt } from "@/lib/utils";
@@ -69,6 +76,7 @@ export const QuestionDialog = ({
   });
 
   const { isSubmitting, isValid } = form.formState;
+  const questionType = form.watch("questionType");
 
   const onSubmit = async (data: CreateQuizQuestionDto) => {
     try {
@@ -113,6 +121,40 @@ export const QuestionDialog = ({
             <div className="grid gap-4 py-4">
               <FormField
                 control={form.control}
+                name="questionType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("quizzes.questionType")}</FormLabel>
+                    <Select
+                      defaultValue={field.value}
+                      onValueChange={field.onChange}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue
+                            placeholder={t("quizzes.selectQuestionType")}
+                          />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="mcq">
+                          {t("quizzes.multipleChoice")}
+                        </SelectItem>
+                        <SelectItem value="true_false">
+                          {t("quizzes.trueFalse")}
+                        </SelectItem>
+                        <SelectItem value="essay">
+                          {t("quizzes.essay")}
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
                 name="questionText"
                 render={({ field }) => (
                   <FormItem>
@@ -128,78 +170,90 @@ export const QuestionDialog = ({
                 )}
               />
 
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label>{t("quizzes.answers")}</Label>
-                  <Button
-                    className="gap-2"
-                    onClick={() => append({ answerText: "", isCorrect: false })}
-                    size="sm"
-                    type="button"
-                    variant="outline"
-                  >
-                    <IconPlus className="h-4 w-4" />
-                    {t("quizzes.addAnswer")}
-                  </Button>
-                </div>
-
+              {questionType !== "essay" && (
                 <div className="space-y-4">
-                  {fields.map((field, index) => (
-                    <div
-                      className="bg-primary/5 flex items-start gap-4 rounded-lg border p-4"
-                      key={field.id}
+                  <div className="flex items-center justify-between">
+                    <Label>{t("quizzes.answers")}</Label>
+                    <Button
+                      className="gap-2"
+                      onClick={() =>
+                        append({ answerText: "", isCorrect: false })
+                      }
+                      size="sm"
+                      type="button"
+                      variant="outline"
                     >
-                      <div className="flex-1 space-y-2">
-                        <FormField
-                          control={form.control}
-                          name={`answers.${index}.answerText`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>
-                                {t("quizzes.answer")} {index + 1}
-                              </FormLabel>
-                              <FormControl>
-                                <Input
-                                  placeholder={t("quizzes.answerPlaceholder")}
-                                  {...field}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
+                      <IconPlus className="h-4 w-4" />
+                      {t("quizzes.addAnswer")}
+                    </Button>
+                  </div>
+
+                  <div className="space-y-4">
+                    {fields.map((field, index) => (
+                      <div
+                        className="bg-primary/5 flex items-start gap-4 rounded-lg border p-4"
+                        key={field.id}
+                      >
+                        <div className="flex-1 space-y-2">
+                          <FormField
+                            control={form.control}
+                            name={`answers.${index}.answerText`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>
+                                  {t("quizzes.answer")} {index + 1}
+                                </FormLabel>
+                                <FormControl>
+                                  <Input
+                                    placeholder={t("quizzes.answerPlaceholder")}
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        <div className="flex items-center gap-2 pt-8">
+                          <FormField
+                            control={form.control}
+                            name={`answers.${index}.isCorrect`}
+                            render={({ field }) => (
+                              <FormItem className="flex items-center gap-2">
+                                <FormControl>
+                                  <Checkbox
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                  />
+                                </FormControl>
+                                <FormLabel>{t("quizzes.correct")}</FormLabel>
+                              </FormItem>
+                            )}
+                          />
+                          {fields.length > 1 && (
+                            <Button
+                              onClick={() => remove(index)}
+                              size="icon"
+                              type="button"
+                              variant="ghost"
+                            >
+                              <IconTrash className="h-4 w-4" />
+                            </Button>
                           )}
-                        />
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 pt-8">
-                        <FormField
-                          control={form.control}
-                          name={`answers.${index}.isCorrect`}
-                          render={({ field }) => (
-                            <FormItem className="flex items-center gap-2">
-                              <FormControl>
-                                <Checkbox
-                                  checked={field.value}
-                                  onCheckedChange={field.onChange}
-                                />
-                              </FormControl>
-                              <FormLabel>{t("quizzes.correct")}</FormLabel>
-                            </FormItem>
-                          )}
-                        />
-                        {fields.length > 1 && (
-                          <Button
-                            onClick={() => remove(index)}
-                            size="icon"
-                            type="button"
-                            variant="ghost"
-                          >
-                            <IconTrash className="h-4 w-4" />
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
+
+              {questionType === "essay" && (
+                <div className="bg-muted rounded-lg p-4 text-sm">
+                  <p className="text-muted-foreground">
+                    {t("quizzes.essayQuestionNote")}
+                  </p>
+                </div>
+              )}
             </div>
 
             <DialogFooter>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Textarea } from "@/components/ui/textarea";
 import { getCourse } from "@/lib/courses";
 import {
   findQuiz,
@@ -53,6 +54,7 @@ export default function QuizPage() {
   const [selectedAnswers, setSelectedAnswers] = useState<
     Record<number, number>
   >({});
+  const [essayAnswers, setEssayAnswers] = useState<Record<number, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const [isTimerExpired, setIsTimerExpired] = useState(false);
@@ -280,7 +282,8 @@ export default function QuizPage() {
       const totalQuestions = quiz.questions.length;
       const progress = ((currentQuestionIndex + 1) / totalQuestions) * 100;
       const progressText = `${Math.round(progress)}% Complete`;
-      const answeredCount = Object.keys(selectedAnswers).length;
+      const answeredCount =
+        Object.keys(selectedAnswers).length + Object.keys(essayAnswers).length;
       const currentQuestion = quiz.questions[currentQuestionIndex];
 
       return {
@@ -290,7 +293,7 @@ export default function QuizPage() {
         totalQuestions,
         currentQuestion,
       };
-    }, [quiz?.questions, currentQuestionIndex, selectedAnswers]);
+    }, [quiz?.questions, currentQuestionIndex, selectedAnswers, essayAnswers]);
 
   // Auto-save answer with debouncing
   const handleAnswerSelect = useCallback(
@@ -326,6 +329,22 @@ export default function QuizPage() {
     [submissionId, quizId, isTimerExpired, t]
   );
 
+  // Handle essay answer changes
+  const handleEssayChange = useCallback(
+    (questionId: number, text: string) => {
+      if (isTimerExpired) return;
+
+      // Update local state immediately
+      setEssayAnswers((prev) => ({
+        ...prev,
+        [questionId]: text,
+      }));
+
+      // Note: Essay answers are saved on submit, not auto-saved
+    },
+    [isTimerExpired]
+  );
+
   const handleQuestionSelect = useCallback((index: number) => {
     setCurrentQuestionIndex(index);
   }, []);
@@ -348,13 +367,23 @@ export default function QuizPage() {
     }
 
     try {
-      // Convert selectedAnswers to SubmittedAnswer format
-      const answers = Object.entries(selectedAnswers).map(
+      // Convert selectedAnswers and essayAnswers to SubmittedAnswer format
+      const choiceAnswers = Object.entries(selectedAnswers).map(
         ([questionId, answerId]) => ({
           questionId: Number(questionId),
           answerId: Number(answerId),
         })
       );
+
+      const textAnswers = Object.entries(essayAnswers).map(
+        ([questionId, text]) => ({
+          questionId: Number(questionId),
+          textAnswer: text,
+        })
+      );
+
+      const answers = [...choiceAnswers, ...textAnswers];
+      console.log(answers);
 
       const [, error] = await attempt(
         submitQuiz(quizId, enrollmentId, answers)
@@ -382,6 +411,7 @@ export default function QuizPage() {
     quizId,
     enrollmentId,
     selectedAnswers,
+    essayAnswers,
     isSubmitting,
     quizCompleted,
     submissionId,
@@ -529,39 +559,60 @@ export default function QuizPage() {
             {currentQuestion.questionText}
           </div>
 
-          {/* Answer options */}
-          <RadioGroup
-            className="mb-8 space-y-4"
-            disabled={isTimerExpired}
-            onValueChange={(value: string) =>
-              handleAnswerSelect(currentQuestion.id, Number(value))
-            }
-            value={selectedAnswers[currentQuestion.id]?.toString()}
-          >
-            {currentQuestion.answers.map((option) => (
-              <label
-                className={`flex cursor-pointer items-center rounded-lg border px-4 py-3 transition-colors ${
-                  selectedAnswers[currentQuestion.id] === option.id
-                    ? "border-primary bg-muted"
-                    : "border-muted-foreground/60 bg-sidebar hover:border-primary"
-                } ${isTimerExpired ? "cursor-not-allowed opacity-50" : ""}`}
-                htmlFor={option.id.toString()}
-                key={option.id}
-              >
-                <RadioGroupItem
-                  className="mr-3"
-                  disabled={isTimerExpired}
-                  id={option.id.toString()}
-                  value={option.id.toString()}
-                />
-                <span className="text-base">{option.answerText}</span>
+          {/* Answer options - different for essay vs choice questions */}
+          {currentQuestion.questionType === "essay" ? (
+            <div className="mb-8">
+              <label className="mb-2 block text-sm font-medium">
+                {t("quizzes.yourAnswer")}
               </label>
-            ))}
-          </RadioGroup>
+              <Textarea
+                className="min-h-[200px] resize-none"
+                disabled={isTimerExpired}
+                onChange={(e) =>
+                  handleEssayChange(currentQuestion.id, e.target.value)
+                }
+                placeholder={t("quizzes.typeYourAnswerHere")}
+                value={essayAnswers[currentQuestion.id] || ""}
+              />
+              <p className="text-muted-foreground mt-2 text-sm">
+                {t("quizzes.essayAnswerWillBeGradedManually")}
+              </p>
+            </div>
+          ) : (
+            <RadioGroup
+              className="mb-8 space-y-4"
+              disabled={isTimerExpired}
+              onValueChange={(value: string) =>
+                handleAnswerSelect(currentQuestion.id, Number(value))
+              }
+              value={selectedAnswers[currentQuestion.id]?.toString()}
+            >
+              {currentQuestion.answers.map((option) => (
+                <label
+                  className={`flex cursor-pointer items-center rounded-lg border px-4 py-3 transition-colors ${
+                    selectedAnswers[currentQuestion.id] === option.id
+                      ? "border-primary bg-muted"
+                      : "border-muted-foreground/60 bg-sidebar hover:border-primary"
+                  } ${isTimerExpired ? "cursor-not-allowed opacity-50" : ""}`}
+                  htmlFor={option.id.toString()}
+                  key={option.id}
+                >
+                  <RadioGroupItem
+                    className="mr-3"
+                    disabled={isTimerExpired}
+                    id={option.id.toString()}
+                    value={option.id.toString()}
+                  />
+                  <span className="text-base">{option.answerText}</span>
+                </label>
+              ))}
+            </RadioGroup>
+          )}
 
           {/* Question Pagination */}
           <QuestionPagination
             currentQuestionIndex={currentQuestionIndex}
+            essayAnswers={essayAnswers}
             isTimerExpired={isTimerExpired}
             onQuestionSelect={handleQuestionSelect}
             questions={quiz.questions}
@@ -603,7 +654,9 @@ export default function QuizPage() {
               <Button
                 className="min-w-[100px]"
                 disabled={
-                  !selectedAnswers[currentQuestion.id] || isTimerExpired
+                  (currentQuestion.questionType === "essay"
+                    ? !essayAnswers[currentQuestion.id]?.trim()
+                    : !selectedAnswers[currentQuestion.id]) || isTimerExpired
                 }
                 onClick={handleNext}
               >

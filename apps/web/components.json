@@ -20,5 +20,6 @@
   },
   "menuColor": "inverted",
   "menuAccent": "bold",
-  "registries": {}
+  "registries": {},
+  "rtl": true
 }

@@ -250,8 +250,9 @@ export default function QuizSubmissionsPage() {
                     </TableCell>
                     <TableCell>
                       <Badge
+                        className={`${sub.status === "pending" ? "bg-yellow-400/5 text-yellow-700 hover:bg-yellow-500/20 dark:text-yellow-400" : ""}`}
                         variant={
-                          sub.status === "pending" ? "secondary" : "default"
+                          sub.status === "pending" ? "outline" : "default"
                         }
                       >
                         {t(statusKey(sub.status))}

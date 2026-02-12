@@ -49,10 +49,9 @@ export interface ResumeQuizResponse {
 export interface QuizQuestion {
   id: number;
   questionText: string;
-  // Backend now exposes an explicit question type. It is currently used
-  // only to distinguish between multiple choice and true/false questions.
-  // Short-answer questions are not modelled or supported.
-  questionType: "mcq" | "true_false";
+  // Backend now exposes an explicit question type. It is used to distinguish
+  // between multiple choice, true/false, and essay questions.
+  questionType: "mcq" | "true_false" | "essay";
   orderIndex: number;
   answers: QuizAnswer[];
 }
@@ -71,14 +70,17 @@ export interface QuizResults {
   questions: {
     id: number;
     questionText: string;
-    correctAnswer: {
+    questionType: "mcq" | "true_false" | "essay";
+    correctAnswer?: {
       id: number;
       answerText: string;
     };
+    textAnswer?: string;
+    isCorrect?: boolean;
     submittedAnswer: {
       id: number;
       answerText: string;
-    };
+    } | null;
   }[];
 }
 
@@ -261,16 +263,100 @@ export const submitQuiz = async (
 };
 
 export const isQuizCompleted = async (quizId: string) => {
-  return authFetch<{ completed: boolean }>(
-    `${baseUrl}/1/quizzes/${quizId}/completed`,
-    {
-      method: "GET",
-    }
-  );
+  return authFetch<{
+    completed: boolean;
+    status: "pending" | "auto_graded" | "graded";
+  }>(`${baseUrl}/1/quizzes/${quizId}/completed`, {
+    method: "GET",
+  });
 };
 
 export const getQuizResults = async (quizId: string) => {
   return authFetch<QuizResults>(`${baseUrl}/1/quizzes/${quizId}/results`, {
     method: "GET",
   });
+};
+
+export interface QuizSubmissionListItem {
+  id: number;
+  studentId: number;
+  status: "pending" | "auto_graded" | "graded";
+  score: string | null;
+  autoScore: string | null;
+  attempt: number;
+  completedAt: string | null;
+  student: {
+    id: number;
+    name: string;
+    email: string;
+  };
+}
+
+export interface QuizSubmissionsResponse {
+  quiz: { id: string; title: string };
+  submissions: QuizSubmissionListItem[];
+}
+
+export interface QuizSubmissionQuestionAnswer {
+  id: number;
+  questionText: string;
+  questionType: "mcq" | "true_false" | "essay";
+  orderIndex: number;
+  isCorrect?: boolean;
+  submittedAnswer:
+    | { type: "essay"; textAnswer: string; isCorrect?: boolean }
+    | { type: "choice"; answerId: number; answerText: string }
+    | null;
+}
+
+export interface EssayGradeItem {
+  questionId: number;
+  isCorrect: boolean;
+}
+
+export interface QuizSubmissionDetailResponse {
+  id: number;
+  status: "pending" | "auto_graded" | "graded";
+  score: string | null;
+  autoScore: string | null;
+  attempt: number;
+  completedAt: string | null;
+  student: { id: number; name: string; email: string };
+  quiz: { id: string; title: string };
+  questions: QuizSubmissionQuestionAnswer[];
+}
+
+export const getQuizSubmissions = (
+  lessonId: number,
+  quizId: string,
+  page: number,
+  pageSize: number
+) => {
+  return authFetch<QuizSubmissionsResponse>(
+    `${baseUrl}/${lessonId}/quizzes/${quizId}/submissions?page=${page}&pageSize=${pageSize}`,
+    { method: "GET" }
+  );
+};
+
+export const getQuizSubmissionDetail = (
+  lessonId: number,
+  quizId: string,
+  submissionId: number
+) => {
+  return authFetch<QuizSubmissionDetailResponse>(
+    `${baseUrl}/${lessonId}/quizzes/${quizId}/submissions/${submissionId}`,
+    { method: "GET" }
+  );
+};
+
+export const gradeQuizSubmission = (
+  lessonId: number,
+  quizId: string,
+  submissionId: number,
+  essayGrades: EssayGradeItem[]
+) => {
+  return authFetch<{ id: number; status: string; score: string | null }>(
+    `${baseUrl}/${lessonId}/quizzes/${quizId}/submissions/${submissionId}/grade`,
+    { method: "PATCH", data: { essayGrades } }
+  );
 };
