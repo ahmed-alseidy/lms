@@ -391,8 +391,10 @@ export default function LessonPage() {
                 dir={locale === "ar" ? "rtl" : "ltr"}
                 variant="destructive"
               >
-                <AlertTitle className={`text-base font-semibold flex items-center gap-2`}>
-                  <Lock size={18}/>
+                <AlertTitle
+                  className={`text-base font-semibold flex items-center gap-2`}
+                >
+                  <Lock size={18} />
                   {t("courses.previousSectionNotCompleted")}
                 </AlertTitle>
                 <AlertDescription className={`mt-2`}>
