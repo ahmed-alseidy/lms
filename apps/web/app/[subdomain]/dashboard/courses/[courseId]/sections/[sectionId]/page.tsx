@@ -4,10 +4,8 @@ import {
   IconArrowLeft,
   IconLoader,
   IconLoader2,
-  IconPencil,
   IconPlus,
   IconTrash,
-  IconVideo,
 } from "@tabler/icons-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
@@ -182,7 +180,7 @@ export default function SectionPage() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
@@ -203,29 +201,30 @@ export default function SectionPage() {
         </BreadcrumbList>
       </Breadcrumb>
 
-      <div className="items-center justify-between md:flex">
-        <div className="flex items-center gap-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
           <Link href={`/dashboard/courses/${params.courseId}`}>
             <Button size="icon" variant="ghost">
               <IconArrowLeft className="rotate-rtl h-4 w-4" />
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold">{tCommon("edit")}</h1>
-            <p className="text-muted-foreground">
-              {t("course")}: {course.data.title}
+            <h1 className="text-2xl font-semibold">{section.data.title}</h1>
+            <p className="text-muted-foreground text-sm mt-0.5">
+              {course.data.title}
             </p>
           </div>
         </div>
         <AlertDialog>
-          <div className="flex w-full justify-end md:w-auto">
-            <AlertDialogTrigger asChild>
-              <Button className="mt-2 md:mt-0" variant="destructive">
-                <IconTrash className="mr-2 h-4 w-4" />
-                {tCommon("delete")} {t("section")}
-              </Button>
-            </AlertDialogTrigger>
-          </div>
+          <AlertDialogTrigger asChild>
+            <Button
+              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+              size="icon"
+              variant="ghost"
+            >
+              <IconTrash className="h-4 w-4" />
+            </Button>
+          </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>{tCommon("areYouSure")}?</AlertDialogTitle>
@@ -249,80 +248,63 @@ export default function SectionPage() {
       <Separator />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <Card className="col-span-2 h-64 shadow-none lg:col-span-1 lg:h-50">
-          <CardHeader className="bg-primary/5 border-b ring-0">
-            <div className="flex items-center gap-3">
-              <div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-full">
-                <IconPencil className="text-primary h-5 w-5" />
-              </div>
-              <div>
-                <CardTitle className="text-xl">
-                  {tCommon("details")} {t("section")}
-                </CardTitle>
-                <p className="text-muted-foreground text-sm">
-                  {tCommon("basicInformation")}
-                </p>
-              </div>
-            </div>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">{tCommon("details")}</CardTitle>
           </CardHeader>
-          <CardContent className="pt-6">
-            <div className="grid gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="title">{tCommon("title")}</Label>
-                <div className="flex flex-col gap-2 md:flex-row">
-                  <Input
-                    className="flex-1"
-                    id="title"
-                    onChange={(e) => setTitle(e.target.value)}
-                    placeholder={tCommon("titlePlaceholder")}
-                    value={title}
-                  />
-                  <Button
-                    className="w-full md:w-[100px]"
-                    disabled={isLoading}
-                    onClick={handleUpdateTitle}
-                  >
-                    {isLoading ? (
-                      <IconLoader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      tCommon("save")
-                    )}
-                  </Button>
-                </div>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="title">{tCommon("title")}</Label>
+              <Input
+                id="title"
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder={tCommon("titlePlaceholder")}
+                value={title}
+              />
+              <Button
+                className="w-full"
+                disabled={isLoading}
+                onClick={handleUpdateTitle}
+              >
+                {isLoading ? (
+                  <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : null}
+                {tCommon("save")}
+              </Button>
+            </div>
+
+            <Separator />
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">
+                  {tLessons("title")}
+                </span>
+                <span className="font-medium">
+                  {sectionData?.lessons?.length || 0}
+                </span>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="col-span-2 shadow-none">
-          <CardHeader className="bg-primary/5 border-b">
-            <div className="flex items-center gap-3">
-              <div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-full">
-                <IconVideo className="text-primary h-5 w-5" />
-              </div>
-              <div>
-                <CardTitle className="text-xl">{tCommon("content")}</CardTitle>
-                <p className="text-muted-foreground text-sm">
-                  {tLessons("createLesson")}
-                </p>
-              </div>
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg">{tCommon("content")}</CardTitle>
+              <Button onClick={addLesson} size="sm">
+                <IconPlus className="mr-2 h-4 w-4" />
+                {tLessons("createLesson")}
+              </Button>
             </div>
           </CardHeader>
-          <CardContent className="pt-6">
+          <CardContent>
             <LessonsList
               course={course}
               sectionData={sectionData!}
               setIsLoading={setIsLoading}
               setSectionData={setSectionData}
             />
-            <Button
-              className="mt-4 w-full"
-              onClick={addLesson}
-              variant="outline"
-            >
-              <IconPlus className="mr-2 h-4 w-4" />
-              {tLessons("createLesson")}
-            </Button>
           </CardContent>
         </Card>
       </div>
