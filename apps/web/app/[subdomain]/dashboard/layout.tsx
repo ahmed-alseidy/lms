@@ -32,7 +32,12 @@ export default async function DashboardLayout({ children }: PropsWithChildren) {
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full">
-        <Sidebar dir={dir} side={side} variant="sidebar">
+        <Sidebar
+          className="border-border! border-l"
+          dir={dir}
+          side={side}
+          variant="sidebar"
+        >
           <SidebarHeaderContent />
           <LowerSidebar user={session.user} />
         </Sidebar>
