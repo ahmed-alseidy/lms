@@ -147,15 +147,17 @@ export class CoursesController {
         userId = teacher?.teacherId;
       }
 
-      return this.coursesService.getOne(
+      const data = await this.coursesService.getOne(
         courseId,
         session.user.role === "student" ? userId : undefined,
         withSections,
         withEnrollments,
         withCourseCodes
       );
+
+      return data;
     } catch (error) {
-      throw new InternalServerErrorException("Cannot update course");
+      throw new InternalServerErrorException("Cannot get course details");
     }
   }
 

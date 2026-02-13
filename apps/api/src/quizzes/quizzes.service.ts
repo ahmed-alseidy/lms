@@ -860,13 +860,27 @@ export class QuizzesService {
           lessonId,
         });
 
+        const enrollment = await tx.query.enrollments.findFirst({
+          where: eq(enrollments.id, dto.enrollmentId),
+          columns: {
+            courseId: true,
+          },
+        });
+
+        if (!enrollment) {
+          throw new NotFoundException("Enrollment not found");
+        }
+
         // Update enrollment progress
         const totalLessons = await tx.query.courses.findFirst({
-          where: eq(courses.id, dto.enrollmentId),
+          where: eq(courses.id, enrollment.courseId),
           columns: {
             lessonsCount: true,
           },
         });
+
+        console.log("totalLessons", totalLessons);
+        console.log("enrollmentId", dto.enrollmentId);
 
         if (!totalLessons) {
           throw new NotFoundException("Course not found");
