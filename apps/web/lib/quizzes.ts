@@ -295,6 +295,12 @@ export interface QuizSubmissionListItem {
 export interface QuizSubmissionsResponse {
   quiz: { id: string; title: string };
   submissions: QuizSubmissionListItem[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    total: number;
+    totalPages: number;
+  };
 }
 
 export interface QuizSubmissionQuestionAnswer {

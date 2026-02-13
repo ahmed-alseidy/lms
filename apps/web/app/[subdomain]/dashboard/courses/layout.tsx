@@ -6,5 +6,5 @@ export default function CoursesLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <div className="md:p-6 pb-6 max-w-7xl mx-auto">{children}</div>;
+  return <div className="md:p-6 pb-6 max-w-[1460px] mx-auto">{children}</div>;
 }

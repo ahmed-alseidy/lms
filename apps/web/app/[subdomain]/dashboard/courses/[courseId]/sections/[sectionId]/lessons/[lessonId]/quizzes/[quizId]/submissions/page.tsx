@@ -69,7 +69,7 @@ export default function QuizSubmissionsPage() {
   const lessonId = Number(params.lessonId);
   const quizId = params.quizId as string;
   const [page, setPage] = useState(1);
-  const pageSize = 1;
+  const pageSize = 10;
 
   const locale = useLocale();
 
@@ -90,7 +90,7 @@ export default function QuizSubmissionsPage() {
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["quiz-submissions", quizId],
+    queryKey: ["quiz-submissions", quizId, page, pageSize],
     queryFn: async () => {
       const [res, err] = await attempt(
         getQuizSubmissions(lessonId, quizId, page, pageSize)
@@ -102,6 +102,8 @@ export default function QuizSubmissionsPage() {
       }
       return res?.data;
     },
+    // Keep previous page's data while loading the next page for smoother UX
+    placeholderData: (prev) => prev,
   });
 
   if (isLoading) {
@@ -117,7 +119,8 @@ export default function QuizSubmissionsPage() {
       <div className="flex h-[calc(100vh-200px)] flex-col items-center justify-center gap-4">
         <p className="text-muted-foreground">{t("failedToLoadSubmissions")}</p>
         <Button onClick={() => router.back()} variant="outline">
-          Back
+          <IconArrowLeft className="rotate-rtl h-4 w-4" />
+          {t("common.back")}
         </Button>
       </div>
     );
@@ -126,10 +129,9 @@ export default function QuizSubmissionsPage() {
   const { quiz, submissions } = submissionsData;
   const quizEditUrl = `/dashboard/courses/${params.courseId}/sections/${params.sectionId}/lessons/${params.lessonId}/quizzes/${quizId}`;
 
-  const totalPages = Math.max(1, Math.ceil(submissions.length / pageSize));
+  const totalPages = Math.max(1, submissionsData.pagination.totalPages);
   const currentPage = Math.min(page, totalPages);
   const startIndex = (currentPage - 1) * pageSize;
-  const pageSubmissions = submissions.slice(startIndex, startIndex + pageSize);
 
   return (
     <div className="space-y-6">
@@ -231,7 +233,7 @@ export default function QuizSubmissionsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {pageSubmissions.map((sub) => (
+                {submissions.map((sub) => (
                   <TableRow key={sub.id}>
                     <TableCell>
                       <div className="flex flex-col">
@@ -281,12 +283,16 @@ export default function QuizSubmissionsPage() {
             </Table>
 
             {totalPages > 1 && (
-              <Pagination className="mt-4">
+              <Pagination
+                className="mt-4"
+                dir={locale === "ar" ? "rtl" : "ltr"}
+              >
                 <PaginationContent>
                   <PaginationItem>
                     <PaginationPrevious
                       aria-disabled={currentPage === 1}
                       href="#"
+                      noText
                       onClick={(e) => {
                         e.preventDefault();
                         setPage((prev) => Math.max(1, prev - 1));
@@ -311,6 +317,7 @@ export default function QuizSubmissionsPage() {
                     <PaginationNext
                       aria-disabled={currentPage === totalPages}
                       href="#"
+                      noText
                       onClick={(e) => {
                         e.preventDefault();
                         setPage((prev) => Math.min(totalPages, prev + 1));

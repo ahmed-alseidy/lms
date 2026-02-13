@@ -38,12 +38,14 @@ function PaginationItem({ ...props }: React.ComponentProps<"li">) {
 
 type PaginationLinkProps = {
   isActive?: boolean;
+  noText?: boolean;
 } & Pick<React.ComponentProps<typeof Button>, "size"> &
   React.ComponentProps<"a">;
 
 function PaginationLink({
   className,
   isActive,
+  noText = false,
   size = "icon",
   ...props
 }: PaginationLinkProps) {
@@ -66,6 +68,7 @@ function PaginationLink({
 
 function PaginationPrevious({
   className,
+  noText = false,
   ...props
 }: React.ComponentProps<typeof PaginationLink>) {
   return (
@@ -75,14 +78,15 @@ function PaginationPrevious({
       size="default"
       {...props}
     >
-      <IconChevronLeft data-icon="inline-start" />
-      <span className="hidden sm:block">Previous</span>
+      <IconChevronLeft className="rotate-rtl" data-icon="inline-start" />
+      {!noText && <span className="hidden sm:block">Previous</span>}
     </PaginationLink>
   );
 }
 
 function PaginationNext({
   className,
+  noText = false,
   ...props
 }: React.ComponentProps<typeof PaginationLink>) {
   return (
@@ -92,8 +96,8 @@ function PaginationNext({
       size="default"
       {...props}
     >
-      <span className="hidden sm:block">Next</span>
-      <IconChevronRight data-icon="inline-end" />
+      {!noText && <span className="hidden sm:block">Next</span>}
+      <IconChevronRight className="rotate-rtl" data-icon="inline-end" />
     </PaginationLink>
   );
 }
@@ -106,7 +110,7 @@ function PaginationEllipsis({
     <span
       aria-hidden
       className={cn(
-        "size-8 items-center justify-center [&_svg:not([class*='size-'])]:size-4 flex items-center justify-center",
+        "size-8 justify-center [&_svg:not([class*='size-'])]:size-4 flex items-center",
         className
       )}
       data-slot="pagination-ellipsis"
