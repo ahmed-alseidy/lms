@@ -19,6 +19,7 @@ export default function StudentLoginPage() {
           className="dark:invert"
           height={44}
           src="/logo-with-text.png"
+          unoptimized={true}
           width={130}
         />
       </div>
