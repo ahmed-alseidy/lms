@@ -51,7 +51,6 @@ export default function CourseResourcesPage() {
     queryKey: ["course-resources", courseId],
     queryFn: async () => {
       const [response, error] = await attempt(getCourseResources(courseId));
-      console.log("response", response?.data);
       if (error) {
         toast.error(tCommon("somethingWentWrong"));
         return [];

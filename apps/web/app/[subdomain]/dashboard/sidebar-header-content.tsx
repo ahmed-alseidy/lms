@@ -29,6 +29,7 @@ export default function SidebarHeaderContent() {
             className="dark:invert"
             height={30}
             src="/logo-with-text.png"
+            unoptimized={true}
             width={100}
           />
         </div>

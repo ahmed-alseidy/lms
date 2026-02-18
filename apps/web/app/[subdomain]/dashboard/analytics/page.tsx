@@ -456,7 +456,7 @@ export default function AnalyticsPage() {
                                     {t("metrics.totalStudents")}
                                   </span>
                                   <span className="text-muted-foreground font-bold">
-                                    {payload[0].value}
+                                    {payload[0]?.value}
                                   </span>
                                 </div>
                               </div>
@@ -516,7 +516,7 @@ export default function AnalyticsPage() {
                                     {t("metrics.totalRevenue")}
                                   </span>
                                   <span className="text-muted-foreground font-bold">
-                                    ${payload[0].value?.toLocaleString()}
+                                    ${payload[0]?.value?.toLocaleString()}
                                   </span>
                                 </div>
                               </div>
@@ -619,11 +619,7 @@ export default function AnalyticsPage() {
                             {course.students}{" "}
                             {t("courses.students").toLowerCase()}
                           </span>
-                          <span>${course.revenue.toLocaleString()}</span>
-                          <div className="flex items-center space-x-1">
-                            <IconStar className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                            <span>{mockData.topCourses[0]?.rating}</span>
-                          </div>
+                          <span>${course.revenue?.toLocaleString() || 0}</span>
                         </div>
                       </div>
                       <Badge variant="outline">#{index + 1}</Badge>
@@ -678,7 +674,7 @@ export default function AnalyticsPage() {
                                     {t("courses.students")}
                                   </span>
                                   <span className="text-muted-foreground font-bold">
-                                    {payload[0].value}
+                                    {payload[0]?.value}
                                   </span>
                                 </div>
                               </div>
@@ -781,14 +777,6 @@ export default function AnalyticsPage() {
                     <div className="text-primary text-2xl font-bold">78.5%</div>
                     <div className="text-muted-foreground text-sm">
                       {t("students.averageCompletionRate")}
-                    </div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">
-                      4.7/5
-                    </div>
-                    <div className="text-muted-foreground text-sm">
-                      {t("students.averageRating")}
                     </div>
                   </div>
                   <div className="text-center">
@@ -898,7 +886,7 @@ export default function AnalyticsPage() {
                                     {t("metrics.totalRevenue")}
                                   </span>
                                   <span className="text-muted-foreground font-bold">
-                                    ${payload[0].value?.toLocaleString()}
+                                    ${payload[0]?.value?.toLocaleString() || 0}
                                   </span>
                                 </div>
                               </div>

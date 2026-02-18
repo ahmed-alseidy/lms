@@ -54,7 +54,6 @@ export default function StudentHomePage() {
       return response?.data || { courses: [], count: 0 };
     },
   });
-  console.log(enrolledCourses);
 
   if (isLoading || enrolledCoursesLoading)
     return (

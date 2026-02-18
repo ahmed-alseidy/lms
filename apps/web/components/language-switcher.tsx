@@ -25,7 +25,6 @@ export default function LanguageSwitcher() {
         ?.split("=")[1] || "ar";
     setLocale(currentLocale as "ar" | "en");
   }, []);
-  console.log("locale", locale);
 
   const languages = [
     { code: "ar", name: "عربي", flag: "🇪🇬" },

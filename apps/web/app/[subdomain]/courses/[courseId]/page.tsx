@@ -98,10 +98,6 @@ export default function CoursePage() {
                 {course.lessonsCount || 0}
                 <span>{t("courses.lessons")}</span>
               </div>
-              <div className="flex items-center gap-1">
-                <Star className="h-4 w-4" />
-                <span>{t("courses.rating")}</span>
-              </div>
             </div>
           </div>
 

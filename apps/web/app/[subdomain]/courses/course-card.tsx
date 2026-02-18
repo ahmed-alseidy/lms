@@ -65,11 +65,6 @@ export function CourseCard({ course }: { course: CourseWithEnrollments }) {
             {course.lessonsCount}
             <span>{t("courses.lessons")}</span>
           </div>
-          <div className="flex items-center gap-1">
-            {/* TODO: Add rating */}
-            <Star className="h-4 w-4" />
-            <span>{t("courses.rating")}</span>
-          </div>
         </div>
 
         {course.myEnrollment?.[0] ? (

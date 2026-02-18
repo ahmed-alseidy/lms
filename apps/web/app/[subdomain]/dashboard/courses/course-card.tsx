@@ -64,10 +64,6 @@ export function CourseCard({
               {course.lessonsCount} {t("lessons")}
             </span>
           </div>
-          <div className="flex items-center gap-1">
-            <IconStar className="h-4 w-4" />
-            <span>0.0</span>
-          </div>
         </div>
       </CardContent>
 

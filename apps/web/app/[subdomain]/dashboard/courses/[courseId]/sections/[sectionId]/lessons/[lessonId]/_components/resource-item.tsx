@@ -31,7 +31,6 @@ export const ResourceItem = ({ resource }: { resource: LessonResource }) => {
   const uniqueStudents = new Set(downloadStats.map((d) => d.enrollmentId)).size;
 
   const handleResourceDownload = async () => {
-    console.log(resource);
     if (!resource.id) return;
     if (!resource.lessonId) return;
     const [response, error] = await attempt(
