@@ -132,6 +132,36 @@ export class UsersService {
     return teacher ?? null;
   }
 
+  async updateTeacherProfile(
+    authUserId: string,
+    input: { name: string; contactInfo?: string | null }
+  ) {
+    const { name, contactInfo } = input;
+
+    const [teacher, error] = await attempt(
+      db
+        .update(teachers)
+        .set({
+          name,
+          contactInfo: contactInfo ?? null,
+        })
+        .where(eq(teachers.authUserId, authUserId))
+        .returning({
+          subdomain: teachers.subdomain,
+          name: teachers.name,
+          email: teachers.email,
+          profilePictureUrl: teachers.profilePictureUrl,
+          contactInfo: teachers.contactInfo,
+        })
+    );
+
+    if (error) {
+      throw new InternalServerErrorException("Failed to update profile");
+    }
+
+    return teacher?.[0] ?? null;
+  }
+
   async getCurrentSession(req: Request) {
     const res = await auth.api.getSession({
       headers: req.headers,

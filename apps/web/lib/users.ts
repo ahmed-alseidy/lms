@@ -7,3 +7,13 @@ const baseUrl = BACKEND_URL + "/users";
 export const findCurrentUser = () => {
   return authFetch<SelectTeacher | SelectStudent>(`${baseUrl}/current-user`);
 };
+
+export const updateTeacherProfile = (data: {
+  name: string;
+  contactInfo?: string | null;
+}) => {
+  return authFetch(`${baseUrl}/teacher-profile`, {
+    method: "PATCH",
+    data,
+  });
+};

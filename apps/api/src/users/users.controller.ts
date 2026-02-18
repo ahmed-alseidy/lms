@@ -8,6 +8,7 @@ import {
   Controller,
   Get,
   HttpCode,
+  Patch,
   Post,
   Req,
   UseGuards,
@@ -35,6 +36,16 @@ export class UsersController {
   @Get("teacher-profile")
   async getTeacherProfile(@Session() session: UserSession) {
     return this.usersService.getTeacherProfile(session.user.id);
+  }
+
+  @UseGuards(RolesGuard)
+  @Roles("teacher")
+  @Patch("teacher-profile")
+  async updateTeacherProfile(
+    @Session() session: UserSession,
+    @Body() body: { name: string; contactInfo?: string | null }
+  ) {
+    return this.usersService.updateTeacherProfile(session.user.id, body);
   }
 
   @AllowAnonymous()
