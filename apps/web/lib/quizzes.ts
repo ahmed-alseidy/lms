@@ -266,6 +266,7 @@ export const isQuizCompleted = async (quizId: string) => {
   return authFetch<{
     completed: boolean;
     status: "pending" | "auto_graded" | "graded";
+    score: string | null;
   }>(`${baseUrl}/1/quizzes/${quizId}/completed`, {
     method: "GET",
   });

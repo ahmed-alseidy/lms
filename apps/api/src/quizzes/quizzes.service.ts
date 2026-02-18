@@ -706,7 +706,6 @@ export class QuizzesService {
         );
         const hasEssayQuestions = essayQuestionIds.size > 0;
 
-        console.log("submission.quizResponses", submission.quizResponses);
         // Use saved responses from quiz_responses, or fall back to dto.answers
         const tempAnswersToGrade =
           submission.quizResponses.length > 0
@@ -791,8 +790,6 @@ export class QuizzesService {
           })
           .where(eq(quizSubmissions.id, submission.id));
 
-        console.log(answersToGrade);
-        console.log("answers dto", dto.answers);
         // Copy responses from quiz_responses to submitted_question_answers (final locked answers)
         if (answersToGrade.length > 0) {
           await tx.insert(submittedQuestionAnswers).values(
@@ -879,9 +876,6 @@ export class QuizzesService {
           },
         });
 
-        console.log("totalLessons", totalLessons);
-        console.log("enrollmentId", dto.enrollmentId);
-
         if (!totalLessons) {
           throw new NotFoundException("Course not found");
         }
@@ -919,6 +913,7 @@ export class QuizzesService {
         columns: {
           completed: true,
           status: true,
+          score: true,
         },
       })
     );
@@ -929,7 +924,8 @@ export class QuizzesService {
 
     return {
       completed: !!result?.completed,
-      status: result?.status,
+      score: result?.score || null,
+      status: result?.status || "pending",
     };
   }
 
