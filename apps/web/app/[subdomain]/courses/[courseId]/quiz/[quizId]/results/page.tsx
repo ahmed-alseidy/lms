@@ -1,19 +1,40 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { CheckCircle2, Clock, Loader, XCircle } from "lucide-react";
+import {
+  ArrowLeft,
+  CheckCircle2,
+  Clock,
+  Loader,
+  RefreshCcw,
+  XCircle,
+} from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
+import { LoadingSpinner } from "@/components/loading-spinner";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
-import { getQuizResults, isQuizCompleted } from "@/lib/quizzes";
+import { findQuiz, getQuizResults, isQuizCompleted } from "@/lib/quizzes";
 import { attempt, cn } from "@/lib/utils";
 
 export default function ResultsPage() {
   const { courseId, quizId } = useParams();
   const t = useTranslations();
+  const router = useRouter();
+
+  const { data: quizData, isLoading: isQuizLoading } = useQuery({
+    queryKey: ["student-quiz", quizId],
+    queryFn: async () => {
+      const [response, error] = await attempt(findQuiz(quizId as string));
+      if (error) {
+        toast.error(t("common.somethingWentWrong"));
+        return null;
+      }
+      return response.data;
+    },
+  });
 
   const { data: quizResultsData, isLoading: isQuizResultsLoading } = useQuery({
     queryKey: ["quizResults", quizId],
@@ -46,31 +67,13 @@ export default function ResultsPage() {
     }
   );
 
-  if (isQuizResultsLoading || isQuizCompletionLoading) {
-    return (
-      <div className="flex h-full min-h-[calc(100vh-200px)] items-center justify-center">
-        <Loader className="text-muted-foreground h-10 w-10 animate-spin" />
-      </div>
-    );
+  if (isQuizResultsLoading || isQuizCompletionLoading || isQuizLoading) {
+    return <LoadingSpinner />;
   }
 
   if (!quizCompletion?.completed) {
-    return (
-      <div className="flex min-h-[calc(100vh-200px)] flex-col items-center justify-center">
-        <h2 className="text-2xl font-semibold">
-          {t("quizzes.quizNotCompleted")}
-        </h2>
-        <Link
-          className={cn(
-            buttonVariants({ variant: "default", size: "lg" }),
-            "mt-4"
-          )}
-          href={`/courses/${courseId}/quiz/${quizId}`}
-        >
-          {t("quizzes.startQuiz")}
-        </Link>
-      </div>
-    );
+    router.replace(`/courses/${courseId}/quiz/${quizId}`);
+    return null;
   }
 
   const results = quizResultsData!;
@@ -98,8 +101,7 @@ export default function ResultsPage() {
     const finalScore = isGraded ? results.score : results.autoScore;
     const percentage = Number(finalScore) * 100;
     const hasEssays = essayQuestions.length > 0;
-    const isPendingGrading =
-      results.status === "pending" || results.status === "auto_graded";
+    const isPendingGrading = results.status === "pending";
     // When essay questions exist and not yet graded, don't show auto_score as the main score
     const showMainScore = isGraded || !hasEssays;
     const objectivePercentage = Number(results.autoScore) * 100;
@@ -195,7 +197,7 @@ export default function ResultsPage() {
                 })}
               </div>
             )}
-          {stats.hasEssays && (
+          {stats.hasEssays && stats.isPendingGrading && (
             <div className="text-muted-foreground text-sm">
               {t("quizzes.essayQuestionsCount", { count: stats.essayCount })}
             </div>
@@ -322,12 +324,22 @@ export default function ResultsPage() {
         </ul>
       </div>
 
-      {/* Action Buttons */}
-      <div className="flex justify-center gap-4">
+      <div className="flex flex-col gap-4 md:flex-row w-full">
+        {quizData?.allowMultipleAttempts &&
+          quizCompletion?.status !== "pending" && (
+            <Link
+              className={cn(buttonVariants({ variant: "default" }))}
+              href={`/courses/${courseId}/quiz/${quizId}`}
+            >
+              <RefreshCcw className="mr-1 inline h-4 w-4" />
+              {t("quizzes.retakeQuiz")}
+            </Link>
+          )}
         <Link
-          className={cn(buttonVariants({ variant: "outline" }), "w-full")}
+          className={cn(buttonVariants({ variant: "outline" }))}
           href={`/courses/${courseId}`}
         >
+          <ArrowLeft className="mr-1 rotate-rtl inline h-4 w-4" />
           {t("quizzes.backToCourse")}
         </Link>
       </div>

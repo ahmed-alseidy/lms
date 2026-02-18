@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { AxiosError } from "axios";
 import { Loader2 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -84,7 +85,7 @@ export default function QuizPage() {
     isLoading: isQuizLoading,
     error: quizError,
   } = useQuery({
-    queryKey: ["quiz", quizId],
+    queryKey: ["student-quiz", quizId],
     queryFn: async () => {
       const [response, error] = await attempt(findQuiz(quizId));
       if (error) {
@@ -119,7 +120,10 @@ export default function QuizPage() {
   });
 
   const quizCompleted =
-    !!quiz && !quiz.allowMultipleAttempts && !!quizCompletedResponse?.completed;
+    !!quiz &&
+    !quiz.allowMultipleAttempts &&
+    !!quizCompletedResponse?.completed &&
+    quizCompletedResponse?.status !== "pending";
 
   // Track when timer should be active (memoized to prevent unnecessary re-renders)
   const shouldTimerRun = useMemo(() => {
@@ -132,6 +136,7 @@ export default function QuizPage() {
       !quiz ||
       !enrollmentId ||
       quizCompleted ||
+      quizCompletedResponse?.status === "pending" ||
       !isStarting ||
       quiz.questions.length === 0
     )
@@ -159,6 +164,11 @@ export default function QuizPage() {
         const [startResponse, startError] = await attempt(
           startQuiz(quizId, enrollmentId)
         );
+
+        if (startError instanceof AxiosError && startError.status === 409) {
+          router.replace(`/courses/${courseId}/quiz/${quizId}/results`);
+          return;
+        }
 
         if (startError || !startResponse?.data) {
           toast.error(t("quizzes.failedToStartQuiz"));
@@ -383,7 +393,6 @@ export default function QuizPage() {
       );
 
       const answers = [...choiceAnswers, ...textAnswers];
-      console.log(answers);
 
       const [, error] = await attempt(
         submitQuiz(quizId, enrollmentId, answers)
