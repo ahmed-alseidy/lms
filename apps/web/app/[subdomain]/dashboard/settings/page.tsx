@@ -6,7 +6,11 @@ export default async function SettingsPage() {
   const session = await getCurrentSession();
   const teacherProfile = await getTeacherProfileServer();
 
-  if (!session?.user) {
+  if (
+    !session?.user ||
+    (session.session?.expiresAt &&
+      new Date(session.session.expiresAt) < new Date())
+  ) {
     return null;
   }
 

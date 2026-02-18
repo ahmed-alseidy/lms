@@ -1,7 +1,10 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { FormEvent, useState } from "react";
+import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -9,7 +12,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
+import { updateTeacherProfile } from "@/lib/users";
 
 type TeacherProfile = {
   subdomain: string;
@@ -47,6 +54,32 @@ export function SettingsContent({
   const tNav = useTranslations("navigation");
   const tCommon = useTranslations("common");
 
+  const [name, setName] = useState(user.name);
+  const [contactInfo, setContactInfo] = useState<string>(
+    teacherProfile?.contactInfo ?? ""
+  );
+  const [isSaving, setIsSaving] = useState(false);
+
+  async function handleSaveProfile(e: FormEvent) {
+    e.preventDefault();
+    if (!name.trim()) {
+      toast.error(tCommon("cannotBeEmpty"));
+      return;
+    }
+    try {
+      setIsSaving(true);
+      await updateTeacherProfile({
+        name: name.trim(),
+        contactInfo: contactInfo.trim() || null,
+      });
+      toast.success(tCommon("updatedSuccessfully"));
+    } catch {
+      toast.error(tCommon("somethingWentWrong"));
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
   return (
     <div className="container mx-auto space-y-8">
       <div>
@@ -67,19 +100,42 @@ export function SettingsContent({
           <CardContent className="flex flex-col gap-4">
             <div className="flex items-center gap-4">
               <Avatar className="h-14 w-14">
-                <AvatarImage alt={user.name} src={user.image ?? undefined} />
+                <AvatarImage alt={name} src={user.image ?? undefined} />
                 <AvatarFallback className="text-lg">
-                  {user.name.charAt(0).toUpperCase()}
+                  {name.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <div className="grid gap-1">
-                <p className="font-medium leading-none">{user.name}</p>
+                <p className="font-medium leading-none">{name}</p>
                 <p className="text-muted-foreground text-sm">{user.email}</p>
               </div>
             </div>
-            <p className="text-muted-foreground text-xs">
-              {tCommon("pressEditToSeeDetails")}
-            </p>
+
+            <form className="space-y-4" onSubmit={handleSaveProfile}>
+              <div className="space-y-1">
+                <Label htmlFor="name">{tNav("profile")}</Label>
+                <Input
+                  id="name"
+                  onChange={(e) => setName(e.target.value)}
+                  value={name}
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label htmlFor="contactInfo">{tCommon("contactInfo")}</Label>
+                <Textarea
+                  className="min-h-[80px]"
+                  id="contactInfo"
+                  onChange={(e) => setContactInfo(e.target.value)}
+                  placeholder={tCommon("descriptionPlaceholder")}
+                  value={contactInfo}
+                />
+              </div>
+
+              <Button disabled={isSaving} size="sm" type="submit">
+                {isSaving ? tCommon("submitting") : tCommon("save")}
+              </Button>
+            </form>
           </CardContent>
         </Card>
 

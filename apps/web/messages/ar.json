@@ -3,6 +3,7 @@
     "platformName": "Barq Learn"
   },
   "common": {
+    "contactInfo": "معلومات الاتصال",
     "overview": "المعاينة",
     "attempts": "محاولات",
     "resources": "الموارد",
