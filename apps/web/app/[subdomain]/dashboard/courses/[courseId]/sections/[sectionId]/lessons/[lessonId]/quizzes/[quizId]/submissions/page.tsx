@@ -95,7 +95,6 @@ export default function QuizSubmissionsPage() {
       const [res, err] = await attempt(
         getQuizSubmissions(lessonId, quizId, page, pageSize)
       );
-      console.log(res);
       if (err) {
         toast.error(t("failedToLoadSubmissions"));
         throw err;
@@ -194,8 +193,7 @@ export default function QuizSubmissionsPage() {
         <Card>
           <CardHeader>
             <CardTitle>
-              {quiz.title} — {submissions.length} submission
-              {submissions.length !== 1 ? "s" : ""}
+              {quiz.title} — {submissions.length} {t("submissions")}
             </CardTitle>
           </CardHeader>
           <CardContent>

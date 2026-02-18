@@ -23,7 +23,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   if (hasSubdomain === null) {
     return null;
   }
-  console.log(hasSubdomain);
 
   if (!hasSubdomain) {
     return (

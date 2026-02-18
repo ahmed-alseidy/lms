@@ -20,7 +20,6 @@ export function FormatHeading({ levels = [] }: { levels: HeadingTagType[] }) {
 
   return levels.map(
     (level) => (
-      console.log(level),
       (
         <SelectItem
           key={level}
