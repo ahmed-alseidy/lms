@@ -376,7 +376,6 @@ export class AnalyticsService {
           courseName: courses.title,
           students: count(enrollments.id),
           revenue: sum(courses.price),
-          // TODO: add rating,
           completionRate: avg(enrollments.progress),
           imageUrl: courses.imageUrl,
           createdAt: courses.createdAt,

@@ -161,8 +161,6 @@ export class VideosService {
         const progress = Math.round(
           ((completedLessons[0].count || 0) / totalLessons.lessonsCount) * 100
         );
-        console.log(completedLessons[0].count, totalLessons.lessonsCount);
-        console.log(progress);
 
         await tx
           .update(enrollments)

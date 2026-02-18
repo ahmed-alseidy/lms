@@ -417,7 +417,6 @@ export class CoursesService {
       .offset(offset)
       .innerJoin(courses, eq(enrollments.courseId, courses.id));
 
-    console.log("r", r);
     if (!offset && !limit) {
       const raw = await db.query.enrollments.findMany({
         where: and(
