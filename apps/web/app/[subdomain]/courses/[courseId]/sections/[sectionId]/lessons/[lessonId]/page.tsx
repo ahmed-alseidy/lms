@@ -269,7 +269,7 @@ export default function LessonPage() {
         }}
       >
         {/* Enhanced Sidebar */}
-        <aside className="sticky top-0 hidden h-screen w-96 border-r border-border/50 bg-card/50 backdrop-blur-sm xl:block">
+        <aside className="sticky top-0 hidden h-screen w-96 border-r border-border/50 bg-muted/70 backdrop-blur-sm xl:block">
           <div className="flex h-full flex-col">
             {/* Course Header */}
             <div className="border-b border-border/50 p-4">
