@@ -207,6 +207,7 @@
     "goToPreviousSection": "Go to previous section"
   },
   "lessons": {
+    "viewQuizResults": "View Quiz Results",
     "title": "Lessons",
     "createLesson": "Create Lesson",
     "editLesson": "Edit Lesson",
