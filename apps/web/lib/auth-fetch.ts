@@ -4,11 +4,6 @@ import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import { authClient } from "./auth-client";
 import { BACKEND_URL } from "./constants";
 
-export type OkResponse<T = unknown> = {
-  ok: true;
-  data: T;
-};
-
 export async function authFetch<T>(
   url: string | URL,
   options?: AxiosRequestConfig
