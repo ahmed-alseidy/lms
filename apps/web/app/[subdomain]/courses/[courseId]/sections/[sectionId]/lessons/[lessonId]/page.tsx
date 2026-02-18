@@ -285,7 +285,7 @@ export default function LessonPage() {
                     />
                   </div>
                 ) : (
-                  <div className="flex h-[60px] w-[60px] items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 ring-2 ring-primary/20">
+                  <div className="flex h-[60px] w-[60px] items-center justify-center rounded-xl bg-linear-to-br from-primary/20 to-primary/10 ring-2 ring-primary/20">
                     <Play className="h-6 w-6 text-primary" />
                   </div>
                 )}
@@ -340,7 +340,7 @@ export default function LessonPage() {
         <div className="flex flex-1 flex-col">
           {/* Top Navigation Bar */}
           <div className="sticky top-0 z-10 border-b border-border/50 bg-background/80 backdrop-blur-md">
-            <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 p-4">
+            <div className="mx-auto sm:flex-row flex-col flex max-w-6xl sm:items-center justify-between gap-4 p-4">
               <div className="flex items-center gap-2">
                 <div className="xl:hidden">
                   <SheetTrigger asChild>
@@ -359,7 +359,7 @@ export default function LessonPage() {
               </div>
 
               {/* Navigation Arrows */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 self-end">
                 {nav.prev && (
                   <Link
                     href={`/courses/${courseId}/sections/${nav.prev.sectionId}/lessons/${nav.prev.lessonId}`}

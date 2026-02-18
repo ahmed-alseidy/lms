@@ -65,8 +65,14 @@ const generateLessonUrl = (
   lessonId: number
 ) => `/courses/${courseId}/sections/${sectionId}/lessons/${lessonId}`;
 
-const generateQuizUrl = (courseId: number, quizId: string) =>
-  `/courses/${courseId}/quiz/${quizId}`;
+const generateQuizUrl = (
+  isQuizCompleted: boolean,
+  courseId: number,
+  quizId: string
+) =>
+  isQuizCompleted
+    ? `/courses/${courseId}/quiz/${quizId}/results`
+    : `/courses/${courseId}/quiz/${quizId}`;
 
 function LoadingSpinner() {
   return (
@@ -164,14 +170,22 @@ function LessonResources({
               !!isQuizCompleted?.completed &&
                 "border-green-600 bg-green-100 hover:bg-green-200/80"
             )}
-            href={generateQuizUrl(courseId, quizId!)}
+            href={generateQuizUrl(
+              !!isQuizCompleted?.completed || false,
+              courseId,
+              quizId!
+            )}
           >
             {isQuizCompleted?.completed ? (
               <CheckCircle className="h-3 w-3 text-green-600" />
             ) : (
               <FileText className="h-3 w-3" />
             )}
-            <span>{t("lessons.takeQuiz")}</span>
+            <span>
+              {isQuizCompleted?.completed
+                ? t("lessons.viewQuizResults")
+                : t("lessons.takeQuiz")}
+            </span>
             <Badge className="ml-auto text-xs" variant="secondary">
               {lesson.quizzes?.length || 0}
             </Badge>
