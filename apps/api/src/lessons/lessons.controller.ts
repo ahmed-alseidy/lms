@@ -13,15 +13,12 @@ import {
   Post,
   Put,
   Query,
-  UseGuards,
 } from "@nestjs/common";
 import { ApiBearerAuth } from "@nestjs/swagger";
 import { Roles } from "@/auth/decorators/roles.decorator";
-import { RolesGuard } from "@/auth/guards/roles/roles.guard";
 import { LessonsService } from "./lessons.service";
 
 @ApiBearerAuth()
-@UseGuards(RolesGuard)
 @Controller("courses/:courseId/sections/:sectionId/lessons")
 export class LessonsController {
   constructor(private lessonsService: LessonsService) {}

@@ -21,12 +21,10 @@ import { ApiBearerAuth } from "@nestjs/swagger";
 import { Session, UserSession } from "@thallesp/nestjs-better-auth";
 import { eq } from "drizzle-orm";
 import { Roles } from "@/auth/decorators/roles.decorator";
-import { RolesGuard } from "@/auth/guards/roles/roles.guard";
 import { attempt } from "@/utils/error-handling";
 import { CourseCodesService } from "./course-codes.service";
 
 @ApiBearerAuth()
-@UseGuards(RolesGuard)
 @Controller("courses/:courseId/course-codes")
 export class CourseCodesController {
   constructor(private readonly courseCodesService: CourseCodesService) {}
