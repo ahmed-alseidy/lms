@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Loader } from "lucide-react";
 import { toast } from "sonner";
+import { MuxVideoPlayer } from "@/components/mux-player";
 import { VideoJsPlayer } from "@/components/video-js-player";
 import { Lesson } from "@/lib/courses";
 import { attempt } from "@/lib/utils";
@@ -34,12 +35,15 @@ export const VideoPlayer = ({ lesson }: { lesson: Lesson }) => {
 
   if (isError) return <div>Error loading video</div>;
 
+  const video = videoResponse?.data;
+
   return (
     <div className="flex w-full items-center justify-center bg-black">
-      <VideoJsPlayer
-        className="w-full"
-        src={videoResponse?.data.manifestUrl || ""}
-      />
+      {video?.videoType === "mux" && video.muxPlaybackId ? (
+        <MuxVideoPlayer playbackId={video.muxPlaybackId} />
+      ) : (
+        <VideoJsPlayer className="w-full" src={video?.manifestUrl ?? ""} />
+      )}
     </div>
   );
 };

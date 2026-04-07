@@ -2,6 +2,7 @@ import { IconLoader, IconTrash, IconVideo } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
+import { MuxVideoPlayer } from "@/components/mux-player";
 import { Button } from "@/components/ui/button";
 import { VideoJsPlayer } from "@/components/video-js-player";
 import { attempt } from "@/lib/utils";
@@ -50,14 +51,19 @@ export const VideoPreview = ({
 
   const video = videoData.data;
 
+  console.log(video.videoType);
   return (
     <div className="space-y-4">
-      <div className="relative  w-full overflow-hidden rounded-lg border bg-black">
-        <VideoJsPlayer
-          className="h-full w-full"
-          poster="/video-placeholder.png"
-          src={video.manifestUrl}
-        />
+      <div className="relative w-full overflow-hidden rounded-lg border bg-black">
+        {video.videoType === "mux" && video.muxPlaybackId ? (
+          <MuxVideoPlayer playbackId={video.muxPlaybackId} />
+        ) : (
+          <VideoJsPlayer
+            className="h-full w-full"
+            poster="/video-placeholder.png"
+            src={video.manifestUrl ?? ""}
+          />
+        )}
       </div>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">

@@ -15,10 +15,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Lesson } from "@/lib/courses";
 import { deleteQuiz, findQuiz, Quiz } from "@/lib/quizzes";
 import { getLessonResources, LessonResource } from "@/lib/resources";
+import { getTeacherProfile } from "@/lib/users";
 import { attempt } from "@/lib/utils";
 import { deleteVideo, Video as VideoInterface } from "@/lib/videos";
 import { CreateQuizDialog } from "./create-quiz-dialog";
 import { LessonResourceUploader } from "./lesson-resource-uploader";
+import { MuxVideoUploader } from "./mux-video-uploader";
 import { ResourceItem } from "./resource-item";
 import { VideoPreview } from "./video-preview";
 import { VideoUploader } from "./video-uploader";
@@ -37,6 +39,17 @@ export const LessonTabs = ({ lesson }: LessonTabsProps) => {
   const tCommon = useTranslations("common");
 
   const queryClient = useQueryClient();
+
+  const { data: teacherProfile } = useQuery({
+    queryKey: ["teacher-profile"],
+    queryFn: async () => {
+      const [response, error] = await attempt(getTeacherProfile());
+      if (error) return null;
+      return response?.data ?? null;
+    },
+  });
+
+  const isPremium = teacherProfile?.plan === "premium";
 
   const {
     data: resourcesData,
@@ -154,12 +167,18 @@ export const LessonTabs = ({ lesson }: LessonTabsProps) => {
             />
           ))}
 
-          {lessonVideos.length === 0 && (
-            <VideoUploader
-              lessonId={lesson.id}
-              onUploadComplete={handleVideoUploadComplete}
-            />
-          )}
+          {lessonVideos.length === 0 &&
+            (isPremium ? (
+              <MuxVideoUploader
+                lessonId={lesson.id}
+                onUploadComplete={handleVideoUploadComplete}
+              />
+            ) : (
+              <VideoUploader
+                lessonId={lesson.id}
+                onUploadComplete={handleVideoUploadComplete}
+              />
+            ))}
         </div>
       </TabsContent>
 
