@@ -20,7 +20,7 @@ export default function TagInputForm() {
   };
 
   return (
-    <div className="w-full max-w-md p-4 space-y-4 bg-white border rounded-md shadow">
+    <div className="w-full max-w-md p-4 space-y-4 border rounded-md shadow">
       <div>
         <label className="text-sm font-medium">Add Tags (max 8)</label>
         <div className="flex items-center mt-2 space-x-2">
