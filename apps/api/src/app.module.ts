@@ -9,6 +9,7 @@ import { AppService } from "./app.service";
 import { CourseCodesModule } from "./course-codes/course-codes.module";
 import { CoursesModule } from "./courses/courses.module";
 import { LessonsModule } from "./lessons/lessons.module";
+import { MuxModule } from "./mux/mux.module";
 import { PaymentsModule } from "./payments/payments.module";
 import { QuizzesModule } from "./quizzes/quizzes.module";
 import { ResourcesModule } from "./resources/resources.module";
@@ -21,6 +22,7 @@ import { VideosModule } from "./videos/videos.module";
     UsersModule,
     AuthModule.forRoot({
       auth,
+      disableTrustedOriginsCors: true,
     }),
     PassportModule,
     ConfigModule.forRoot({ isGlobal: true }),
@@ -33,6 +35,7 @@ import { VideosModule } from "./videos/videos.module";
     CourseCodesModule,
     AnalyticsModule,
     PaymentsModule,
+    MuxModule,
   ],
   controllers: [AppController],
   providers: [AppService],
