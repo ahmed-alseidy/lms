@@ -1,16 +1,22 @@
-import { CreateVideoDto, UploadDto } from "@lms-saas/shared-lib";
+import {
+  CreateMuxVideoDto,
+  CreateVideoDto,
+  UploadDto,
+} from "@lms-saas/shared-lib";
 import axios from "axios";
 import { authFetch } from "./auth-fetch";
 import { BACKEND_URL } from "./constants";
-import { attempt } from "./utils";
 
 const baseUrl = `${BACKEND_URL}/lessons`;
 
 export interface Video {
   id: string;
   title: string;
-  manifestKey: string;
-  segmentsKey: string;
+  videoType?: "s3" | "mux";
+  manifestKey?: string;
+  segmentsKey?: string;
+  muxPlaybackId?: string;
+  muxStatus?: string;
 }
 
 export type Fields = {
@@ -34,6 +40,16 @@ export const createVideo = (lessonId: number, data: CreateVideoDto) => {
     method: "POST",
     data,
   });
+};
+
+export const createMuxUpload = (lessonId: number, data: CreateMuxVideoDto) => {
+  return authFetch<{ uploadUrl: string; videoId: string }>(
+    `${BACKEND_URL}/mux/lessons/${lessonId}/upload`,
+    {
+      method: "POST",
+      data,
+    }
+  );
 };
 
 export const getUploadPresignedUrl = (lessonId: number, data: UploadDto) => {
@@ -90,8 +106,11 @@ export const deleteVideo = (lessonId: number, id: string) => {
 export const getVideo = (lessonId: number, id: string) => {
   return authFetch<{
     videoId: string;
-    manifestUrl: string;
-    segmentsBaseUrl: string;
+    videoType: "s3" | "mux";
+    manifestUrl?: string;
+    segmentsBaseUrl?: string;
+    muxPlaybackId?: string;
+    muxStatus?: string;
   }>(`${baseUrl}/${lessonId}/videos/${id}`, {
     method: "GET",
   });

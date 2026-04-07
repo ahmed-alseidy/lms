@@ -8,6 +8,18 @@ export const findCurrentUser = () => {
   return authFetch<SelectTeacher | SelectStudent>(`${baseUrl}/current-user`);
 };
 
+export const getTeacherProfile = () => {
+  return authFetch<{
+    teacherId: number;
+    plan: string;
+    subdomain: string;
+    name: string;
+    email: string;
+    profilePictureUrl: string | null;
+    contactInfo: string | null;
+  }>(`${baseUrl}/teacher-profile`);
+};
+
 export const updateTeacherProfile = (data: {
   name: string;
   contactInfo?: string | null;
