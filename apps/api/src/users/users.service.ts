@@ -116,11 +116,13 @@ export class UsersService {
     return user;
   }
 
-  async getTeacherProfile(authUserId: string) {
+  async getTeacherByAuthId(authUserId: string) {
     const [teacher] = await attempt(
       db.query.teachers.findFirst({
         where: eq(teachers.authUserId, authUserId),
         columns: {
+          teacherId: true,
+          plan: true,
           subdomain: true,
           name: true,
           email: true,
