@@ -32,12 +32,10 @@ import { ApiBearerAuth } from "@nestjs/swagger";
 import { Session, UserSession } from "@thallesp/nestjs-better-auth";
 import { eq } from "drizzle-orm";
 import { Roles } from "@/auth/decorators/roles.decorator";
-import { RolesGuard } from "@/auth/guards/roles/roles.guard";
 import { attempt } from "@/utils/error-handling";
 import { QuizzesService } from "./quizzes.service";
 
 @ApiBearerAuth()
-@UseGuards(RolesGuard)
 @Controller("lessons/:lessonId/quizzes")
 export class QuizzesController {
   constructor(private quizzesService: QuizzesService) {}

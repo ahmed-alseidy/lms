@@ -11,7 +11,6 @@ import {
   Patch,
   Post,
   Req,
-  UseGuards,
 } from "@nestjs/common";
 import {
   AllowAnonymous,
@@ -19,7 +18,6 @@ import {
   UserSession,
 } from "@thallesp/nestjs-better-auth";
 import { Roles } from "@/auth/decorators/roles.decorator";
-import { RolesGuard } from "@/auth/guards/roles/roles.guard";
 import { UsersService } from "./users.service";
 
 @Controller("users")
@@ -31,14 +29,12 @@ export class UsersController {
     return this.usersService.findUser(req.user.id, req.user.role);
   }
 
-  @UseGuards(RolesGuard)
   @Roles("teacher")
   @Get("teacher-profile")
   async getTeacherProfile(@Session() session: UserSession) {
-    return this.usersService.getTeacherProfile(session.user.id);
+    return this.usersService.getTeacherByAuthId(session.user.id);
   }
 
-  @UseGuards(RolesGuard)
   @Roles("teacher")
   @Patch("teacher-profile")
   async updateTeacherProfile(
