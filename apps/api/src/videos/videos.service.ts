@@ -22,8 +22,11 @@ export class VideosService {
   async create(
     lessonId: number,
     data: {
-      manifestKey: string;
-      segmentsKey: string;
+      manifestKey?: string;
+      segmentsKey?: string;
+      muxAssetId?: string;
+      muxStatus?: "waiting" | "ready" | "errored";
+      muxPlaybackId?: string;
       title: string;
     }
   ) {
@@ -35,11 +38,18 @@ export class VideosService {
           title: data.title,
           manifestKey: data.manifestKey,
           segmentsKey: data.segmentsKey,
+          muxAssetId: data.muxAssetId,
+          muxStatus: data.muxStatus,
+          muxPlaybackId: data.muxPlaybackId,
         })
         .returning({
           title: videos.title,
+          videoType: videos.videoType,
           manifestKey: videos.manifestKey,
           segmentsKey: videos.segmentsKey,
+          muxAssetId: videos.muxAssetId,
+          muxStatus: videos.muxStatus,
+          muxPlaybackId: videos.muxPlaybackId,
           id: videos.id,
         });
 

@@ -13,6 +13,7 @@ import {
 } from "@nestjs/common";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { Roles } from "@/auth/decorators/roles.decorator";
+import { MuxService } from "@/mux/mux.service";
 import { S3Service } from "@/s3/s3.service";
 import { User } from "@/users/decorators/user.decorator";
 import { VideosService } from "./videos.service";
@@ -23,37 +24,73 @@ import { VideosService } from "./videos.service";
 export class VideosController {
   constructor(
     private s3Service: S3Service,
-    private videosService: VideosService
+    private videosService: VideosService,
+    private muxService: MuxService
   ) {}
 
-  @Delete('/:id')
-  @Roles('teacher')
-  async delete(@Param('id') id: string) {
-    const video = await this.videosService.getVideo(id);
-    if (video.length > 0) {
-      // Delete all files in the video directory
-      const basePath = video[0].manifestKey.split('/').slice(0, -1).join('/');
+  @Delete("/:id")
+  @Roles("teacher")
+  async delete(@Param("id", ParseUUIDPipe) id: string) {
+    const [video] = await this.videosService.getVideo(id);
+    if (video) {
+      if (video.videoType === "mux" && video.muxAssetId) {
+        await this.muxService.deleteAsset(video.muxAssetId);
+        return;
+      }
+      const basePath =
+        video.manifestKey?.split("/").slice(0, -1).join("/") ?? "";
       await this.s3Service.deleteDirectory(basePath);
     }
     return this.videosService.delete(id);
   }
 
-  @Get('/:id')
-  @Roles('teacher', 'student')
-  async getVideoUrl(@Param('id') id: string) {
+  @Get("/:id")
+  @Roles("teacher", "student")
+  async getVideoUrl(@Param("id", ParseUUIDPipe) id: string) {
     const [video] = await this.videosService.getVideo(id);
     if (!video) {
-      throw new NotFoundException('Video not found');
+      throw new NotFoundException("Video not found");
     }
 
-    const manifestUrl = await this.s3Service.getSignedUrl(video.manifestKey);
+    if (video.videoType === "mux") {
+      // If webhook hasn't fired yet (e.g. during local dev without a tunnel),
+      // fall back to querying Mux directly so polling still resolves.
+      console.log(video)
+      console.log(video.muxStatus !== "ready" && video.muxStatus !== "errored" && !!video.muxAssetId)
+      if (video.muxStatus !== "ready" && video.muxStatus !== "errored" && !!video.muxAssetId) {
+        const liveStatus = await this.muxService.getAssetStatus(video.muxAssetId);
+      console.log(liveStatus)
+        if (liveStatus.status === "ready" && liveStatus.playbackId) {
+          await this.muxService.markAsReady(video.muxAssetId, liveStatus.playbackId);
+          return {
+            videoId: video.id,
+            videoType: video.videoType,
+            muxPlaybackId: liveStatus.playbackId,
+            muxStatus: "ready",
+          };
+        }
+        return {
+          videoId: video.id,
+          videoType: video.videoType,
+          muxPlaybackId: null,
+          muxStatus: liveStatus.status,
+        };
+      }
 
-    // For segments, we return the base URL without a signed URL
-    // since individual segment files will be requested as needed
+      return {
+        videoId: video.id,
+        videoType: video.videoType,
+        muxPlaybackId: video.muxPlaybackId,
+        muxStatus: video.muxStatus,
+      };
+    }
+
+    const manifestUrl = await this.s3Service.getSignedUrl(video.manifestKey ?? "");
     const segmentsBaseUrl = video.segmentsKey;
 
     return {
       videoId: video.id,
+      videoType: video.videoType,
       manifestUrl,
       segmentsBaseUrl,
     };
