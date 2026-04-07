@@ -18,8 +18,17 @@ export const videos = pgTable("videos", {
       onDelete: "cascade",
     }),
   title: varchar("title", { length: 255 }).notNull(),
-  manifestKey: varchar("manifest_key", { length: 255 }).notNull(),
-  segmentsKey: varchar("segments_key", { length: 255 }).notNull(),
+  videoType: varchar("video_type", { length: 20, enum: ["s3", "mux"] }).default(
+    "s3"
+  ),
+  manifestKey: varchar("manifest_key", { length: 255 }),
+  segmentsKey: varchar("segments_key", { length: 255 }),
+  muxAssetId: varchar("mux_asset_id", { length: 255 }),
+  muxPlaybackId: varchar("mux_playback_id", { length: 255 }),
+  muxStatus: varchar("mux_status", {
+    length: 20,
+    enum: ["waiting", "preparing", "ready", "errored"],
+  }).default("waiting"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 

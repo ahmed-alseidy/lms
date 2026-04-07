@@ -26,6 +26,10 @@ export const teachers = pgTable("teachers", {
     sql`CURRENT_TIMESTAMP`
   ),
   contactInfo: text("contact_info"),
+  plan: varchar("plan", {
+    length: 20,
+    enum: ["free", "essential", "premium"],
+  }).default("free"),
   updatedAt: timestamp("updated_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
     .$onUpdate(() => new Date()),
